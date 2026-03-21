@@ -110,7 +110,7 @@ export default function Home() {
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
       
       {/* 1. HERO SECTION: Full-Screen Impact */}
-      <section className={`relative min-h-screen flex items-center px-6 overflow-hidden transition-all duration-1000 ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
+      <section className={`relative min-h-screen flex items-center px-6 overflow-hidden transition-all duration-1000 pb-20 lg:pb-0 ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
         
         {/* THEME BACKGROUNDS */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -199,7 +199,7 @@ export default function Home() {
         </div>
 
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center pt-20">
+        <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center pt-40 lg:pt-32">
           <div className="max-w-2xl">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -313,7 +313,7 @@ export default function Home() {
       </section>
 
       {/* 2. TRUSTED BY LOGOS (Infinite Marquee RTL) */}
-      <section className="py-10 border-y border-slate-200/60 bg-white overflow-hidden relative flex items-center">
+      <section className="py-24 mt-12 border-y border-slate-200/60 bg-white overflow-hidden relative flex items-center">
         <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
         
