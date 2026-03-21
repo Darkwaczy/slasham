@@ -6,7 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/slasham/',
+    base: './',
     plugins: [react(), tailwindcss()],
     build: {
       outDir: 'docs'
