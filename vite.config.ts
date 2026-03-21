@@ -9,7 +9,19 @@ export default defineConfig(({mode}) => {
     base: './',
     plugins: [react(), tailwindcss()],
     build: {
-      outDir: 'docs'
+      outDir: 'docs',
+      chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-motion': ['motion', 'gsap'],
+            'vendor-lucide': ['lucide-react'],
+            'vendor-recharts': ['recharts'],
+            'vendor-google': ['@google/genai'],
+          }
+        }
+      }
     },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
