@@ -2,10 +2,10 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { 
   Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, ArrowRight, Search, 
   ChevronDown, User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
-  Store, Zap, MapPin, TrendingUp, Plus, Info, Briefcase, Newspaper, CheckCircle2,
+  Store, Zap, MapPin, TrendingUp, Plus, Info, Briefcase, Newspaper,
   ChevronRight, LogOut, ArrowLeft
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -334,9 +334,6 @@ export default function Layout() {
                         <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl font-bold text-slate-700 transition-colors">
                           <Mail size={20} className="text-slate-400" /> Support
                         </Link>
-                        <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl font-bold text-slate-700 transition-colors">
-                          <User size={20} className="text-slate-400" /> Member Login
-                        </Link>
                       </div>
                     </motion.div>
                   ) : (
@@ -374,10 +371,10 @@ export default function Layout() {
                 </AnimatePresence>
               </div>
 
-              {/* Footer User Info */}
-              {user && (
-                 <div className="p-6 border-t border-slate-100 bg-slate-50/50 shrink-0">
-                   <div className="flex items-center justify-between">
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-slate-100 bg-white mt-auto sticky bottom-0">
+                {user ? (
+                   <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
                       <div className="flex items-center gap-3">
                         <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
                         <div>
@@ -387,13 +384,22 @@ export default function Layout() {
                       </div>
                       <button 
                         onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                        className="p-2.5 text-rose-500 hover:bg-rose-100/50 rounded-xl transition-colors"
+                        aria-label="Logout"
                       >
-                        <LogOut size={20} aria-label="Logout" />
+                        <LogOut size={20} />
                       </button>
                    </div>
-                 </div>
-              )}
+                ) : (
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-center gap-3 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-[0.98] shadow-lg shadow-slate-200"
+                  >
+                    <User size={18} /> Member Login
+                  </Link>
+                )}
+              </div>
             </motion.div>
           </div>
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, ShieldCheck, Star, MessageSquare } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, MapPin, Clock, ShieldCheck, Star, MessageSquare, Loader2 } from "lucide-react";
 import gsap from "gsap";
 import { deals } from "../data/mockData";
 import { FavoriteButton, ShareButton } from "../components/DealActions";
@@ -26,9 +26,26 @@ const REVIEWS_BOTTOM = [
 
 export default function DealDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
   const deal = deals.find(d => d.id === Number(id));
+  const user = JSON.parse(localStorage.getItem("slasham_user") || "null");
+
+  const handleBuy = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    
+    setIsBuying(true);
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsBuying(false);
+      navigate("/user/coupons");
+    }, 2000);
+  };
 
   useEffect(() => {
     if (deal) {
@@ -181,8 +198,20 @@ export default function DealDetail() {
               </div>
             </div>
 
-            <button className="w-full bg-slate-900 text-white py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-colors mb-4 shadow-sm">
-              Buy Now
+            <button 
+              onClick={handleBuy}
+              disabled={isBuying}
+              className={`w-full py-4 rounded-full font-bold text-lg transition-all mb-4 shadow-sm flex items-center justify-center gap-2 ${
+                isBuying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
+              }`}
+            >
+              {isBuying ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" /> Processing...
+                </>
+              ) : (
+                "Buy Now"
+              )}
             </button>
             <p className="text-center text-xs text-slate-400 font-medium">
               Secure payment via Paystack • 100% Money Back Guarantee if unredeemed
@@ -341,6 +370,31 @@ export default function DealDetail() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-xl border-t border-slate-200 z-50 shadow-[0_-8px_30px_rgb(0,0,0,0.05)]">
+        <div className="flex items-center justify-between gap-4 max-w-xl mx-auto">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Current Price</p>
+            <p className="text-xl font-bold text-slate-900 leading-none">{deal.price}</p>
+          </div>
+          <button 
+            onClick={handleBuy}
+            disabled={isBuying}
+            className={`flex-grow py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2 ${
+              isBuying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white active:scale-[0.98]'
+            }`}
+          >
+            {isBuying ? (
+              <>
+                <Loader2 size={18} className="animate-spin" /> Processing...
+              </>
+            ) : (
+              "Buy Now"
+            )}
+          </button>
         </div>
       </div>
     </div>

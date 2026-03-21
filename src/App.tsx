@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Layout from "./components/Layout";
 import Home from "./components/Home";
 import Deals from "./pages/Deals";
@@ -63,9 +64,18 @@ import Abuja from "./pages/cities/Abuja";
 import Lagos from "./pages/cities/Lagos";
 import PortHarcourt from "./pages/cities/PortHarcourt";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

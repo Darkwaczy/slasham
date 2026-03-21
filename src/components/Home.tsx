@@ -231,7 +231,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 mt-16"
             >
               <Link to="/deals" className={`px-10 py-5 rounded-full font-bold transition-all shadow-2xl flex items-center justify-center gap-2 group ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-emerald-500/20' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/20'}`}>
                 Explore Deals <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
