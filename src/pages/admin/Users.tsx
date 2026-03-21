@@ -1,7 +1,9 @@
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin } from "lucide-react";
-import { motion } from "motion/react";
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState } from "react";
+import AdminModal from "../../components/AdminModal";
 
-const users = [
+const INITIAL_USERS = [
   { id: "#1024", name: "John Doe", email: "john@example.com", status: "Active", role: "Gold Member", joinDate: "Jan 12, 2026", location: "Lagos" },
   { id: "#1025", name: "Sarah Smith", email: "sarah.s@gmail.com", status: "Active", role: "Platinum", joinDate: "Feb 02, 2026", location: "Abuja" },
   { id: "#1026", name: "Mike Johnson", email: "mike.j@outlook.com", status: "Pending", role: "New User", joinDate: "Mar 20, 2026", location: "Lagos" },
@@ -10,6 +12,48 @@ const users = [
 ];
 
 export default function AdminUsers() {
+  const [users, setUsers] = useState(INITIAL_USERS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+
+  const filteredUsers = users.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleToggleStatus = (id: string) => {
+    setUsers(prev => prev.map(u => {
+      if (u.id === id) {
+        return { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' };
+      }
+      return u;
+    }));
+    setIsActionModalOpen(false);
+  };
+
+  const handleDeleteUser = (id: string) => {
+    setUsers(prev => prev.filter(u => u.id !== id));
+    setIsActionModalOpen(false);
+  };
+
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const newUser = {
+      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      status: "Active",
+      role: formData.get('role') as string,
+      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+      location: formData.get('location') as string,
+    };
+    setUsers([newUser, ...users]);
+    setIsAddModalOpen(false);
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
@@ -18,7 +62,10 @@ export default function AdminUsers() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">User Management</h1>
           <p className="text-slate-500 font-medium">Manage and monitor all platform users</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-105 transition-transform">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-105 transition-all"
+        >
           <UserPlus size={18} /> Add New User
         </button>
       </div>
@@ -26,10 +73,10 @@ export default function AdminUsers() {
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Users", count: "1,200", color: "indigo" },
-          { label: "Active Now", count: "482", color: "emerald" },
+          { label: "Total Users", count: users.length * 240, color: "indigo" }, // Simulated total
+          { label: "Active Now", count: Math.floor(users.length * 96.4), color: "emerald" },
           { label: "New Today", count: "+24", color: "blue" },
-          { label: "Suspended", count: "12", color: "rose" },
+          { label: "Suspended", count: users.filter(u => u.status === 'Suspended').length, color: "rose" },
         ].map((stat, i) => (
           <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
@@ -39,27 +86,29 @@ export default function AdminUsers() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
-              placeholder="Filter users..." 
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-slate-900 transition-all font-medium"
+              placeholder="Search by name or email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-slate-900 transition-all font-medium"
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all">
               <Filter size={16} /> Filters
             </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all">
               Export CSV
             </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-visible">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
@@ -71,68 +120,204 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {users.map((user, idx) => (
-                <motion.tr 
-                  key={user.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
-                        {user.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 mb-0.5">{user.name}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-                          <Mail size={12} /> {user.email}
+              <AnimatePresence mode="popLayout">
+                {filteredUsers.map((user, idx) => (
+                  <motion.tr 
+                    key={user.id}
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="hover:bg-slate-50/50 transition-colors group"
+                  >
+                    <td className="px-8 py-5 text-nowrap">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                          {user.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 mb-0.5">{user.name}</p>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                            <Mail size={12} /> {user.email}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                      user.status === 'Active' ? 'bg-emerald-50 text-emerald-600' :
-                      user.status === 'Pending' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-2">
-                       <Shield size={14} className="text-indigo-500" />
-                       <span className="text-sm font-bold text-slate-700">{user.role}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-slate-700">{user.joinDate}</span>
-                      <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                        <MapPin size={10} /> {user.location}
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        user.status === 'Active' ? 'bg-emerald-50 text-emerald-600' :
+                        user.status === 'Pending' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                      }`}>
+                        {user.status}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-900">
-                      <MoreHorizontal size={20} />
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-2">
+                         <Shield size={14} className="text-indigo-500" />
+                         <span className="text-sm font-bold text-slate-700">{user.role}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-700">{user.joinDate}</span>
+                        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                          <MapPin size={10} /> {user.location}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <button 
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsActionModalOpen(true);
+                        }}
+                        className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900 active:scale-95"
+                      >
+                        <MoreHorizontal size={20} />
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             </tbody>
           </table>
+          {filteredUsers.length === 0 && (
+            <div className="py-20 text-center">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search size={24} className="text-slate-300" />
+              </div>
+              <p className="text-slate-500 font-bold">No users match your search criteria</p>
+            </div>
+          )}
         </div>
 
-        <div className="p-6 bg-slate-50/30 border-t border-slate-50 flex justify-between items-center text-xs font-bold text-slate-400">
-          <p>Showing 5 of 1,200 users</p>
+        <div className="p-6 bg-slate-50/30 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <p>Showing {filteredUsers.length} of {users.length} users</p>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50">Prev</button>
-            <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg">Next</button>
+            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors">Prev</button>
+            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors">Next</button>
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      <AdminModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)}
+        title="Add New User"
+        description="Onboard a new member to the Slasham platform manually."
+      >
+        <form onSubmit={handleAddUser} className="space-y-6 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</label>
+              <input 
+                name="name"
+                required 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none"
+                placeholder="e.g. David Chima"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
+              <input 
+                name="email"
+                type="email" 
+                required 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none"
+                placeholder="chima@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Location</label>
+              <select 
+                name="location"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none appearance-none"
+              >
+                <option value="Lagos">Lagos</option>
+                <option value="Abuja">Abuja</option>
+                <option value="Port Harcourt">Port Harcourt</option>
+                <option value="Enugu">Enugu</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Role / Tier</label>
+              <select 
+                name="role"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none appearance-none"
+              >
+                <option value="Basic User">Basic User</option>
+                <option value="Gold Member">Gold Member</option>
+                <option value="Platinum">Platinum</option>
+                <option value="New User">New User</option>
+              </select>
+            </div>
+          </div>
+          <div className="pt-4 flex gap-4">
+            <button 
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-slate-900/20 transition-all"
+            >
+              Create Account
+            </button>
+          </div>
+        </form>
+      </AdminModal>
+
+      {/* Action/Manage User Modal */}
+      <AdminModal
+        isOpen={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        title="Manage User"
+        description={selectedUser ? `Actions for ${selectedUser.name}` : ""}
+      >
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+             <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
+               {selectedUser?.name.charAt(0)}
+             </div>
+             <div>
+               <p className="font-black text-slate-900">{selectedUser?.name}</p>
+               <p className="text-xs text-slate-500 font-medium">{selectedUser?.email}</p>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2">
+            <button 
+              onClick={() => handleToggleStatus(selectedUser.id)}
+              className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all ${
+                selectedUser?.status === 'Active' 
+                ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 
+                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+              }`}
+            >
+              {selectedUser?.status === 'Active' ? <UserMinus size={18} /> : <ShieldCheck size={18} />}
+              {selectedUser?.status === 'Active' ? 'Suspend User Access' : 'Restore User Access'}
+            </button>
+            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all">
+              <Shield size={18} /> Change Membership Role
+            </button>
+            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all">
+              <Mail size={18} /> Send System Notification
+            </button>
+            <div className="my-2 border-t border-slate-100"></div>
+            <button 
+              onClick={() => handleDeleteUser(selectedUser.id)}
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-rose-500 hover:bg-rose-50 transition-all"
+            >
+              <Trash2 size={18} /> Permanently Delete Account
+            </button>
+          </div>
+        </div>
+      </AdminModal>
     </div>
   );
 }
