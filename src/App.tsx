@@ -74,7 +74,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/slasham">
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
