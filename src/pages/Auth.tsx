@@ -8,9 +8,9 @@ export default function Auth() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
   
-  const [role, setRole] = useState<"user" | "business" | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"user" | "business" | null>("user");
+  const [email, setEmail] = useState("admin@gmail.com");
+  const [password, setPassword] = useState("admin");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,8 +65,8 @@ export default function Auth() {
 
         if (isLoginPage) {
           // Login Logic
-          if (email === "admin" && password === "admin") {
-            const adminUser = { id: "admin", name: "Admin User", email: "admin", password: "admin", role: "admin" };
+          if (email === "admin@gmail.com" && password === "admin") {
+            const adminUser = { id: "admin", name: "Admin User", email: "admin@gmail.com", password: "admin", role: "admin" };
             localStorage.setItem("slasham_user", JSON.stringify(adminUser));
             setSuccess(true);
             setTimeout(() => navigate("/admin-dashboard"), 1500);

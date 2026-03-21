@@ -5,11 +5,12 @@ import {
   Clock, Shield, ThumbsUp, Heart, Timer, 
   Briefcase, TrendingUp, Users, ShoppingBag
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { deals } from "../data/mockData";
 
 export default function Home() {
+  const navigate = useNavigate();
   // Flash Sale Timer
   const [timeLeft, setTimeLeft] = useState(3600 * 4 + 23 * 60 + 59);
   useEffect(() => {
@@ -277,7 +278,16 @@ export default function Home() {
                   <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-6"><MapPin size={16} className="text-emerald-500"/> {heroBusinesses[activeHeroBusiness].location}</p>
                   <div className={`flex justify-between items-center pt-6 border-t transition-colors duration-500 ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'border-white/10' : 'border-slate-100'}`}>
                     <p className={`text-3xl font-black transition-colors duration-500 ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'text-white' : 'text-slate-900'}`}>{heroBusinesses[activeHeroBusiness].price}</p>
-                    <button className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400' : 'bg-slate-900 text-white hover:bg-emerald-500'}`}>Claim Deal</button>
+                    <button 
+                      onClick={() => navigate("/deals")}
+                      className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        heroTheme === 1 || heroTheme === 3 || heroTheme === 4 
+                          ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400' 
+                          : 'bg-slate-900 text-white hover:bg-emerald-500'
+                      }`}
+                    >
+                      Claim Deal
+                    </button>
                   </div>
                 </div>
               </motion.div>

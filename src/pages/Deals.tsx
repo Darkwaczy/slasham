@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPin, Zap } from "lucide-react";
+import { MapPin, Zap } from "lucide-react";
 import gsap from "gsap";
 import { deals } from "../data/mockData";
 
@@ -15,13 +15,13 @@ export default function Deals() {
 
   return (
     <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      <div className="flex flex-col items-center text-center mb-16 gap-8">
         <div>
           <h1 className="text-5xl md:text-6xl font-bold mb-4 text-slate-900 tracking-tight">Explore Deals</h1>
           <p className="text-xl text-slate-500">Find the best value in your city.</p>
         </div>
         
-        <div className="flex gap-4 overflow-x-auto pb-2 w-full md:w-auto hide-scrollbar">
+        <div className="flex gap-4 overflow-x-auto pb-2 w-full md:w-auto justify-center hide-scrollbar">
           <button className="px-6 py-2 rounded-full bg-slate-900 text-white font-bold whitespace-nowrap shadow-sm">All Deals</button>
           <button className="px-6 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors whitespace-nowrap shadow-sm">Food & Drinks</button>
           <button className="px-6 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors whitespace-nowrap shadow-sm">Nightlife</button>
