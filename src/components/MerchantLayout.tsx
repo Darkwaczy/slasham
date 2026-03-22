@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Ticket, 
@@ -17,6 +17,12 @@ import { motion, AnimatePresence } from "motion/react";
 export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("slasham_user");
+    navigate("/");
+  };
 
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/merchant/dashboard" },
@@ -109,7 +115,10 @@ export default function MerchantLayout() {
                   <span className="text-sm font-black text-slate-900 truncate tracking-tight">Orchid Bistro</span>
                   <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Verified Merchant</span>
                 </div>
-                <button className="ml-auto text-slate-400 hover:text-rose-500 transition-colors border-none p-1">
+                <button 
+                  onClick={handleLogout}
+                  className="ml-auto text-slate-400 hover:text-rose-500 transition-colors border-none p-1"
+                >
                   <LogOut size={18} />
                 </button>
               </div>
@@ -139,9 +148,12 @@ export default function MerchantLayout() {
               <Bell size={20} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
             </button>
-            <div className="h-4 w-[1px] bg-slate-200 hidden md:block mx-1" />
+            <div className="h-4 w-px bg-slate-200 hidden md:block mx-1" />
             <div className="flex items-center gap-3">
-               <button className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/10 hover:scale-105 active:scale-95 transition-all">
+               <button 
+                 onClick={() => navigate("/business/campaign")}
+                 className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/10 hover:scale-105 active:scale-95 transition-all"
+               >
                   <Plus size={16} /> New Campaign
                </button>
                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm cursor-pointer shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-colors">

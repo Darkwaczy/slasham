@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ShoppingBag, Store, Zap, ArrowRight, CheckCircle2, ShieldCheck, Clock, CreditCard, Smartphone, Ticket } from "lucide-react";
+import { ShoppingBag, Store, Zap, ArrowRight, CheckCircle2, ShieldCheck, Clock, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HowItWorks() {
@@ -116,7 +116,7 @@ export default function HowItWorks() {
                 viewport={{ once: true }}
                 className="lg:w-1/2 relative"
               >
-                <div className="aspect-[4/3] rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-slate-200/60">
+                <div className="aspect-4/3 rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-slate-200/60">
                   <img src={step.image} alt={step.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </div>
                 {/* Decorative element */}

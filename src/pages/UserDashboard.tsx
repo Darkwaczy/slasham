@@ -1,18 +1,18 @@
-
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Heart, ShoppingBag, User, TrendingUp, Clock, ChevronRight, 
   Settings, Bell, CreditCard, Gift, ShieldCheck, Zap, 
-  Calendar, MapPin, Star, Filter, Search, Grid, List as ListIcon,
+  Plus, Star, Filter, Search, Grid, List as ListIcon,
   Crown, ArrowUpRight, Share2, Trash2, CheckCircle2
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [notifications, setNotifications] = useState([
+  const [notifications] = useState([
     { id: 1, title: 'Flash sale!', message: 'Pizza Hut 50% off ends in 2 hours.', time: '10m ago', read: false },
     { id: 2, title: 'Voucher used', message: 'Your spa session voucher has been redeemed.', time: '2h ago', read: true },
   ]);

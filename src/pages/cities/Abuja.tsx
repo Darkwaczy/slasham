@@ -1,4 +1,3 @@
-import React from "react";
 import { Store, Users, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -7,7 +6,7 @@ export default function Abuja() {
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="relative h-[500px] rounded-[40px] overflow-hidden mb-16">
         <img src="https://images.unsplash.com/photo-1588615865663-899478f6c38b?auto=format&fit=crop&w=1200&q=80" alt="Abuja" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
         <div className="absolute bottom-12 left-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-xs uppercase tracking-widest mb-4">
             Active City

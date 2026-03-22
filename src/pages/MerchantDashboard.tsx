@@ -8,8 +8,10 @@ import {
   Search
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
 export default function MerchantDashboard() {
+  const navigate = useNavigate();
   const stats = [
     { label: "Total Revenue", value: "₦1,240,000", change: "+12.5%", icon: <DollarSign size={20} />, color: "emerald" },
     { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "blue" },
@@ -34,7 +36,10 @@ export default function MerchantDashboard() {
             <p className="text-slate-500 font-medium">Your business performance is looking strong today.</p>
           </div>
           <div className="flex gap-3">
-             <button className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all">
+             <button 
+               onClick={() => alert("Report generation started. You will receive a notification when it's ready.")}
+               className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all"
+             >
                 Download Reports
              </button>
           </div>
@@ -76,7 +81,12 @@ export default function MerchantDashboard() {
                <h3 className="font-black text-xl text-slate-900 tracking-tight">Recent Claims</h3>
                <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest">Real-time validation log</p>
             </div>
-            <button className="text-xs font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700">View History</button>
+            <button 
+              onClick={() => navigate("/merchant/campaigns")}
+              className="text-xs font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700"
+            >
+              View History
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -122,14 +132,17 @@ export default function MerchantDashboard() {
               
               <div className="space-y-6">
                 <div className="relative group">
-                   <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-20 blur group-hover:opacity-40 transition-opacity" />
+                   <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-20 blur group-hover:opacity-40 transition-opacity" />
                    <input 
                     type="text" 
                     placeholder="0 0 0 0 0 0" 
                     className="relative w-full bg-slate-800/50 border border-white/10 rounded-2xl py-6 px-4 text-white placeholder:text-slate-700 focus:outline-none focus:bg-slate-800 focus:border-emerald-500/50 transition-all text-center text-3xl font-black tracking-[0.6em]"
                    />
                 </div>
-                <button className="w-full py-5 bg-emerald-500 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 active:scale-95 transition-all shadow-xl shadow-emerald-500/20">
+                <button 
+                  onClick={() => alert("Voucher verified successfully! Redemption processed.")}
+                  className="w-full py-5 bg-emerald-500 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
+                >
                   Verify & Process
                 </button>
               </div>
@@ -139,7 +152,7 @@ export default function MerchantDashboard() {
           <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
             <h3 className="font-black text-xl text-slate-900 tracking-tight mb-8">Quick Support</h3>
             <div className="space-y-4">
-              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-[2rem] hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
+              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:text-emerald-600 transition-colors">
                     <Calendar size={18} />
@@ -148,7 +161,7 @@ export default function MerchantDashboard() {
                 </div>
                 <ArrowUpRight size={18} className="text-slate-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-500 transition-all" />
               </a>
-              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-[2rem] hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
+              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:text-emerald-600 transition-colors">
                     <Search size={18} />

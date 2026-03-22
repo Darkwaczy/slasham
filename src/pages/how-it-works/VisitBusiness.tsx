@@ -1,5 +1,4 @@
-import React from "react";
-import { Store, MapPin, Smartphone, CheckCircle2, QrCode, ArrowRight } from "lucide-react";
+import { Store, MapPin, Smartphone, CheckCircle2, QrCode } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function VisitBusiness() {

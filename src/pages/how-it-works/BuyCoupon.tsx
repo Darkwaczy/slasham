@@ -1,5 +1,4 @@
-import React from "react";
-import { ShoppingBag, CheckCircle2, Ticket, ShieldCheck, Zap, ArrowRight, Search } from "lucide-react";
+import { ShoppingBag, CheckCircle2, Ticket, ShieldCheck, Zap, Search } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function BuyCoupon() {
@@ -105,7 +104,7 @@ export default function BuyCoupon() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400 font-medium">Valid Until</span>
-                  <span className="text-slate-900 font-bold text-rose-500">20 Apr 2026</span>
+                  <span className="text-rose-500 font-bold">20 Apr 2026</span>
                 </div>
               </div>
 
