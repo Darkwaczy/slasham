@@ -1,11 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star } from "lucide-react";
+import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Heart } from "lucide-react";
 import gsap from "gsap";
 import { motion } from "motion/react";
 import { deals } from "../data/mockData";
 
 export default function Deals() {
+  const [lovedDeals, setLovedDeals] = useState<Record<string, boolean>>({});
+
+  const toggleLove = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLovedDeals(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   useEffect(() => {
     gsap.fromTo(
       ".deal-card",
@@ -23,7 +31,7 @@ export default function Deals() {
   return (
     <div className="bg-slate-50 min-h-screen pt-0">
       {/* 1. SPONSORED ADS SECTION (Precision Replicated) */}
-      <section className="px-4 lg:px-6 mb-6 mt-0">
+      <section className="px-4 lg:px-6 mb-6 -mt-12 relative z-10">
         <div className="w-full relative rounded-3xl overflow-hidden bg-sky-200/50 min-h-[180px] lg:min-h-[200px] flex items-center border border-sky-100 shadow-sm">
           {/* Background Decorative Flowers (Simulated with polaroids or subtle images) */}
           <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=1200')] bg-cover bg-center"></div>
@@ -136,6 +144,18 @@ export default function Deals() {
                           <Zap size={10} className="fill-amber-500 text-amber-500" /> {deal.tag || "Hot"}
                         </div>
                       </div>
+
+                      {/* Wishlist Button */}
+                      <button 
+                        onClick={(e) => toggleLove(e, `${deal.id}-${i}`)}
+                        className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/40 transition-all active:scale-95 shadow-lg ${
+                          lovedDeals[`${deal.id}-${i}`] 
+                            ? "bg-rose-500 text-white border-rose-400" 
+                            : "bg-white/80 text-slate-400 hover:text-rose-500"
+                        }`}
+                      >
+                        <Heart size={14} className={lovedDeals[`${deal.id}-${i}`] ? "fill-white" : ""} />
+                      </button>
                     </div>
 
                     {/* Content */}
