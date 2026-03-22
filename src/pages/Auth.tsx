@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle, ArrowLeft, Settings } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
   
-  const [role, setRole] = useState<"user" | "business" | null>("user");
+  const [role, setRole] = useState<"user" | "business" | "admin" | null>("user");
   const [email, setEmail] = useState("admin@gmail.com");
-  const [password, setPassword] = useState("admin");
+  const [password, setPassword] = useState("admin123");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,11 +65,14 @@ export default function Auth() {
 
         if (isLoginPage) {
           // Login Logic
-          if (email === "admin@gmail.com" && password === "admin") {
-            const adminUser = { id: "admin", name: "Admin User", email: "admin@gmail.com", password: "admin", role: "admin" };
+          if (email === "admin@gmail.com" && password === "admin123") {
+            const adminUser = { id: "admin", name: "Admin User", email: "admin@gmail.com", password: "admin123", role: role || "admin" };
             localStorage.setItem("slasham_user", JSON.stringify(adminUser));
             setSuccess(true);
-            setTimeout(() => navigate("/admin-dashboard"), 1500);
+            let destination = "/user/dashboard";
+            if (role === "business") destination = "/merchant/dashboard";
+            if (role === "admin") destination = "/admin/dashboard";
+            setTimeout(() => navigate(destination), 1500);
             return;
           }
           
@@ -200,6 +203,20 @@ export default function Auth() {
                         <p className="text-slate-500 text-sm">Manage deals and grow sales</p>
                       </div>
                       <ArrowRight className="ml-auto text-slate-300 group-hover:text-blue-500" />
+                    </button>
+
+                    <button 
+                      onClick={() => setRole("admin")}
+                      className="w-full p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-slate-800 hover:bg-slate-50 transition-all flex items-center gap-6 group"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-800">
+                        <Settings size={32} />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-lg font-bold text-slate-900">I am an Admin</h3>
+                        <p className="text-slate-500 text-sm">Oversee platform operations</p>
+                      </div>
+                      <ArrowRight className="ml-auto text-slate-300 group-hover:text-slate-900" />
                     </button>
                   </div>
                 </motion.div>
