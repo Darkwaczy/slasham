@@ -78,7 +78,7 @@ export default function DealDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24">
         {/* Left: Image & Info */}
         <div>
-          <div className="rounded-3xl overflow-hidden aspect-[4/3] mb-8 relative group ring-1 ring-slate-200/60 shadow-sm">
+          <div className="rounded-3xl overflow-hidden aspect-4/3 mb-8 relative group ring-1 ring-slate-200/60 shadow-sm">
             <img 
               src={deal.image} 
               alt={deal.title} 
@@ -256,7 +256,7 @@ export default function DealDetail() {
                   <div className="flex items-center gap-1 w-12 shrink-0 text-sm font-medium text-slate-600">
                     {bar.stars} <Star size={12} className="fill-slate-400 text-slate-400" />
                   </div>
-                  <div className="flex-grow h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="grow h-2.5 bg-slate-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-amber-400 rounded-full" 
                       style={{ width: `${bar.percent}%` }}
@@ -312,14 +312,14 @@ export default function DealDetail() {
 
         {/* Infinite Scrolling Reviews */}
         <div className="relative overflow-hidden -mx-6 px-6 pb-12">
-          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-linear-to-r from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-linear-to-l from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
           
           {/* Top Row (LTR) */}
           <div className="flex overflow-hidden w-full mb-6">
             <div className="animate-marquee-ltr flex items-center gap-6">
               {[...REVIEWS_TOP, ...REVIEWS_TOP].map((review, i) => (
-                <div key={`top-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm flex-shrink-0">
+                <div key={`top-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm shrink-0">
                   <div className="flex items-center gap-3 mb-4">
                     <img 
                       src={review.avatar} 
@@ -347,7 +347,7 @@ export default function DealDetail() {
           <div className="flex overflow-hidden w-full">
             <div className="animate-marquee-rtl flex items-center gap-6">
               {[...REVIEWS_BOTTOM, ...REVIEWS_BOTTOM].map((review, i) => (
-                <div key={`bottom-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm flex-shrink-0">
+                <div key={`bottom-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm shrink-0">
                   <div className="flex items-center gap-3 mb-4">
                     <img 
                       src={review.avatar} 
@@ -383,7 +383,7 @@ export default function DealDetail() {
           <button 
             onClick={handleBuy}
             disabled={isBuying}
-            className={`flex-grow py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2 ${
+            className={`grow py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2 ${
               isBuying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white active:scale-[0.98]'
             }`}
           >

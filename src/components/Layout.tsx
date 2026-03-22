@@ -9,7 +9,9 @@ import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 
+
 export default function Layout() {
+  const [city, setCity] = useState("Lagos");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -356,7 +358,7 @@ export default function Layout() {
       </AnimatePresence>
 
       <main className={`grow ${location.pathname === '/' ? '' : 'pt-24'}`}>
-        <Outlet />
+        <Outlet context={{ city, setCity }} />
       </main>
 
       {/* Premium Footer */}

@@ -4,11 +4,14 @@ import {
   Store, Star, Timer, Heart, ChevronDown,
   Briefcase, TrendingUp, Users, ShoppingBag, Zap
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { motion } from "motion/react";
 import { deals } from "../data/mockData";
 
 export default function Home() {
+  const { city, setCity } = useOutletContext<{ city: string; setCity: (c: string) => void }>();
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
+
   // Flash Sale Timer
   const [timeLeft, setTimeLeft] = useState(3600 * 4 + 23 * 60 + 59);
   useEffect(() => {
@@ -19,7 +22,8 @@ export default function Home() {
   const minutes = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
   const seconds = (timeLeft % 60).toString().padStart(2, '0');
 
-  // (Deleted unused variables: navigate, openFaq, setOpenFaq, activeCity, setActiveCity, activeStep, setActiveStep, heroTheme, cityData, faqs, activeHeroBusiness, heroBusinesses)
+  // Filtered Deals for both sections
+  const filteredDeals = deals.filter(d => d.location.toLowerCase().includes(city.toLowerCase()));
 
   return (
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
@@ -44,7 +48,7 @@ export default function Home() {
         <div className="w-full overflow-hidden relative">
           <div className="flex animate-marquee-rtl gap-6 py-4">
             {/* Repeat the deals multiple times to ensure a seamless loop */}
-            {[...deals, ...deals, ...deals, ...deals].map((deal, index) => (
+            {[...filteredDeals, ...filteredDeals, ...filteredDeals, ...filteredDeals].map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`${deal.id}-${index}`} 
@@ -117,10 +121,35 @@ export default function Home() {
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Over 60 fresh experiences added today</p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors">
-                <MapPin size={16} className="text-teal-600" />
-                <span className="text-sm font-bold text-slate-700">Lagos</span>
-                <ChevronDown size={14} className="text-slate-400" />
+              <div className="relative">
+                <div 
+                  onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+                  className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors z-20"
+                >
+                  <MapPin size={16} className="text-teal-600" />
+                  <span className="text-sm font-bold text-slate-700">{city}</span>
+                  <ChevronDown size={14} className="text-slate-400" />
+                </div>
+                
+                {isLocationDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setIsLocationDropdownOpen(false)}></div>
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-40 overflow-hidden">
+                      {["Lagos", "Abuja"].map((name) => (
+                        <button
+                          key={name}
+                          onClick={() => {
+                            setCity(name);
+                            setIsLocationDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-5 py-3 text-sm font-bold hover:bg-slate-50 transition-colors ${city === name ? "text-teal-600 bg-teal-50/50" : "text-slate-600"}`}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               <Link to="/deals" className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1">
                 View all <ArrowRight size={16} />
@@ -129,65 +158,69 @@ export default function Home() {
           </div>
 
           <div className="p-8 md:p-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-10 lg:gap-x-8">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <Link 
-                to={`/deal/${deals[i % deals.length].id}`} 
-                key={i} 
-                className="group flex flex-col bg-white transition-all duration-300 relative"
-              >
-                {/* Wishlist Heart */}
-                <button className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-500 hover:scale-110 transition-all active:scale-95">
-                  <Heart size={16} />
-                </button>
+            {Array.from({ length: 24 }).map((_, i) => {
+              const deal = filteredDeals[i % filteredDeals.length];
+              if (!deal) return null;
+              return (
+                <Link 
+                  to={`/deal/${deal.id}`} 
+                  key={i} 
+                  className="group flex flex-col bg-white transition-all duration-300 relative"
+                >
+                  {/* Wishlist Heart */}
+                  <button className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-500 hover:scale-110 transition-all active:scale-95">
+                    <Heart size={16} />
+                  </button>
 
-                <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-slate-50">
-                  <div className="absolute top-3 left-3 z-10 bg-teal-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm">
-                    {deals[i % deals.length].tag || 'TRENDING'}
+                  <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-slate-50">
+                    <div className="absolute top-3 left-3 z-10 bg-teal-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm">
+                      {deal.tag || 'TRENDING'}
+                    </div>
+                    <img 
+                      src={deal.image} 
+                      alt={deal.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
+                      referrerPolicy="no-referrer" 
+                      loading="lazy" 
+                    />
                   </div>
-                  <img 
-                    src={deals[i % deals.length].image} 
-                    alt={deals[i % deals.length].title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
-                    referrerPolicy="no-referrer" 
-                    loading="lazy" 
-                  />
-                </div>
-                
-                <div className="flex flex-col grow">
-                  <h3 className="text-sm font-bold mb-1 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-10">
-                    {deals[i % deals.length].title}
-                  </h3>
                   
-                  <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-medium mb-1.5">
-                    <MapPin size={10} className="text-slate-400" />
-                    <span className="truncate">{deals[i % deals.length].location}</span>
-                  </div>
+                  <div className="flex flex-col grow">
+                    <h3 className="text-sm font-bold mb-1 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-10">
+                      {deal.title}
+                    </h3>
+                    
+                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-medium mb-1.5">
+                      <MapPin size={10} className="text-slate-400" />
+                      <span className="truncate">{deal.location}</span>
+                    </div>
 
-                  {/* Ratings - Groupon Style */}
-                  <div className="flex items-center gap-1 mb-3">
-                    <div className="flex items-center text-amber-400">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} size={10} className="fill-current" />
-                      ))}
+                    {/* Ratings - Groupon Style */}
+                    <div className="flex items-center gap-1 mb-3">
+                      <div className="flex items-center text-amber-400">
+                        {[...Array(5)].map((_, j) => (
+                          <Star key={j} size={10} className="fill-current" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">(421)</span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400">(421)</span>
-                  </div>
 
-                  <div className="mt-auto flex flex-col gap-0.5">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-black text-slate-900">{deals[i % deals.length].price}</span>
-                      <span className="text-[11px] font-bold text-slate-400 line-through decoration-rose-500/30">{deals[i % deals.length].original}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">
-                        -70% OFF
-                      </span>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Limited Time</span>
+                    <div className="mt-auto flex flex-col gap-0.5">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-black text-slate-900">{deal.price}</span>
+                        <span className="text-[11px] font-bold text-slate-400 line-through decoration-rose-500/30">{deal.original}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">
+                          -70% OFF
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Limited Time</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
           
           <div className="p-8 md:p-12 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">

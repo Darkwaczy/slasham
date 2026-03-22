@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Heart } from "lucide-react";
 import gsap from "gsap";
 import { motion } from "motion/react";
 import { deals } from "../data/mockData";
 
 export default function Deals() {
+  const { city } = useOutletContext<{ city: string }>();
   const [lovedDeals, setLovedDeals] = useState<Record<string, boolean>>({});
 
   const toggleLove = (e: React.MouseEvent, id: string) => {
@@ -122,7 +123,9 @@ export default function Deals() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
             {Array.from({ length: 48 }).map((_, i) => {
-              const deal = deals[i % deals.length];
+              const cityDeals = deals.filter(d => d.location.toLowerCase().includes(city.toLowerCase()));
+              if (cityDeals.length === 0) return null;
+              const deal = cityDeals[i % cityDeals.length];
               return (
                 <motion.div
                   key={`${deal.id}-${i}`}

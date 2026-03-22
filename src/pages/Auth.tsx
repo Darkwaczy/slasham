@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle, ArrowLeft } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ export default function Auth() {
           if (user) {
             localStorage.setItem("slasham_user", JSON.stringify(user));
             setSuccess(true);
-            setTimeout(() => navigate(role === "business" ? "/merchant-dashboard" : "/"), 1500);
+            setTimeout(() => navigate(role === "business" ? "/merchant/dashboard" : "/user/dashboard"), 1500);
           } else {
             setError("Invalid email, password, or role.");
           }
@@ -92,7 +92,7 @@ export default function Auth() {
             localStorage.setItem("slasham_users", JSON.stringify(users));
             localStorage.setItem("slasham_user", JSON.stringify(newUser));
             setSuccess(true);
-            setTimeout(() => navigate(role === "business" ? "/merchant-dashboard" : "/"), 1500);
+            setTimeout(() => navigate(role === "business" ? "/merchant/dashboard" : "/user/dashboard"), 1500);
           }
         }
       } catch (err) {
@@ -104,7 +104,16 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-6 py-12 bg-[#FAFAFA]">
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-[#FAFAFA] relative">
+      {/* Absolute Back Button */}
+      <Link 
+        to="/" 
+        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-black text-slate-400 hover:text-slate-900 transition-all group z-50 uppercase tracking-[0.2em]"
+      >
+        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+        Back to Home
+      </Link>
+
       <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] border border-slate-100">
         
         {/* Left: Visual/Marketing Side */}
@@ -115,9 +124,9 @@ export default function Auth() {
           
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
-              <Link to="/" className="text-2xl font-bold text-white tracking-tight flex items-center gap-2 mb-12">
+              <div className="text-2xl font-bold text-white tracking-tight flex items-center gap-2 mb-12">
                 Slasham<span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              </Link>
+              </div>
               <h2 className="text-5xl font-bold text-white leading-[1.1] tracking-tight mb-6">
                 Join the elite <br />
                 <span className="text-emerald-400 italic">savers club.</span>

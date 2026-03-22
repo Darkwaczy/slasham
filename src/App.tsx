@@ -77,6 +77,8 @@ export default function App() {
     <HashRouter>
       <ScrollToTop />
       <Routes>
+        <Route path="login" element={<Auth />} />
+        <Route path="signup" element={<Auth />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="deals" element={<Deals />} />
@@ -92,8 +94,6 @@ export default function App() {
           <Route path="careers" element={<Careers />} />
           <Route path="press" element={<Press />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="login" element={<Auth />} />
-          <Route path="signup" element={<Auth />} />
           
           {/* Category Routes */}
           <Route path="deals/food" element={<FoodDeals />} />
