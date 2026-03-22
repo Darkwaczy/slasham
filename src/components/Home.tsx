@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   ArrowRight, MapPin, Ticket, Utensils, Sparkles, 
-  Store, Star, Timer, Heart,
+  Store, Star, Timer, Heart, ChevronDown,
   Briefcase, TrendingUp, Users, ShoppingBag
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -24,11 +24,6 @@ export default function Home() {
   return (
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
       
-      {/* 
-114:       <section className={`relative min-h-screen flex items-center px-6 overflow-hidden transition-all duration-1000 pb-20 lg:pb-0 ${heroTheme === 1 || heroTheme === 3 || heroTheme === 4 ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
-...
-323:       </section>
-      */}
 
       {/* 
 326:       <section className="py-24 mt-12 border-y border-slate-200/60 bg-white overflow-hidden relative flex items-center">
@@ -36,24 +31,12 @@ export default function Home() {
 347:       </section>
       */}
 
-      {/* 3. FLASH SALES (Dynamic Countdown & Infinite Scroll) */}
-      <section className="pt-32 pb-24 bg-red-50 border-y border-red-100 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-red-600 font-bold mb-2">
-                <Timer size={20} className="animate-pulse" />
-                <span className="uppercase tracking-wider text-sm">Flash Sales</span>
-              </div>
-              <h2 className="text-3xl font-bold text-slate-900">Ending Soon</h2>
-            </div>
-            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-red-100">
-              <div className="text-center"><span className="text-xl font-bold text-red-600">{hours}</span><p className="text-[10px] text-slate-500 uppercase">hrs</p></div>
-              <span className="text-red-300 font-bold text-xl">:</span>
-              <div className="text-center"><span className="text-xl font-bold text-red-600">{minutes}</span><p className="text-[10px] text-slate-500 uppercase">min</p></div>
-              <span className="text-red-300 font-bold text-xl">:</span>
-              <div className="text-center"><span className="text-xl font-bold text-red-600">{seconds}</span><p className="text-[10px] text-slate-500 uppercase">sec</p></div>
-            </div>
+      {/* 3. FLASH SALES (The New Hero Marquee) */}
+      <section className="pt-8 pb-4 bg-red-50/30 border-b border-red-100/50 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6 mb-4">
+          <div className="flex items-center gap-2 text-red-600 font-black">
+            <Timer size={16} className="animate-pulse" />
+            <span className="uppercase tracking-[0.2em] text-[10px]">Active Flash Sales</span>
           </div>
         </div>
 
@@ -65,11 +48,16 @@ export default function Home() {
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`${deal.id}-${index}`} 
-                className="w-[280px] sm:w-[320px] bg-white rounded-2xl overflow-hidden ring-1 ring-red-100 hover:ring-red-300 hover:shadow-xl transition-all group shrink-0 flex flex-col"
+                className="w-[160px] sm:w-[190px] bg-white rounded-2xl overflow-hidden border border-red-100 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex flex-col relative"
               >
                 <div className="aspect-4/3 relative overflow-hidden bg-slate-100">
-                  <div className="absolute top-3 left-3 z-10 bg-red-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                  <div className="absolute top-2 left-2 z-10 bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-sm">
                     -40% OFF
+                  </div>
+                  {/* Timer on each card */}
+                  <div className="absolute bottom-2 left-2 right-2 z-10 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-lg flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Timer size={10} className="text-red-400" />
+                    <span className="text-[9px] font-black tabular-nums">{hours}:{minutes}:{seconds}</span>
                   </div>
                   <img 
                     src={deal.image} 
@@ -79,16 +67,20 @@ export default function Home() {
                     loading="lazy" 
                   />
                 </div>
-                <div className="p-5 flex flex-col grow">
-                  <span className="text-red-600 text-[10px] font-bold uppercase tracking-widest mb-1.5">{deal.category}</span>
-                  <h3 className="text-base font-semibold mb-1 text-slate-900 line-clamp-1">{deal.title}</h3>
-                  <div className="flex items-center gap-1 text-slate-500 text-xs mb-4">
-                    <MapPin size={12} /> <span className="line-clamp-1">{deal.location}</span>
+                <div className="p-3 flex flex-col grow">
+                  <span className="text-red-600 text-[8px] font-bold uppercase tracking-widest mb-0.5">{deal.category}</span>
+                  <h3 className="text-xs font-bold mb-1 text-slate-900 line-clamp-1">{deal.title}</h3>
+                  <div className="flex items-center gap-1 text-slate-500 text-[9px] mb-2">
+                    <MapPin size={8} /> <span className="line-clamp-1">{deal.location}</span>
                   </div>
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-lg font-bold text-slate-900">{deal.price}</p>
-                      <p className="text-xs font-medium text-slate-400 line-through">{deal.original}</p>
+                  {/* Always visible minimal timer for urgency */}
+                  <div className="mb-2 flex items-center gap-1 text-[8px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md w-fit group-hover:hidden transition-all">
+                    <Timer size={8} /> {hours}H : {minutes}M
+                  </div>
+                  <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-sm font-black text-slate-900">{deal.price}</p>
+                      <p className="text-[9px] font-bold text-slate-400 line-through">{deal.original}</p>
                     </div>
                   </div>
                 </div>
@@ -113,65 +105,105 @@ export default function Home() {
 685:       </section>
       */}
 
-      {/* 5. TRENDING DEALS (High-End E-commerce Cards) */}
-      <section className="py-24 px-6 bg-white border-t border-slate-200/60">
-        <div className="max-w-400 mx-auto px-6">
-          <div className="flex justify-between items-end mb-12">
+      {/* 5. TRENDING DEALS (Groupon-Inspired Clean Layout) */}
+      <section className="pt-2 pb-8 px-6 md:px-8 bg-slate-50/50 -mt-2">
+        <div className="max-w-400 mx-auto bg-white rounded-[2.5rem] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+          <div className="p-8 md:p-12 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <h2 className="text-4xl font-bold tracking-tight mb-2 text-slate-900">Trending Now</h2>
-              <p className="text-slate-500">Discover over 60 of the most sought-after experiences in your city.</p>
+              <div className="flex items-center gap-2 text-slate-900 font-black mb-1">
+                <TrendingUp size={16} className="text-teal-500" />
+                <span className="uppercase tracking-[0.2em] text-[10px]">Trending Deals</span>
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Over 60 fresh experiences added today</p>
             </div>
-            <Link to="/deals" className="hidden sm:flex text-sm font-medium text-slate-900 items-center gap-1 hover:gap-2 transition-all">
-              View all deals <ArrowRight size={16} />
-            </Link>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors">
+                <MapPin size={16} className="text-teal-600" />
+                <span className="text-sm font-bold text-slate-700">Lagos</span>
+                <ChevronDown size={14} className="text-slate-400" />
+              </div>
+              <Link to="/deals" className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1">
+                View all <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6">
-            {Array.from({ length: 60 }).map((_, i) => (
+          <div className="p-8 md:p-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-10 lg:gap-x-8">
+            {Array.from({ length: 24 }).map((_, i) => (
               <Link 
                 to={`/deal/${deals[i % deals.length].id}`} 
                 key={i} 
-                className="group flex flex-col bg-white rounded-2xl overflow-hidden ring-1 ring-slate-200/60 hover:ring-teal-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300"
+                className="group flex flex-col bg-white transition-all duration-300 relative"
               >
-                <div className="aspect-4/3 relative overflow-hidden bg-slate-100">
-                  <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[9px] font-bold text-slate-900 uppercase tracking-wider shadow-sm">
-                    {deals[i % deals.length].tag}
+                {/* Wishlist Heart */}
+                <button className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-500 hover:scale-110 transition-all active:scale-95">
+                  <Heart size={16} />
+                </button>
+
+                <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-slate-50">
+                  <div className="absolute top-3 left-3 z-10 bg-teal-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm">
+                    {deals[i % deals.length].tag || 'TRENDING'}
                   </div>
-                  <img src={deals[i % deals.length].image} alt={deals[i % deals.length].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" referrerPolicy="no-referrer" loading="lazy" />
+                  <img 
+                    src={deals[i % deals.length].image} 
+                    alt={deals[i % deals.length].title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
+                    referrerPolicy="no-referrer" 
+                    loading="lazy" 
+                  />
                 </div>
-                <div className="p-4 flex flex-col grow">
-                  <span className="text-teal-600 text-[8px] font-bold uppercase tracking-widest mb-1">{deals[i % deals.length].category}</span>
-                  <h3 className="text-sm font-semibold mb-1 text-slate-900 line-clamp-1">{deals[i % deals.length].title}</h3>
-                  <div className="flex items-center gap-1 text-slate-500 text-[10px] mb-3">
-                    <MapPin size={10} /> <span className="line-clamp-1">{deals[i % deals.length].location}</span>
+                
+                <div className="flex flex-col grow">
+                  <h3 className="text-sm font-bold mb-1 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-10">
+                    {deals[i % deals.length].title}
+                  </h3>
+                  
+                  <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-medium mb-1.5">
+                    <MapPin size={10} className="text-slate-400" />
+                    <span className="truncate">{deals[i % deals.length].location}</span>
                   </div>
-                  <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-baseline gap-1.5">
-                      <p className="text-base font-bold text-slate-900">{deals[i % deals.length].price}</p>
-                      <p className="text-[10px] font-medium text-slate-400 line-through">{deals[i % deals.length].original}</p>
+
+                  {/* Ratings - Groupon Style */}
+                  <div className="flex items-center gap-1 mb-3">
+                    <div className="flex items-center text-amber-400">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} size={10} className="fill-current" />
+                      ))}
                     </div>
-                    <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                      <ArrowRight size={12} />
+                    <span className="text-[10px] font-bold text-slate-400">(421)</span>
+                  </div>
+
+                  <div className="mt-auto flex flex-col gap-0.5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-black text-slate-900">{deals[i % deals.length].price}</span>
+                      <span className="text-[11px] font-bold text-slate-400 line-through decoration-rose-500/30">{deals[i % deals.length].original}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">
+                        -70% OFF
+                      </span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Limited Time</span>
                     </div>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
-          <Link to="/deals" className="mt-8 sm:hidden w-full py-3 border border-slate-200 rounded-xl text-center font-medium text-slate-900 flex items-center justify-center gap-2">
-            View all deals <ArrowRight size={16} />
-          </Link>
+          
+          <div className="p-8 md:p-12 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
+             <button className="px-12 py-4 bg-white border border-slate-200 rounded-full font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all shadow-sm active:scale-95">
+               Load More Deals
+             </button>
+          </div>
         </div>
       </section>
 
       {/* 6. SUCCESS STORIES (Infinite Marquee) */}
-      <section className="py-24 bg-slate-50 border-t border-slate-200/60 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-600 font-medium text-sm mb-6">
-            <Heart size={16} /> Success Stories
+      <section className="pt-12 pb-24 bg-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-8 text-center text-teal-600 font-black">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-600 font-bold text-xs mb-6 uppercase tracking-widest border border-teal-100/50">
+            <Heart size={14} className="fill-teal-600" /> Success Stories
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6 text-slate-900">Loved by thousands.</h2>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto">See how people are upgrading their lifestyle and saving money with Slasham.</p>
         </div>
 
         <div className="relative overflow-hidden pb-12">

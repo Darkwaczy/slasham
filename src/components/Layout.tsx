@@ -1,8 +1,8 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { 
-  Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, ArrowRight, Search, 
-  ChevronDown, User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
-  Store, Zap, MapPin, TrendingUp, Plus, Info, Briefcase, Newspaper,
+  Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, Search, 
+  User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
+  Store, Zap, MapPin, TrendingUp, Plus, Info,
   ChevronRight, LogOut, ArrowLeft
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -11,9 +11,7 @@ import { motion, AnimatePresence } from "motion/react";
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
-  const dropdownTimeout = useRef<NodeJS.Timeout | null>(null);
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const ctaRef = useRef<HTMLAnchorElement>(null);
@@ -54,23 +52,7 @@ export default function Layout() {
     }
   }, [isMenuOpen]);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => setActiveDropdown(null);
-    window.addEventListener("click", handleClickOutside);
-    return () => window.removeEventListener("click", handleClickOutside);
-  }, []);
 
-  const handleMouseEnter = (name: string) => {
-    if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
-    setActiveDropdown(name);
-  };
-
-  const handleMouseLeave = () => {
-    dropdownTimeout.current = setTimeout(() => {
-      setActiveDropdown(null);
-    }, 150);
-  };
 
   const menuSections = [
     {
@@ -119,138 +101,106 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-slate-900 selection:bg-teal-100 selection:text-teal-900">
       
-      {/* Floating Pill Navbar */}
-      <header className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-        <div className="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-full px-6 py-2.5 flex items-center justify-between w-full max-w-6xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] pointer-events-auto transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              Slasham<span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            </Link>
-          </div>
-          
-          <nav className="hidden lg:flex items-center justify-center gap-6 text-sm font-semibold text-slate-600">
-            {/* Desktop Nav Items */}
-            <div className="relative" onMouseEnter={() => handleMouseEnter('browse')} onMouseLeave={handleMouseLeave}>
-              <button className={`flex items-center gap-1.5 hover:text-slate-900 transition-colors ${activeDropdown === 'browse' ? 'text-slate-900' : ''}`}>
-                Deal <ChevronDown size={14} className={`transition-transform duration-300 ${activeDropdown === 'browse' ? 'rotate-180' : ''}`} />
-              </button>
-              {activeDropdown === 'browse' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Link to="/deals/food" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Utensils size={16} className="text-orange-500" /> Food & Drinks</Link>
-                  <Link to="/deals/experiences" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Sparkles size={16} className="text-purple-500" /> Experiences</Link>
-                  <Link to="/deals/beauty" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Heart size={16} className="text-rose-500" /> Beauty & Wellness</Link>
-                  <Link to="/deals/products" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Package size={16} className="text-blue-500" /> Products</Link>
-                  <Link to="/deals/services" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Settings size={16} className="text-slate-500" /> Services</Link>
-                </div>
-              )}
-            </div>
-            {/* Process */}
-            <div className="relative" onMouseEnter={() => handleMouseEnter('how')} onMouseLeave={handleMouseLeave}>
-              <button className={`flex items-center gap-1.5 hover:text-slate-900 transition-colors ${activeDropdown === 'how' ? 'text-slate-900' : ''}`}>
-                Process <ChevronDown size={14} className={`transition-transform duration-300 ${activeDropdown === 'how' ? 'rotate-180' : ''}`} />
-              </button>
-              {activeDropdown === 'how' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Link to="/how-it-works/buy" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><ShoppingBag size={16} className="text-emerald-500" /> Buy coupon</Link>
-                  <Link to="/how-it-works/visit" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Store size={16} className="text-blue-500" /> Visit business</Link>
-                  <Link to="/how-it-works/unlock" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Zap size={16} className="text-amber-500" /> Unlock more</Link>
-                </div>
-              )}
-            </div>
-            {/* Cities */}
-            <div className="relative" onMouseEnter={() => handleMouseEnter('cities')} onMouseLeave={handleMouseLeave}>
-              <button className={`flex items-center gap-1.5 hover:text-slate-900 transition-colors ${activeDropdown === 'cities' ? 'text-slate-900' : ''}`}>
-                Cities <ChevronDown size={14} className={`transition-transform duration-300 ${activeDropdown === 'cities' ? 'rotate-180' : ''}`} />
-              </button>
-              {activeDropdown === 'cities' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Link to="/cities/abuja" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left"><MapPin size={16} className="text-slate-900" /> Abuja</Link>
-                  <Link to="/cities/lagos" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left"><MapPin size={16} className="text-slate-900" /> Lagos</Link>
-                  <Link to="/cities/port-harcourt" className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
-                    <div className="flex items-center gap-3 text-slate-400 group-hover:text-slate-600"><MapPin size={16} /> Port Harcourt</div>
-                    <span className="text-[10px] font-bold uppercase bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">Later</span>
-                  </Link>
-                </div>
-              )}
-            </div>
-            {/* Business */}
-            <div className="relative" onMouseEnter={() => handleMouseEnter('business')} onMouseLeave={handleMouseLeave}>
-              <button className={`flex items-center gap-1.5 hover:text-slate-900 transition-colors ${activeDropdown === 'business' ? 'text-slate-900' : ''}`}>
-                Business <ChevronDown size={14} className={`transition-transform duration-300 ${activeDropdown === 'business' ? 'rotate-180' : ''}`} />
-              </button>
-              {activeDropdown === 'business' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Link to="/merchant/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-emerald-50 transition-colors group">
-                    <Store size={16} className="text-emerald-500 group-hover:scale-110 transition-transform" /> 
-                    <div className="flex flex-col">
-                       <span className="font-bold text-slate-700">Merchant Console</span>
-                       <span className="text-[10px] text-slate-400 font-medium">Manage your business</span>
-                    </div>
-                  </Link>
-                  <Link to="/business/campaign" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><TrendingUp size={16} className="text-blue-500" /> Run a Campaign</Link>
-                  <Link to="/business/list" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Plus size={16} className="text-amber-500" /> List Your Business</Link>
-                </div>
-              )}
-            </div>
-            {/* Company */}
-            <div className="relative" onMouseEnter={() => handleMouseEnter('company')} onMouseLeave={handleMouseLeave}>
-              <button className={`flex items-center gap-1.5 hover:text-slate-900 transition-colors ${activeDropdown === 'company' ? 'text-slate-900' : ''}`}>
-                Company <ChevronDown size={14} className={`transition-transform duration-300 ${activeDropdown === 'company' ? 'rotate-180' : ''}`} />
-              </button>
-              {activeDropdown === 'company' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Link to="/about" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Info size={16} className="text-slate-500" /> About Us</Link>
-                  <Link to="/careers" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Briefcase size={16} className="text-slate-500" /> Careers</Link>
-                  <Link to="/press" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Newspaper size={16} className="text-slate-500" /> Press</Link>
-                  <Link to="/contact" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Mail size={16} className="text-slate-500" /> Contact</Link>
-                  <Link to="/user/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><User size={16} className="text-slate-500" /> User Dashboard</Link>
-                  <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"><Settings size={16} className="text-slate-500" /> Admin Dashboard</Link>
-                </div>
-              )}
-            </div>
-          </nav>
+      {/* Premium Notification Bar (inspired by Groupon top bar) */}
+      <div className="bg-[#0f172a] text-white py-2 px-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] z-60 relative">
+        <span className="opacity-80">Season Flash Sales: </span>
+        <span className="text-teal-400">Save up to 80% with code SPRING</span>
+        <span className="mx-4 text-white/20">|</span>
+        <Link to="/deals" className="underline underline-offset-4 hover:text-teal-400 transition-all">Shop Now</Link>
+      </div>
 
-          <div className="flex items-center justify-end gap-3 pointer-events-auto">
-            <button className="hidden md:block p-2 text-slate-500 hover:text-slate-900 transition-colors">
-              <Search size={20} />
+      {/* Structured Header inspired by Groupon but uniquely Slasham */}
+      <header className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/60 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
+          {/* Logo */}
+          <Link to="/" className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-1 shrink-0">
+            SLASHAM<span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+          </Link>
+
+          {/* Search Bar - Groupon Focused */}
+          <div className="hidden md:flex flex-1 max-w-2xl relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors">
+              <Search size={18} />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search deals, categories, or locations..." 
+              className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:bg-white focus:border-teal-500 transition-all"
+            />
+            <button className="absolute right-1 top-1 bottom-1 px-5 bg-teal-600 text-white rounded-full text-xs font-bold hover:bg-teal-700 transition-all shadow-md active:scale-95">
+              SEARCH
             </button>
+          </div>
 
-            {user ? (
-              <div className="relative group/user">
-                <button className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-emerald-500/20 transition-all">
-                  <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-full h-full object-cover" />
-                </button>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200/60 rounded-2xl shadow-xl p-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200">
-                  <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Account</p>
-                    <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                  </div>
-                  <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-colors text-sm font-medium text-slate-600">
-                    <X size={16} /> Logout
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link to="/login" className="hidden sm:block text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors px-2">
-                Login
-              </Link>
-            )}
+          {/* Right Actions */}
+          <div className="flex items-center gap-4">
+             <div className="hidden lg:flex items-center gap-6 mr-4 border-r border-slate-100 pr-6">
+               <Link to="/how-it-works" className="text-[11px] font-bold text-slate-500 hover:text-teal-600 uppercase tracking-wider transition-all">How it works</Link>
+               <Link to="/business" className="text-[11px] font-bold text-slate-500 hover:text-teal-600 uppercase tracking-wider transition-all">For Business</Link>
+             </div>
+             
+             <div className="flex items-center gap-2">
+               <button className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
+                 <Heart size={20} />
+                 <span className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full border border-white"></span>
+               </button>
+               
+               {user ? (
+                 <div className="relative group/user px-2">
+                   <button className="w-9 h-9 rounded-full border border-slate-200 overflow-hidden ring-2 ring-transparent hover:ring-teal-500/20 transition-all">
+                     <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-full h-full object-cover" />
+                   </button>
+                   <div className="absolute top-full right-0 mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 translate-y-1 group-hover/user:translate-y-0">
+                     <p className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">{user.name}</p>
+                     <Link to="/user/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-600 transition-colors">
+                       <User size={16} /> My Account
+                     </Link>
+                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-rose-50 text-rose-600 text-sm font-medium transition-colors">
+                       <LogOut size={16} /> Sign Out
+                     </button>
+                   </div>
+                 </div>
+               ) : (
+                 <Link to="/login" className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95">
+                   SIGN IN
+                 </Link>
+               )}
+             </div>
 
-            <Link 
-              ref={ctaRef}
-              to="/deals" 
-              className="bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 transition-colors font-bold text-sm shadow-[0_4px_14px_rgba(16,185,129,0.25)] flex items-center gap-2"
-            >
-              <span className="hidden xs:inline">Explore Deals</span>
-              <ArrowRight size={14} className="md:hidden lg:inline" />
-            </Link>
-
-            <button 
-              className="lg:hidden text-slate-900 p-2 hover:bg-slate-50 rounded-full transition-colors pointer-events-auto"
-              onClick={() => { setIsMenuOpen(true); setMobileExpandedSection(null); }}
+             <button 
+              className="lg:hidden text-slate-900 p-2 hover:bg-slate-50 rounded-full transition-colors"
+              onClick={() => setIsMenuOpen(true)}
             >
               <Menu size={24} />
             </button>
+          </div>
+        </div>
+
+        {/* Category Navigation - Strip Bar below Search */}
+        <div className="border-t border-slate-100 bg-white hidden lg:block overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 h-12 flex items-center justify-between lg:justify-center gap-6 md:gap-8 overflow-x-auto scrollbar-hide text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <Link to="/deals" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <TrendingUp size={14} className="text-teal-500" /> TOP TRENDING
+            </Link>
+            <Link to="/deals/food" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <Utensils size={14} /> FOOD & DRINK
+            </Link>
+            <Link to="/deals/beauty" className="flex items-center gap-2 hover:text-teal-700 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <Heart size={14} /> BEAUTY & SPAS
+            </Link>
+            <Link to="/deals/experiences" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <Sparkles size={14} /> THINGS TO DO
+            </Link>
+            <Link to="/deals/products" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <Package size={14} /> GOODS
+            </Link>
+            <Link to="/deals/services" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
+              <Settings size={14} /> LOCAL SERVICES
+            </Link>
+            <div className="h-4 w-px bg-slate-200 mx-2 shrink-0"></div>
+            <Link to="/how-it-works" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors whitespace-nowrap shrink-0">
+              <Zap size={14} className="fill-rose-500" /> HOT COUPONS
+            </Link>
           </div>
         </div>
       </header>
@@ -258,7 +208,7 @@ export default function Layout() {
       {/* Mobile Drawer Overlay - MOVED OUTSIDE HEADER for better interaction */}
       <AnimatePresence>
         {isMenuOpen && (
-          <div className="fixed inset-0 z-[9999] lg:hidden">
+          <div className="fixed inset-0 z-9999 lg:hidden">
             {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}
@@ -405,7 +355,7 @@ export default function Layout() {
         )}
       </AnimatePresence>
 
-      <main className={`flex-grow ${location.pathname === '/' ? '' : 'pt-32'}`}>
+      <main className={`grow ${location.pathname === '/' ? '' : 'pt-40'}`}>
         <Outlet />
       </main>
 
@@ -432,7 +382,7 @@ export default function Layout() {
               <div className="mb-8">
                 <p className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Subscribe to our newsletter</p>
                 <form className="flex gap-2 max-w-md" onSubmit={(e) => e.preventDefault()}>
-                  <div className="relative flex-grow">
+                  <div className="relative grow">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                     <input 
                       type="email" 
