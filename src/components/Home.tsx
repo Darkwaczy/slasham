@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { 
   ArrowRight, MapPin, Ticket, Utensils, Sparkles, 
   Store, Star, Timer, Heart, ChevronDown,
-  Briefcase, TrendingUp, Users, ShoppingBag
+  Briefcase, TrendingUp, Users, ShoppingBag, Zap
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
@@ -298,62 +298,108 @@ export default function Home() {
 
       {/* 7. CATEGORIES (Editorial Grid) */}
       <section className="py-32 px-6 bg-slate-50 border-y border-slate-200/60">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 text-xs font-bold mb-6 uppercase tracking-widest">
-                <Sparkles size={14} /> Curated Collections
-              </div>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9] uppercase">
-                Explore by <br />
-                <span className="text-teal-600">Category</span>
-              </h2>
+        <div className="w-full px-4 flex flex-col md:flex-row items-start justify-start gap-8 lg:gap-14 relative">
+          
+          {/* LEFT: Compact Category Sidebar (Flush Left) */}
+          <div className="flex flex-col items-start px-0 shrink-0">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 text-[9px] font-black uppercase tracking-[0.2em] mb-4">
+              <Sparkles size={12} /> Categories
             </div>
-            <p className="text-slate-500 text-lg max-w-xs leading-relaxed">
-              Discover exclusive offers across our most popular lifestyle categories.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200 rounded-4xl overflow-hidden shadow-2xl shadow-slate-200/50">
-            {[
-              { name: "Dining", icon: <Utensils size={24}/>, count: "120+ Deals", color: "bg-orange-50 text-orange-600", path: "/deals/food" },
-              { name: "Nightlife", icon: <Store size={24}/>, count: "45+ Deals", color: "bg-indigo-50 text-indigo-600", path: "/deals/experiences" },
-              { name: "Wellness", icon: <Sparkles size={24}/>, count: "80+ Deals", color: "bg-teal-50 text-teal-600", path: "/deals/beauty" },
-              { name: "Events", icon: <Ticket size={24}/>, count: "30+ Deals", color: "bg-rose-50 text-rose-600", path: "/deals/experiences" },
-              { name: "Travel", icon: <MapPin size={24}/>, count: "60+ Deals", color: "bg-blue-50 text-blue-600", path: "/deals/experiences" },
-              { name: "Shopping", icon: <ShoppingBag size={24}/>, count: "200+ Deals", color: "bg-amber-50 text-amber-600", path: "/deals/products" },
-              { name: "Fitness", icon: <TrendingUp size={24}/>, count: "40+ Deals", color: "bg-emerald-50 text-emerald-600", path: "/deals/services" },
-              { name: "Services", icon: <Briefcase size={24}/>, count: "25+ Deals", color: "bg-slate-50 text-slate-600", path: "/deals/services" }
-            ].map((cat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-              >
+            
+            <div className="grid grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-[110px]">
+              {[
+                { name: "Dining", icon: <Utensils size={16}/>, count: "120+", color: "bg-orange-50 text-orange-600", path: "/deals/food" },
+                { name: "Nightlife", icon: <Store size={16}/>, count: "45+", color: "bg-indigo-50 text-indigo-600", path: "/deals/experiences" },
+                { name: "Wellness", icon: <Sparkles size={16}/>, count: "80+", color: "bg-teal-50 text-teal-600", path: "/deals/beauty" },
+                { name: "Events", icon: <Ticket size={16}/>, count: "30+", color: "bg-rose-50 text-rose-600", path: "/deals/experiences" },
+                { name: "Travel", icon: <MapPin size={16}/>, count: "60+", color: "bg-blue-50 text-blue-600", path: "/deals/experiences" },
+                { name: "Shopping", icon: <ShoppingBag size={16}/>, count: "200+", color: "bg-amber-50 text-amber-600", path: "/deals/products" },
+                { name: "Fitness", icon: <TrendingUp size={16}/>, count: "40+", color: "bg-emerald-50 text-emerald-600", path: "/deals/services" },
+                { name: "Services", icon: <Briefcase size={16}/>, count: "25+", color: "bg-slate-50 text-slate-600", path: "/deals/services" }
+              ].map((cat, i) => (
                 <Link 
                   to={cat.path} 
-                  className="bg-white p-10 hover:bg-slate-50 transition-all group flex flex-col h-full relative overflow-hidden"
+                  key={i}
+                  className="bg-white p-3.5 hover:bg-slate-50 transition-all group flex flex-col items-center text-center w-full h-[100px] border-b last:border-b-0 border-slate-100 relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span className="text-8xl font-black tracking-tighter leading-none select-none">0{i + 1}</span>
-                  </div>
-                  
-                  <div className={`w-14 h-14 ${cat.color} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                  <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-500 shadow-sm shrink-0 font-bold`}>
                     {cat.icon}
                   </div>
-                  
-                  <div className="mt-auto">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors">{cat.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-500 font-medium uppercase tracking-widest">{cat.count}</p>
-                      <ArrowRight size={18} className="text-slate-300 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" />
+                  <h3 className="text-[10px] font-black text-slate-900 group-hover:text-teal-600 transition-colors uppercase tracking-tight leading-none mb-1">{cat.name}</h3>
+                  <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{cat.count}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: High-Density 5x5 Gift Coupon Grid */}
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-4">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] w-fit">
+                 <Zap size={14} className="fill-rose-500"/> Slasham Gift Coupons
+               </div>
+               <Link to="/gift-cards" className="text-[10px] font-black text-slate-400 hover:text-teal-600 uppercase tracking-widest transition-colors">
+                 Discover All →
+               </Link>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {[
+                { name: "Premium Weavon", type: "Hair & Beauty", price: "45,000", img: "1621332766320-1a22be14f9d1" },
+                { name: "Designer Bag", type: "Fashion", price: "25,500", img: "1591561954557-26941169b49e" },
+                { name: "Educational Toy", type: "Kids", price: "12,000", img: "1596461404969-9ae70fc4975b" },
+                { name: "Leather Loafers", type: "Men Shoes", price: "32,000", img: "1533681905615-5c1c85023908" },
+                { name: "Pro Laptop", type: "Electronics", price: "450,000", img: "1496181133227-18327a5d4449" },
+                { name: "Latest Phone", type: "Tech", price: "185,000", img: "1511707171634-5f897ff02aa9" },
+                { name: "Silk Hair Bundle", type: "Hair & Beauty", price: "55,000", img: "1620331311124-78377f0a911a" },
+                { name: "Travel Backpack", type: "Fashion", price: "18,000", img: "1553062407-5903f759dbe0" },
+                { name: "Action Figure", type: "Kids", price: "8,500", img: "1566580162203-f6674997096d" },
+                { name: "Sport Sneakers", type: "Men Shoes", price: "24,000", img: "1542291026-7eec264c27ff" },
+                { name: "Gaming PC", type: "Electronics", price: "850,000", img: "1587202372422-4320fa81ca9a" },
+                { name: "Wireless Earbuds", type: "Tech", price: "15,000", img: "1505740420928-5e560c06d30e" },
+                { name: "Handmade Tote", type: "Fashion", price: "14,500", img: "1590874103328-eac38a683ce7" },
+                { name: "Building Blocks", type: "Kids", price: "10,000", img: "1587654711722-79015099f66a" },
+                { name: "Formal Boots", type: "Men Shoes", price: "38,000", img: "1549497551-52598877bc89" },
+                { name: "Slim Ultrabook", type: "Electronics", price: "280,000", img: "1496181133227-18327a5d4449" },
+                { name: "Smart Watch", type: "Tech", price: "15,000", img: "1523275335684-37898b6baf30" },
+                { name: "Brazilian Hair", type: "Hair & Beauty", price: "68,000", img: "1621332766320-1a22be14f9d1" },
+                { name: "Clutch Bag", type: "Fashion", price: "9,000", img: "1584917469850-4752b9686131" },
+                { name: "Remote Car", type: "Kids", price: "15,500", img: "1558060370-d644479cb4f3" },
+                { name: "Running Shoes", type: "Men Shoes", price: "21,000", img: "1460353005624-8a55221787c2" },
+                { name: "Tablet Pro", type: "Electronics", price: "125,000", img: "1511707171634-5f897ff02aa9" },
+                { name: "Bluetooth Speaker", type: "Tech", price: "12,000", img: "1505740420928-5e560c06d30e" },
+                { name: "Luxury Satchel", type: "Fashion", price: "42,000", img: "1590874103328-eac38a683ce7" },
+                { name: "Plush Toy", type: "Kids", price: "5,500", img: "1515488493433-c1a1f3399ed6" }
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: (i % 5) * 0.05 }}
+                  className="relative group cursor-pointer"
+                >
+                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-teal-200 transition-all duration-300">
+                    <div className="aspect-square relative overflow-hidden bg-slate-100">
+                      <img 
+                        src={`https://images.unsplash.com/photo-${item.img}?w=400`} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                        alt={item.name} 
+                      />
+                      <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider">
+                         ₦{item.price}
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <h4 className="text-[10px] font-black text-slate-900 group-hover:text-teal-600 transition-colors uppercase tracking-tight line-clamp-1 mb-1">
+                        {item.name}
+                      </h4>
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{item.type}</p>
                     </div>
                   </div>
-                </Link>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
