@@ -1,74 +1,185 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Zap } from "lucide-react";
+import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star } from "lucide-react";
 import gsap from "gsap";
+import { motion } from "motion/react";
 import { deals } from "../data/mockData";
 
 export default function Deals() {
   useEffect(() => {
     gsap.fromTo(
       ".deal-card",
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" }
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 0.4 }
+    );
+    
+    gsap.fromTo(
+      ".sidebar-item",
+      { x: -20, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: "power2.out" }
     );
   }, []);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen">
-      <div className="flex flex-col items-center text-center mb-16 gap-8">
-        <div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-slate-900 tracking-tight">Explore Deals</h1>
-          <p className="text-xl text-slate-500">Find the best value in your city.</p>
-        </div>
-        
-        <div className="flex gap-4 overflow-x-auto pb-2 w-full md:w-auto justify-center hide-scrollbar">
-          <button className="px-6 py-2 rounded-full bg-slate-900 text-white font-bold whitespace-nowrap shadow-sm">All Deals</button>
-          <button className="px-6 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors whitespace-nowrap shadow-sm">Food & Drinks</button>
-          <button className="px-6 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors whitespace-nowrap shadow-sm">Nightlife</button>
-          <button className="px-6 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors whitespace-nowrap shadow-sm">Beauty & Spa</button>
-        </div>
-      </div>
+    <div className="bg-slate-50 min-h-screen pt-0">
+      {/* 1. SPONSORED ADS SECTION (Precision Replicated) */}
+      <section className="px-4 lg:px-6 mb-6 mt-0">
+        <div className="w-full relative rounded-3xl overflow-hidden bg-sky-200/50 min-h-[180px] lg:min-h-[200px] flex items-center border border-sky-100 shadow-sm">
+          {/* Background Decorative Flowers (Simulated with polaroids or subtle images) */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=1200')] bg-cover bg-center"></div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <Link to={`/deal/${deal.id}`} key={deal.id} className="deal-card group relative bg-white border-2 border-slate-100 hover:border-teal-500 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex flex-col">
-            {deal.tag && (
-              <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-teal-700 border border-teal-100 shadow-sm flex items-center gap-1">
-                <Zap size={14} className="text-amber-500 fill-amber-500" /> {deal.tag}
-              </div>
-            )}
-            <div className="aspect-[4/3] overflow-hidden relative bg-slate-100">
-              <img 
-                src={deal.image} 
-                alt={deal.title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                referrerPolicy="no-referrer"
-                loading="lazy"
-              />
-            </div>
-            <div className="p-6 flex flex-col flex-grow">
-              <div className="flex items-center gap-2 text-slate-500 text-sm mb-3 font-medium">
-                <MapPin size={16} className="text-teal-600" /> {deal.location}
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-slate-900">{deal.title}</h3>
-              <p className="text-slate-500 mb-6 line-clamp-2 flex-grow">Get amazing discounts when you purchase this deal through Slasham. Valid for a limited time.</p>
-              
-              <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-auto">
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Coupon Price</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-2xl font-bold text-slate-900">{deal.price}</p>
-                    <p className="text-sm text-slate-400 line-through">{deal.original}</p>
+          <div className="relative z-10 p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between w-full gap-8">
+            <div className="flex-1 text-center lg:text-left">
+               <h2 className="text-3xl lg:text-5xl font-black text-slate-900 leading-[0.9] tracking-tighter uppercase mb-2">
+                 New Season.<br/>
+                 New Deals.
+               </h2>
+               <p className="text-slate-600 text-sm lg:text-lg font-bold mb-6 max-w-sm leading-tight">
+                 Save on beauty, days out, car care, and more.
+               </p>
+               <div className="flex items-center gap-4 justify-center lg:justify-start">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code:</span>
+                  <div className="px-8 py-2.5 bg-rose-600 text-white rounded-full font-black text-sm shadow-xl shadow-rose-600/20 active:scale-95 cursor-pointer uppercase tracking-widest">
+                    SPRING
                   </div>
-                </div>
-                <div className="bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white px-5 py-2.5 rounded-full font-semibold transition-colors">
-                  Get Deal
-                </div>
-              </div>
+               </div>
             </div>
-          </Link>
-        ))}
-      </div>
+            
+            <div className="flex-1 flex justify-center lg:justify-end gap-6 relative h-[140px] items-center">
+               {/* Polaroid 1 */}
+               <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform -rotate-6 z-0 border border-slate-100">
+                  <img src="https://images.unsplash.com/photo-1492106087820-71f110052c51?w=400" className="w-full h-full object-cover" alt="Hair Deal" />
+               </div>
+               {/* Polaroid 2 */}
+               <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform rotate-3 z-10 border border-slate-100 -ml-16 lg:-ml-20">
+                  <img src="https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400" className="w-full h-full object-cover" alt="Zoo Deal" />
+               </div>
+               
+               {/* Small floating detail from original image */}
+               <div className="absolute top-0 right-0 opacity-20 hidden lg:block">
+                  <Sparkles size={100} className="text-sky-400" />
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. PAGE CONTENT (Sidebar + Grid) */}
+      <main className="w-full px-4 lg:px-6 flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
+        
+        {/* SIDEBAR: Category Stack (Flush Left) */}
+        <aside className="w-full lg:w-[110px] shrink-0 sticky top-32">
+          <div className="flex flex-col items-start px-0">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-4">
+              Filters
+            </div>
+            
+            <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-full">
+              {[
+                { name: "Dining", icon: <Utensils size={18}/>, color: "bg-orange-50 text-orange-600", path: "/deals/food" },
+                { name: "Nightlife", icon: <Store size={18}/>, color: "bg-indigo-50 text-indigo-600", path: "/deals/experiences" },
+                { name: "Wellness", icon: <Sparkles size={18}/>, color: "bg-teal-50 text-teal-600", path: "/deals/beauty" },
+                { name: "Events", icon: <Ticket size={18}/>, color: "bg-rose-50 text-rose-600", path: "/deals/experiences" },
+                { name: "Travel", icon: <MapPin size={18}/>, color: "bg-blue-50 text-blue-600", path: "/deals/experiences" },
+                { name: "Shopping", icon: <ShoppingBag size={18}/>, color: "bg-amber-50 text-amber-600", path: "/deals/products" },
+                { name: "Fitness", icon: <TrendingUp size={18}/>, color: "bg-emerald-50 text-emerald-600", path: "/deals/services" },
+                { name: "Services", icon: <Briefcase size={18}/>, color: "bg-slate-50 text-slate-600", path: "/deals/services" }
+              ].map((cat, i) => (
+                <button 
+                  key={i}
+                  className="sidebar-item bg-white p-4 hover:bg-slate-50 transition-all group flex flex-col items-center text-center w-full min-h-[100px] border-b lg:border-r last:border-0 border-slate-100 relative overflow-hidden shrink-0"
+                >
+                  <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-500 shadow-sm shrink-0`}>
+                    {cat.icon}
+                  </div>
+                  <h3 className="text-[9px] font-black text-slate-900 group-hover:text-teal-600 transition-colors uppercase tracking-tight leading-none">{cat.name}</h3>
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN GRID: High-Density Deals */}
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em]">Showing 48 Active Deals</h2>
+            <div className="flex items-center gap-4">
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sort:</span>
+               <select className="bg-transparent border-none text-[9px] font-black text-teal-600 uppercase tracking-widest cursor-pointer outline-none">
+                 <option>Recommended</option>
+                 <option>Price: Low to High</option>
+               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            {Array.from({ length: 48 }).map((_, i) => {
+              const deal = deals[i % deals.length];
+              return (
+                <motion.div
+                  key={`${deal.id}-${i}`}
+                  whileHover={{ y: -4 }}
+                  className="deal-card group"
+                >
+                  <Link to={`/deal/${deal.id}`} className="relative bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 h-full flex flex-col">
+                    {/* Image Container */}
+                    <div className="aspect-4/3 overflow-hidden relative bg-slate-100">
+                      <img 
+                        src={deal.image} 
+                        alt={deal.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent"></div>
+                      
+                      <div className="absolute top-3 left-3 flex flex-col gap-2">
+                        <div className="bg-white/95 backdrop-blur-md px-2 py-1 rounded-full text-[8px] font-black text-teal-600 border border-white shadow-xl flex items-center gap-1 uppercase tracking-widest">
+                          <Zap size={10} className="fill-amber-500 text-amber-500" /> {deal.tag || "Hot"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 flex flex-col grow">
+                      <div className="flex items-center justify-between mb-2">
+                         <p className="text-[8px] font-black text-teal-600/60 uppercase tracking-[0.2em]">{deal.category || "Deals"}</p>
+                         <div className="flex items-center gap-0.5 text-amber-400">
+                            <Star size={10} className="fill-amber-400" />
+                            <span className="text-[8px] font-black text-slate-900">4.9</span>
+                         </div>
+                      </div>
+                      
+                      <h3 className="text-sm font-black mb-2 text-slate-900 leading-tight uppercase tracking-tight group-hover:text-teal-600 transition-colors line-clamp-2">
+                        {deal.title}
+                      </h3>
+                      
+                      <div className="mt-auto pt-3 border-t border-slate-50">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <p className="text-[8px] text-slate-400 uppercase tracking-widest font-black mb-1">Coupon</p>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-lg font-black text-slate-900 tracking-tighter">{deal.price}</span>
+                              <span className="text-[10px] text-slate-400 line-through font-bold">{deal.original}</span>
+                            </div>
+                          </div>
+                          <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center group-hover:bg-teal-600 transition-all duration-300 shadow-xl group-hover:shadow-teal-500/10 active:scale-95">
+                             <ArrowRight size={18} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <div className="mt-16 flex justify-center">
+             <button className="px-10 py-4 bg-white border border-slate-200 rounded-full font-black text-slate-900 hover:bg-slate-50 transition-all shadow-xl shadow-slate-200/30 active:scale-95 uppercase tracking-[0.2em] text-[10px]">
+                Load More Deals
+             </button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

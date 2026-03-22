@@ -355,7 +355,7 @@ export default function Layout() {
         )}
       </AnimatePresence>
 
-      <main className={`grow ${location.pathname === '/' ? '' : 'pt-40'}`}>
+      <main className={`grow ${location.pathname === '/' ? '' : 'pt-24'}`}>
         <Outlet />
       </main>
 
