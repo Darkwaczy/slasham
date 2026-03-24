@@ -1,4 +1,4 @@
-import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw } from "lucide-react";
+import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -15,6 +15,9 @@ export default function AdminDeals() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [rejectNote, setRejectNote] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Admin-determined price during review
+  const [slashamPrice, setSlashamPrice] = useState("");
 
   const loadData = () => {
     setIsRefreshing(true);
@@ -37,11 +40,17 @@ export default function AdminDeals() {
   }, []);
 
   const handleApprove = (req: CampaignRequest) => {
-    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.');
+    if (!slashamPrice.trim()) {
+      alert("Please determine the Slasham Discounted Price before authorizing launch.");
+      return;
+    }
+
+    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.', slashamPrice);
+    
     addPersistentDeal({
-        title: `${req.businessName}'s ${req.productName}`, // Link merchant name to title for storefront visibility
+        title: `${req.businessName}'s ${req.productName}`, 
         location: req.address,
-        price: req.dealPrice,
+        price: slashamPrice,
         original: req.originalPrice,
         image: req.productImage,
         category: req.category,
@@ -49,7 +58,9 @@ export default function AdminDeals() {
         description: req.description,
         validity: `Valid for 30 days after purchase.`
     });
+    
     setIsRequestModalOpen(false);
+    setSlashamPrice("");
   };
 
   const handleReject = (id: string) => {
@@ -77,8 +88,8 @@ export default function AdminDeals() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Platform Marketplace</h1>
-          <p className="text-slate-500 font-medium">Coordinate inventory and handle merchant submissions</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2 text-nowrap">Platform Marketplace</h1>
+          <p className="text-slate-500 font-medium">Verify merchant pricing and launch campaigns</p>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -118,9 +129,9 @@ export default function AdminDeals() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { label: "Active Deals", count: deals.length, color: "emerald", sub: "Live on Storefront" },
-              { label: "Pending Review", count: pendingRequests.length, color: "rose", sub: "Merchant Submissions" },
+              { label: "Pending Review", count: pendingRequests.length, color: "rose", sub: "Merchant Inquiries" },
               { label: "Avg Discount", count: "42%", color: "amber", sub: "Platform Strength" },
-              { label: "Claims (24h)", count: "842", color: "indigo", sub: "Mock Velocity" },
+              { label: "Protocol Claims", count: "842", color: "indigo", sub: "Manual Simulation" },
             ].map((stat, i) => (
               <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
@@ -193,7 +204,7 @@ export default function AdminDeals() {
                         </td>
                         <td className="px-8 py-5 text-nowrap text-sm font-bold text-slate-700">{deal.merchant}</td>
                         <td className="px-8 py-5">
-                          <div className="space-y-1.5 w-32">
+                          <div className="space-y-1.5 w-32 tracking-tighter">
                             <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
                               <span>REACHED</span>
                               <span className="text-indigo-600">{deal.reached}</span>
@@ -266,8 +277,8 @@ export default function AdminDeals() {
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Slasham Price</p>
-                        <p className="text-lg font-black text-emerald-600 leading-none">{req.dealPrice}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Market Price</p>
+                        <p className="text-lg font-black text-slate-900 leading-none">{req.originalPrice}</p>
                       </div>
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coupon Type</p>
@@ -277,9 +288,9 @@ export default function AdminDeals() {
 
                     <button 
                       onClick={() => { setSelectedRequest(req); setIsRequestModalOpen(true); }}
-                      className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
                     >
-                      Review Artifact <ChevronRight size={14} />
+                      Review & Determine Price <ChevronRight size={14} />
                     </button>
                   </motion.div>
                 ))
@@ -290,7 +301,7 @@ export default function AdminDeals() {
           {/* History / Other Section */}
           {otherRequests.length > 0 && (
             <div className="pt-8 border-t border-slate-100">
-               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 px-2">Decision History</h3>
+               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 px-2">Deployment History</h3>
                <div className="overflow-x-auto bg-white rounded-4xl border border-slate-50">
                   <table className="w-full text-left">
                     <thead>
@@ -326,8 +337,8 @@ export default function AdminDeals() {
       <AdminModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        title="Artifact Verification"
-        description="Verify merchant parameters before authorizing storefront deployment."
+        title="Deployment Verification"
+        description="Verify merchant parameters and determine the final 'Slasham Price' for this campaign."
       >
         <div className="space-y-8 pt-6">
           <div className="flex items-center gap-6">
@@ -345,7 +356,7 @@ export default function AdminDeals() {
              <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
                 <div className="flex items-center gap-3">
                    <Tag className="text-slate-400" size={18} />
-                   <p className="text-sm font-black text-slate-900">Pricing Logic: <span className="text-emerald-600">{selectedRequest?.dealPrice}</span> <span className="text-slate-400 line-through text-xs ml-2">{selectedRequest?.originalPrice}</span></p>
+                   <p className="text-sm font-black text-slate-900">Original Price: <span className="text-rose-600">{selectedRequest?.originalPrice}</span></p>
                 </div>
                 <div className="flex items-center gap-3">
                    <MapPin className="text-slate-400" size={18} />
@@ -364,12 +375,31 @@ export default function AdminDeals() {
              </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Internal Note / Response</label>
+          <div className="space-y-4 p-8 bg-emerald-50 rounded-4xl border border-emerald-100 shadow-inner">
+             <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Set Slasham Discount Price</label>
+                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg text-emerald-600 text-[10px] font-bold">
+                   <Tag size={12} /> RECOMMENDED: 30-50% OFF
+                </div>
+             </div>
+             <div className="relative">
+                <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600" size={24} />
+                <input 
+                  type="text"
+                  value={slashamPrice}
+                  onChange={(e) => setSlashamPrice(e.target.value)}
+                  placeholder="₦00,000"
+                  className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-6 pl-16 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
+                />
+             </div>
+          </div>
+
+          <div className="space-y-2 px-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant Notification Message</label>
             <textarea 
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
-              placeholder="e.g. Imagery needs optimization or Pricing approved for launch..." 
+              placeholder="e.g. Your premium deal has been authorized for deployment..." 
               className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]" 
             />
           </div>
@@ -383,7 +413,7 @@ export default function AdminDeals() {
             </button>
             <button 
               onClick={() => handleApprove(selectedRequest!)}
-              className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-black shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={18} /> Authorize Launch
             </button>

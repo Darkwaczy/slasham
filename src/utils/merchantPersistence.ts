@@ -64,17 +64,18 @@ export const updateCampaignRequest = (id: string, updates: Partial<CampaignReque
   window.dispatchEvent(new Event('campaignRequestsUpdate'));
 };
 
-export const updateRequestStatus = (id: string, status: 'Approved' | 'Rejected', note?: string) => {
+export const updateRequestStatus = (id: string, status: 'Approved' | 'Rejected', note?: string, adminDeterminedPrice?: string) => {
   const requests = getCampaignRequests();
   const updated = requests.map(r => {
     if (r.id === id) {
+      const finalPrice = adminDeterminedPrice || r.dealPrice;
       // Notify Merchant
       addNotification(r.merchantId, 
         `Campaign ${status}`, 
-        status === 'Approved' ? `Your deal for ${r.productName} has been approved and is now live!` : `Your deal was rejected. Note: ${note}`,
+        status === 'Approved' ? `Your deal for ${r.productName} has been approved and is now live at ${finalPrice}!` : `Your deal was rejected. Note: ${note}`,
         status === 'Approved' ? 'success' : 'error'
       );
-      return { ...r, status, adminNote: note };
+      return { ...r, status, adminNote: note, dealPrice: finalPrice };
     }
     return r;
   });

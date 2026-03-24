@@ -16,17 +16,26 @@ export interface Coupon {
  * Combines dealId, userId, and a high-resolution timestamp.
  */
 export const generateCouponHash = (dealId: string | number, userId: string): string => {
-  const seed = `${dealId}-${userId}-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+  const seed = `${dealId}-${userId}-${Date.now()}-${Math.random().toString(36)}`;
   
-  // Strong hashing simulation (simulating SHA-256 with a clean, high-entropy string)
-  // In a real prod environment, we would use crypto.subtle or a library like CryptoJS
-  const hash = Array.from(seed).reduce((acc, char) => {
-    const code = char.charCodeAt(0);
-    return ((acc << 5) - acc + code) | 0;
-  }, 0).toString(16).toUpperCase();
-
-  const salt = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `SLSH-${hash}-${salt}`;
+  // Strong hash simulation ensuring valid alphanumeric characters
+  let hash = "";
+  for (let i = 0; i < seed.length && hash.length < 8; i++) {
+    const charCode = seed.charCodeAt(i);
+    if ((charCode >= 48 && charCode <= 57) || (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+      hash += seed[i].toUpperCase();
+    }
+  }
+  
+  // Ensure we have exactly 8 characters after 'SLSH'
+  while (hash.length < 8) {
+    hash += Math.random().toString(36).substring(2, 3).toUpperCase();
+  }
+  
+  const part2 = hash.substring(0, 4);
+  const part3 = hash.substring(4, 8);
+  
+  return `SLSH-${part2}-${part3}`;
 };
 
 const STORAGE_KEY_COUPONS = "slasham_verified_coupons";

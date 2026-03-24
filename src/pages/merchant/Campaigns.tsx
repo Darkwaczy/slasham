@@ -1,4 +1,4 @@
-import { Ticket, Plus, Search, Target, Eye, Store, Tag, MapPin, Info, Clock, CheckCircle2, XCircle, Edit3, Image as ImageIcon } from "lucide-react";
+import { Ticket, Plus, Search, Target, Eye, Store, Tag, MapPin, Info, Clock, CheckCircle2, XCircle, Edit3, Image as ImageIcon, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -263,14 +263,13 @@ export default function MerchantCampaigns() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Normal Price</label>
-                      <input name="originalPrice" defaultValue={editingRequest?.originalPrice} placeholder="₦25,000" required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Slasham Price</label>
-                      <input name="dealPrice" defaultValue={editingRequest?.dealPrice} placeholder="₦12,500" required className="w-full px-5 py-4 bg-white/50 border-2 border-dashed border-emerald-200 rounded-2xl text-sm font-black text-emerald-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Price / Normal Selling Price</label>
+                       <div className="relative">
+                          <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                          <input name="originalPrice" defaultValue={editingRequest?.originalPrice} placeholder="₦25,000" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                       </div>
                    </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

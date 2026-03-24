@@ -23,6 +23,25 @@ export default function MerchantScanner() {
     setRecentRedemptions(redeemed.slice(0, 5));
   };
 
+  const formatCode = (val: string) => {
+    // Remove all non-alphanumeric and limit raw characters to 12
+    const raw = val.replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toUpperCase();
+    
+    // Auto-inject hyphens: XXXX-XXXX-XXXX
+    let formatted = "";
+    for (let i = 0; i < raw.length; i++) {
+        if (i === 4 || i === 8) {
+            formatted += "-";
+        }
+        formatted += raw[i];
+    }
+    return formatted;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCouponHash(formatCode(e.target.value));
+  };
+
   const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponHash.trim()) return;
@@ -75,7 +94,7 @@ export default function MerchantScanner() {
                     <input 
                       type="text"
                       value={couponHash}
-                      onChange={(e) => setCouponHash(e.target.value)}
+                      onChange={handleInputChange}
                       placeholder="SLSH-XXXX-XXXX"
                       className="w-full pl-16 pr-8 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-xl font-black tracking-widest text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all uppercase"
                     />
