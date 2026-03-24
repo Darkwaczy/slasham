@@ -101,7 +101,7 @@ export default function UserDashboard() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Info */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+            <div className="bg-white p-6 rounded-4xlrder border-slate-200/60 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
                 <ShieldCheck size={120} />
               </div>
@@ -128,7 +128,7 @@ export default function UserDashboard() {
               </div>
             </div>
 
-            <div className="bg-emerald-600 p-6 rounded-[2rem] text-white relative overflow-hidden group">
+            <div className="bg-emerald-600 p-6 rounded-4xl text-white relative overflow-hidden group">
                <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                <Zap className="text-amber-300 mb-4" size={32} />
                <h4 className="text-lg font-black mb-2 leading-tight text-balance">Slasham Plus+ is now better.</h4>
@@ -151,7 +151,7 @@ export default function UserDashboard() {
                    className="space-y-8"
                  >
                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm">
+                      <div className="bg-white p-8 rounded-4xl border border-slate-200/60 shadow-sm">
                          <div className="flex items-center justify-between mb-6">
                            <h4 className="font-black text-lg">Active Vouchers</h4>
                            <ShoppingBag className="text-blue-500" />
@@ -177,7 +177,7 @@ export default function UserDashboard() {
                          </div>
                       </div>
 
-                      <div className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm">
+                      <div className="bg-white p-8 rounded-4xl border border-slate-200/60 shadow-sm">
                          <div className="flex items-center justify-between mb-6">
                            <h4 className="font-black text-lg">Quick Access</h4>
                            <Zap className="text-amber-500" />
@@ -210,7 +210,7 @@ export default function UserDashboard() {
                      </div>
                      <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide no-scrollbar -mx-2 px-2">
                         {wishlist.slice(0, 4).map((item) => (
-                          <div key={item.id} className="min-w-[280px] bg-white rounded-[2rem] border border-slate-200/60 shadow-sm p-4 group cursor-pointer hover:shadow-xl transition-all">
+                          <div key={item.id} className="min-w-[280px] bg-white rounded-4xl border border-slate-200/60 shadow-sm p-4 group cursor-pointer hover:shadow-xl transition-all">
                              <div className="relative h-40 rounded-2xl overflow-hidden mb-4">
                                 <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                                 <div className="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-black text-emerald-600 shadow-sm uppercase tracking-widest">
@@ -257,7 +257,7 @@ export default function UserDashboard() {
 
                     <div className={viewMode === 'grid' ? "grid md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
                        {wishlist.map((item) => (
-                         <div key={item.id} className={`bg-white rounded-[2rem] border border-slate-200/60 shadow-sm overflow-hidden group hover:shadow-xl transition-all ${viewMode === 'list' ? 'flex items-center p-4' : 'flex flex-col'}`}>
+                         <div key={item.id} className={`bg-white rounded-4xlrder border-slate-200/60 shadow-sm overflow-hidden group hover:shadow-xl transition-all ${viewMode === 'list' ? 'flex items-center p-4' : 'flex flex-col'}`}>
                             <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-24 h-24 rounded-2xl shrink-0' : 'h-48'}`}>
                                <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                                {viewMode === 'grid' && (
@@ -302,7 +302,7 @@ export default function UserDashboard() {
                    className="space-y-4"
                  >
                     {notifications.map(n => (
-                      <div key={n.id} className={`p-6 rounded-[2rem] border transition-all flex items-start justify-between group ${n.read ? 'bg-white border-slate-100 opacity-60' : 'bg-emerald-50 border-emerald-100'}`}>
+                      <div key={n.id} className={`p-6 rounded-4xl border transition-all flex items-start justify-between group ${n.read ? 'bg-white border-slate-100 opacity-60' : 'bg-emerald-50 border-emerald-100'}`}>
                          <div className="flex gap-4">
                             <div className={`mt-1 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${n.read ? 'bg-white text-slate-400' : 'bg-white text-emerald-500'}`}>
                                <Bell size={20} />
@@ -349,18 +349,18 @@ export default function UserDashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowUpgradeModal(false)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-100"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white z-[101] rounded-[3rem] shadow-2xl overflow-hidden p-8"
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white z-101 rounded-[3rem] shadow-2xl overflow-hidden p-8"
             >
                <button onClick={() => setShowUpgradeModal(false)} className="absolute top-6 right-6 p-3 hover:bg-slate-50 rounded-2xl text-slate-400 transition-colors"><X size={24} /></button>
                
                <div className="text-center mt-4">
-                  <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center text-amber-500 mx-auto mb-6">
+                  <div className="w-20 h-20 bg-amber-50 rounded-4xl flex items-center justify-center text-amber-500 mx-auto mb-6">
                     <Crown size={40} />
                   </div>
                   <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Level Up to Slasham Plus</h3>
@@ -386,7 +386,7 @@ export default function UserDashboard() {
                   ))}
                </div>
 
-               <button className="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-lg hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98]">
+               <button className="w-full py-5 bg-emerald-600 text-white rounded-4xl font-black text-lg hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98]">
                  Unlock Plus for ₦2,500/mo
                </button>
                <p className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest mt-6">Cancel anytime • Secure checkout</p>

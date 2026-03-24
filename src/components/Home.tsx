@@ -330,16 +330,16 @@ export default function Home() {
       </section>
 
       {/* 7. CATEGORIES (Editorial Grid) */}
-      <section className="py-32 px-6 bg-slate-50 border-y border-slate-200/60">
-        <div className="w-full px-4 flex flex-col md:flex-row items-start justify-start gap-8 lg:gap-14 relative">
+      <section className="py-24 px-4 md:px-6 bg-slate-50 border-y border-slate-200/60">
+        <div className="w-full flex flex-row items-start justify-start gap-4 md:gap-8 lg:gap-14 relative">
           
           {/* LEFT: Compact Category Sidebar (Flush Left) */}
           <div className="flex flex-col items-start px-0 shrink-0">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 text-[9px] font-black uppercase tracking-[0.2em] mb-4">
-              <Sparkles size={12} /> Categories
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 text-[8px] font-black uppercase tracking-[0.2em] mb-4">
+              <Sparkles size={10} /> Categories
             </div>
             
-            <div className="grid grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-[110px]">
+            <div className="grid grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-[80px] md:w-[110px]">
               {[
                 { name: "Dining", icon: <Utensils size={16}/>, count: "120+", color: "bg-orange-50 text-orange-600", path: "/deals/food" },
                 { name: "Nightlife", icon: <Store size={16}/>, count: "45+", color: "bg-indigo-50 text-indigo-600", path: "/deals/experiences" },
