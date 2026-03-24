@@ -4,6 +4,7 @@
  */
 
 import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { useEffect } from "react";
 import Layout from "./components/Layout";
 import Home from "./components/Home";
@@ -78,6 +79,7 @@ export default function App() {
   return (
     <HashRouter>
       <ScrollToTop />
+      <Analytics />
       <Routes>
         <Route path="login" element={<Auth />} />
         <Route path="signup" element={<Auth />} />
