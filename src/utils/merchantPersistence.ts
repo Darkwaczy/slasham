@@ -57,6 +57,13 @@ export const saveCampaignRequest = (request: Omit<CampaignRequest, 'id' | 'statu
   return newRequest;
 };
 
+export const updateCampaignRequest = (id: string, updates: Partial<CampaignRequest>) => {
+  const requests = getCampaignRequests();
+  const updated = requests.map(r => r.id === id ? { ...r, ...updates } : r);
+  localStorage.setItem(STORAGE_KEY_REQUESTS, JSON.stringify(updated));
+  window.dispatchEvent(new Event('campaignRequestsUpdate'));
+};
+
 export const updateRequestStatus = (id: string, status: 'Approved' | 'Rejected', note?: string) => {
   const requests = getCampaignRequests();
   const updated = requests.map(r => {
