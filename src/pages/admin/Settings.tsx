@@ -1,39 +1,44 @@
-import { Save, Shield, Percent, Globe, Database, Server, Check, AlertCircle, RefreshCw } from "lucide-react";
+import { Save, Shield, Percent, Globe, Database, Server, Check, AlertCircle, RefreshCw, Megaphone } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getAdminSettings, saveAdminSettings, AdminSettings as IAdminType } from "../../utils/adminState";
 
 export default function AdminSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<null | 'success' | 'error'>(null);
-  
-  const [settings, setSettings] = useState({
-    siteName: "Slasham Deals",
-    supportEmail: "ops@slasham.com",
-    maintenanceMode: false,
-    commission: "15%",
-    withdrawalFee: "₦500",
-    taxRate: "7.5%",
-    enforce2FA: true,
-    rateLimit: "1,000 req/min",
-    sessionTimeout: "24 Hours"
-  });
+  const [settings, setSettings] = useState<IAdminType>(getAdminSettings());
+
+  useEffect(() => {
+    // Initial load
+    setSettings(getAdminSettings());
+  }, []);
 
   const handleSave = () => {
     setIsSaving(true);
-    // Simulate API call
+    // Simulate compilation
     setTimeout(() => {
+      saveAdminSettings(settings);
       setIsSaving(false);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(null), 3000);
     }, 1500);
   };
 
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleSetting = (key: keyof IAdminType) => {
+    if (key === 'promoBanner') {
+        setSettings(prev => ({ ...prev, promoBanner: { ...prev.promoBanner, enabled: !prev.promoBanner.enabled } }));
+    } else {
+        setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    }
   };
 
-  const updateText = (key: keyof typeof settings, value: string) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const updateText = (key: string, value: string) => {
+    if (key.startsWith('promoBanner.')) {
+        const field = key.split('.')[1];
+        setSettings(prev => ({ ...prev, promoBanner: { ...prev.promoBanner, [field]: value } }));
+    } else {
+        setSettings(prev => ({ ...prev, [key]: value }));
+    }
   };
 
   const sections = [
@@ -44,6 +49,14 @@ export default function AdminSettings() {
         { id: 'siteName', label: "Site Display Name", type: "text" },
         { id: 'supportEmail', label: "Support Dispatch Email", type: "text" },
         { id: 'maintenanceMode', label: "Global Maintenance Mode", type: "toggle" },
+      ]
+    },
+    {
+      title: "Marketing & Promos",
+      icon: <Megaphone size={20} className="text-purple-500" />,
+      items: [
+        { id: 'promoBanner.enabled', label: "Announcement Banner", type: "toggle" },
+        { id: 'promoBanner.text', label: "Banner Campaign Text", type: "text" },
       ]
     },
     {
@@ -114,32 +127,43 @@ export default function AdminSettings() {
             </div>
 
             <div className="space-y-6 flex-1">
-              {section.items.map((item, iIdx) => (
-                <div key={iIdx} className="flex items-center justify-between pb-6 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div>
-                      <p className="text-sm font-black text-slate-900 mb-0.5">{item.label}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Modified: Mar 21, 2026</p>
+              {section.items.map((item, iIdx) => {
+                const getValue = (id: string) => {
+                  if (id.startsWith('promoBanner.')) {
+                    return (settings.promoBanner as any)[id.split('.')[1]];
+                  }
+                  return (settings as any)[id];
+                };
+
+                const val = getValue(item.id);
+
+                return (
+                  <div key={iIdx} className="flex items-center justify-between pb-6 border-b border-slate-50 last:border-0 last:pb-0">
+                    <div>
+                        <p className="text-sm font-black text-slate-900 mb-0.5">{item.label}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Modified: Mar 21, 2026</p>
+                    </div>
+                    {item.type === 'toggle' ? (
+                         <button 
+                          onClick={() => toggleSetting(item.id.replace('.enabled', '') as any)}
+                          className={`w-14 h-7 rounded-full transition-all duration-300 relative px-1 ${val ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                         >
+                            <motion.div 
+                              animate={{ x: val ? 28 : 0 }}
+                              className="w-5 h-5 bg-white rounded-full shadow-lg" 
+                            />
+                         </button>
+                    ) : (
+                      <input 
+                        type="text" 
+                        value={val || ''}
+                        onChange={(e) => updateText(item.id, e.target.value)}
+                        className="bg-slate-50 border border-slate-100 rounded-xl text-sm font-black text-slate-900 px-4 py-3 w-48 text-right focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                      />
+                    )}
                   </div>
-                  {item.type === 'toggle' ? (
-                       <button 
-                        onClick={() => toggleSetting(item.id as keyof typeof settings)}
-                        className={`w-14 h-7 rounded-full transition-all duration-300 relative px-1 ${settings[item.id as keyof typeof settings] ? 'bg-emerald-500' : 'bg-slate-200'}`}
-                       >
-                          <motion.div 
-                            animate={{ x: settings[item.id as keyof typeof settings] ? 28 : 0 }}
-                            className="w-5 h-5 bg-white rounded-full shadow-lg" 
-                          />
-                       </button>
-                  ) : (
-                    <input 
-                      type="text" 
-                      value={settings[item.id as keyof typeof settings] as string}
-                      onChange={(e) => updateText(item.id as keyof typeof settings, e.target.value)}
-                      className="bg-slate-50 border border-slate-100 rounded-xl text-sm font-black text-slate-900 px-4 py-3 w-48 text-right focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
-                    />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         ))}

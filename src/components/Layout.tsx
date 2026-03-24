@@ -3,11 +3,12 @@ import {
   Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, Search, 
   User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
   Store, Zap, MapPin, TrendingUp, Plus, Info,
-  ChevronRight, LogOut, ArrowLeft
+  ChevronRight, LogOut, ArrowLeft, AlertTriangle, ShieldCheck
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
+import { getAdminSettings, AdminSettings } from "../utils/adminState";
 
 
 export default function Layout() {
@@ -15,8 +16,17 @@ export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [adminSettings, setAdminSettings] = useState<AdminSettings>(getAdminSettings());
   const location = useLocation();
   const ctaRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setAdminSettings(getAdminSettings());
+    };
+    window.addEventListener('adminSettingsUpdate', handleUpdate);
+    return () => window.removeEventListener('adminSettingsUpdate', handleUpdate);
+  }, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("slasham_user");
@@ -47,14 +57,12 @@ export default function Layout() {
 
   // Prevent scroll when menu is open
   useEffect(() => {
-    if (isMenuOpen) {
+    if (isMenuOpen || adminSettings.maintenanceMode) {
       document.body.style.setProperty('overflow', 'hidden', 'important');
     } else {
       document.body.style.setProperty('overflow', 'unset', 'important');
     }
-  }, [isMenuOpen]);
-
-
+  }, [isMenuOpen, adminSettings.maintenanceMode]);
 
   const menuSections = [
     {
@@ -103,13 +111,56 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-slate-900 selection:bg-teal-100 selection:text-teal-900">
       
+      {/* Maintenance Mode Overlay */}
+      <AnimatePresence>
+        {adminSettings.maintenanceMode && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-1000 bg-slate-950 flex items-center justify-center p-6 text-center"
+          >
+            <div className="max-w-md w-full">
+              <div className="w-24 h-24 bg-white/5 rounded-4xl flex items-center justify-center text-amber-500 mb-8 mx-auto border border-white/10 shadow-2xl">
+                <AlertTriangle size={48} className="animate-pulse" />
+              </div>
+              <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">System Upgrade</h1>
+              <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium">
+                We're currently scaling our platform logic to provide you with better deals. We'll be back online in a few minutes.
+              </p>
+              <div className="p-6 bg-white/5 rounded-3xl border border-white/10 mb-8 flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                   <p className="text-white font-bold text-sm">Security & Integrity</p>
+                   <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest">Master Admin Controlled</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                 <Link to="/contact" className="flex-1 py-4 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Support Desk</Link>
+                 <button onClick={() => window.location.reload()} className="flex-1 py-4 bg-white/5 text-white border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">Check Status</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Premium Notification Bar (inspired by Groupon top bar) */}
-      <div className="bg-[#0f172a] text-white py-2 px-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] z-60 relative">
-        <span className="opacity-80">Season Flash Sales: </span>
-        <span className="text-teal-400">Save up to 80% with code SPRING</span>
-        <span className="mx-4 text-white/20">|</span>
-        <Link to="/deals" className="underline underline-offset-4 hover:text-teal-400 transition-all">Shop Now</Link>
-      </div>
+      <AnimatePresence>
+        {adminSettings.promoBanner.enabled && !adminSettings.maintenanceMode && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-[#0f172a] text-white py-2.5 px-4 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] z-60 relative overflow-hidden"
+          >
+            <span className="opacity-80">{adminSettings.promoBanner.text}</span>
+            <span className="mx-4 text-white/20 hidden sm:inline">|</span>
+            <Link to="/deals" className="underline underline-offset-4 hover:text-teal-400 transition-all">Shop Now</Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Structured Header inspired by Groupon but uniquely Slasham */}
       <header className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/60 shadow-sm">

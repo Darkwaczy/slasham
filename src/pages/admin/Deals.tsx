@@ -1,56 +1,86 @@
 import { Search, Plus, TrendingUp, Play, Pause, Square, Trash2, MoreHorizontal, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_DEALS = [
-  { id: "D-110", title: "50% Off Pizza Night", merchant: "Pizza Hut", category: "Dining", reached: "85%", status: "Active", expires: "2 days" },
-  { id: "D-111", title: "Luxury Spa Weekend", merchant: "Oasis Spa", category: "Wellness", reached: "60%", status: "Active", expires: "5 days" },
-  { id: "D-112", title: "Buy 1 Get 1 Free Grill", merchant: "Lagos Grill", category: "Food", reached: "100%", status: "Ended", expires: "Expired" },
-  { id: "D-113", title: "Movie Marathon Pass", merchant: "Skyline", category: "Movies", reached: "15%", status: "Paused", expires: "12 days" },
-  { id: "D-114", title: "Annual Gym Membership", merchant: "Urban Fit", category: "Health", reached: "45%", status: "Active", expires: "8 days" },
-];
+import { getPersistentDeals, addPersistentDeal, deletePersistentDeal } from "../../utils/mockPersistence";
 
 export default function AdminDeals() {
-  const [deals, setDeals] = useState(INITIAL_DEALS);
+  const [deals, setDeals] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const filteredDeals = deals.filter(d => {
-    const matchesSearch = d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         d.merchant.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "All" || d.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    // Initial Load - combine public deals with some admin-only attributes
+    const publicDeals = getPersistentDeals();
+    const mappedDeals = publicDeals.map(d => ({
+        id: d.id,
+        title: d.title,
+        merchant: d.title.split("'")[0] || "Merchant Partner",
+        category: d.category,
+        reached: `${Math.floor(Math.random() * 100)}%`,
+        status: "Active",
+        expires: `${Math.floor(Math.random() * 30)} days`,
+        isPublic: true
+    }));
+    setDeals(mappedDeals);
+  }, []);
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
+  const handleUpdateStatus = (id: number | string, newStatus: string) => {
     setDeals(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d));
     setIsActionModalOpen(false);
   };
 
-  const handleDeleteDeal = (id: string) => {
+  const handleDeleteDeal = (id: number | string) => {
     setDeals(prev => prev.filter(d => d.id !== id));
+    deletePersistentDeal(Number(id));
     setIsActionModalOpen(false);
   };
 
   const handleLaunchCampaign = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
+    const title = formData.get('title') as string;
+    const merchant = formData.get('merchant') as string;
+    const category = formData.get('category') as string;
+    const expires = formData.get('expires') as string;
+    
+    // 1. Add to Public Deals Persistence (reflect on Home/Deals pages)
+    const publicDeal = addPersistentDeal({
+        title,
+        location: "Abuja, Nigeria",
+        price: `₦${Math.floor(Math.random() * 10000 + 1000).toLocaleString()}`,
+        original: `₦${Math.floor(Math.random() * 20000 + 10000).toLocaleString()}`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1604329760661-e71dc83f8f26' : '1540555700478-4be289fbecef'}?auto=format&fit=crop&w=400&q=60`,
+        category,
+        tag: "New Launch",
+        description: "Freshly launched campaign via Admin Intelligence Console.",
+        validity: `Expires ${expires} days after purchase.`
+    });
+
+    // 2. Add to Local Admin State
     const newDeal = {
-      id: `D-${Math.floor(200 + Math.random() * 100)}`,
-      title: formData.get('title') as string,
-      merchant: formData.get('merchant') as string,
-      category: formData.get('category') as string,
+      id: publicDeal.id,
+      title,
+      merchant,
+      category,
       reached: "0%",
       status: "Active",
-      expires: formData.get('expires') as string + " days",
+      expires: expires + " days",
+      isPublic: true
     };
     setDeals([newDeal, ...deals]);
     setIsLaunchModalOpen(false);
   };
+
+  const filteredDeals = (deals || []).filter(d => {
+    const matchesSearch = d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         d.merchant.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "All" || d.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -71,7 +101,7 @@ export default function AdminDeals() {
       {/* Grid of Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Active Deals", count: deals.filter(d => d.status === 'Active').length, color: "emerald", sub: "Currently Live" },
+          { label: "Active Deals", count: deals.filter((d: any) => d.status === 'Active').length, color: "emerald", sub: "Currently Live" },
           { label: "Total Claims", count: "12,402", color: "blue", sub: "All time redemptions" },
           { label: "Avg Discount", count: "35%", color: "amber", sub: "Platform average" },
           { label: "Gross Value", count: "₦42.5M", color: "indigo", sub: "Locked liquidity" },
@@ -90,7 +120,7 @@ export default function AdminDeals() {
       </div>
 
       {/* Deals Table */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
+      <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -127,7 +157,7 @@ export default function AdminDeals() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               <AnimatePresence mode="popLayout">
-                {filteredDeals.map((deal, idx) => (
+                {filteredDeals.map((deal: any, idx: number) => (
                   <motion.tr 
                     key={deal.id}
                     layout
@@ -250,7 +280,7 @@ export default function AdminDeals() {
         description={selectedDeal ? `Managing ${selectedDeal.title}` : ""}
       >
         <div className="space-y-6 pt-4">
-          <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center justify-between">
+          <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 flex items-center justify-between">
             <div>
               <p className="text-lg font-black text-slate-900">{selectedDeal?.title}</p>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedDeal?.merchant} • {selectedDeal?.status}</p>
