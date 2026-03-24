@@ -13,6 +13,7 @@ export interface Deal {
   tag: string;
   description: string;
   validity: string;
+  expiryDate?: string;
 }
 
 export const getPersistentDeals = (): Deal[] => {

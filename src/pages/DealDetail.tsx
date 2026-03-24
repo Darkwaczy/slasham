@@ -1,400 +1,289 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, ShieldCheck, Star, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, Share2, Heart, CheckCircle2 } from "lucide-react";
+import { motion } from "motion/react";
 import gsap from "gsap";
-import { deals } from "../data/mockData";
-import { FavoriteButton, ShareButton } from "../components/DealActions";
+import { getPersistentDeals } from "../utils/mockPersistence";
 
-const REVIEWS_TOP = [
-  { name: "Aisha M.", rating: 5, text: "Absolutely incredible experience! The food was top-notch and the discount made it even sweeter.", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=48&q=40" },
-  { name: "Chidi O.", rating: 4, text: "Great ambiance and very seamless redemption process. Will definitely be coming back.", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=48&q=40" },
-  { name: "Sarah T.", rating: 5, text: "I saved so much money using Slasham for this. Highly recommended for weekend hangouts!", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=48&q=40" },
-  { name: "Emmanuel K.", rating: 5, text: "The staff were very welcoming and didn't treat us differently because we used a discount code.", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=48&q=40" },
-  { name: "Zainab A.", rating: 4, text: "Good food, nice music. The 30% off really helped keep us within budget.", avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=48&q=40" },
-  { name: "Tobi D.", rating: 5, text: "10/10 experience. The reservation was ready and the food came out fast.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=48&q=40" }
+const REVIEWS = [
+  { name: "Aisha M.", rating: 5, text: "Absolutely incredible experience! The food was top-notch and the discount made it even sweeter.", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=64&q=80" },
+  { name: "Chidi O.", rating: 4, text: "Great ambiance and very seamless redemption process. Will definitely be coming back.", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&q=80" },
+  { name: "Sarah J.", rating: 5, text: "The massage was divine. Best spa deal I've ever gotten in Lagos. Total value for money!", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=64&q=80" },
+  { name: "Ngozi E.", rating: 5, text: "Loved the interior decor. The discount worked perfectly without any hassle at the counter.", avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=64&q=80" },
+  { name: "David S.", rating: 5, text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended.", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=64&q=80" },
+  { name: "Tunde W.", rating: 4, text: "Solid deal. The food was great and the staff were very familiar with the Slasham protocol.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=64&q=80" }
 ];
-
-const REVIEWS_BOTTOM = [
-  { name: "Femi B.", rating: 5, text: "Best value for money in Abuja right now. The portions were massive.", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=48&q=40" },
-  { name: "Ngozi E.", rating: 4, text: "Loved the interior decor. The discount worked perfectly without any hassle.", avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=48&q=40" },
-  { name: "David S.", rating: 5, text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug!", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=48&q=40" },
-  { name: "Amaka U.", rating: 5, text: "I was skeptical at first, but the voucher was accepted immediately. Great service.", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=48&q=40" },
-  { name: "Ibrahim Y.", rating: 4, text: "Nice spot for a quiet evening. The savings are actually real.", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=48&q=40" },
-  { name: "Blessing O.", rating: 5, text: "Everything was perfect from start to finish. Highly recommend this deal.", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=48&q=40" }
-];
-
 
 export default function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
+  const [deal, setDeal] = useState<any>(null);
 
-  const deal = deals.find(d => d.id === Number(id));
-  const user = JSON.parse(localStorage.getItem("slasham_user") || "null");
-
-  const handleBuy = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+  useEffect(() => {
+    // Scroll to top on id change as requested
+    window.scrollTo({ top: 0, behavior: "smooth" });
     
-    setIsBuying(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsBuying(false);
-      navigate("/user/coupons");
-    }, 2000);
-  };
+    const allDeals = getPersistentDeals();
+    const found = allDeals.find(d => String(d.id) === String(id));
+    setDeal(found);
+  }, [id]);
 
   useEffect(() => {
     if (deal) {
       gsap.fromTo(
-        ".deal-content > *",
+        ".deal-content-animate > *",
         { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" }
+        { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power3.out" }
       );
     }
   }, [deal]);
 
+  const calculateExpiry = (dateString?: string) => {
+    if (!dateString) return "Deal ends in 2 days"; 
+    const diff = new Date(dateString).getTime() - new Date().getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days <= 0) return "Offer expiring today";
+    return `Deal ends in ${days} ${days === 1 ? 'day' : 'days'}`;
+  };
+
+  const handleBuy = () => {
+    setIsBuying(true);
+    setTimeout(() => {
+      setIsBuying(false);
+      navigate("/user/coupons");
+    }, 1500);
+  };
+
   if (!deal) {
     return (
-      <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen flex flex-col items-center justify-center text-center">
-        <h1 className="text-4xl font-bold text-slate-900 mb-4">Deal Not Found</h1>
-        <p className="text-slate-500 mb-8">The deal you are looking for does not exist or has expired.</p>
-        <Link to="/deals" className="bg-slate-900 text-white px-6 py-3 rounded-full font-medium hover:bg-slate-800 transition-colors">
-          Browse All Deals
-        </Link>
+      <div className="pt-40 pb-24 text-center">
+        <Loader2 className="animate-spin mx-auto text-slate-300" size={40} />
       </div>
     );
   }
 
+  const originalPriceNum = parseInt(deal.original.replace(/\D/g, '')) || 0;
+  const dealPriceNum = parseInt(deal.price.replace(/\D/g, '')) || 0;
+  const savings = originalPriceNum - dealPriceNum;
+  const discountPercent = Math.round((savings / originalPriceNum) * 100);
+
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen deal-content bg-[#FAFAFA] text-slate-900 font-sans">
-      <Link to="/deals" className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-600 transition-colors mb-8 font-medium">
-        <ArrowLeft size={20} /> Back to Deals
+    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto bg-[#FAFAFA] min-h-screen font-sans">
+      <Link to="/deals" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 font-black uppercase text-[10px] tracking-widest group">
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Deals
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24">
-        {/* Left: Image & Info */}
-        <div>
-          <div className="rounded-3xl overflow-hidden aspect-4/3 mb-8 relative group ring-1 ring-slate-200/60 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24 deal-content-animate">
+        {/* Left: Media & Details */}
+        <div className="space-y-12">
+          <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-slate-900/5 ring-1 ring-slate-200">
             <img 
               src={deal.image} 
               alt={deal.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              referrerPolicy="no-referrer"
-              loading="lazy"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-slate-900 uppercase tracking-wider shadow-sm">
+            <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
               {deal.category}
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-900">{deal.title}</h1>
-          
-          <div className="flex flex-wrap items-center justify-between gap-6 mb-8 pb-8 border-b border-slate-200/60">
-            <div className="flex flex-wrap items-center gap-6 text-slate-500">
-              <div className="flex items-center gap-2 font-medium">
-                <MapPin size={18} className="text-teal-600" /> {deal.location}
-              </div>
-              <div className="flex items-center gap-2 font-medium">
-                <Star size={18} className="text-amber-400 fill-amber-400" /> 4.8 (120 reviews)
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <FavoriteButton dealId={deal.id} />
-              <ShareButton dealId={deal.id} title={deal.title} />
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            <div>
-              <h3 className="text-2xl font-bold mb-4 text-slate-900">About this deal</h3>
-              <p className="text-slate-600 leading-relaxed text-lg">
-                {deal.description}
-              </p>
-            </div>
-
-            {/* How to Redeem Section */}
-            <div className="bg-teal-50/50 p-8 rounded-3xl border border-teal-100/50">
-              <h3 className="text-xl font-bold mb-6 text-teal-900 flex items-center gap-2">
-                <Clock size={22} className="text-teal-600" /> How to Redeem
-              </h3>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0 font-bold text-sm shadow-sm">1</div>
-                  <div>
-                    <p className="text-slate-800 font-bold mb-1">Purchase the Deal</p>
-                    <p className="text-slate-600 text-sm">Click the "Buy Now" button and complete your payment securely via Paystack.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0 font-bold text-sm shadow-sm">2</div>
-                  <div>
-                    <p className="text-slate-800 font-bold mb-1">Get Your Voucher</p>
-                    <p className="text-slate-600 text-sm">Your unique Slasham voucher code will be sent to your email and will also be available in your dashboard.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0 font-bold text-sm shadow-sm">3</div>
-                  <div>
-                    <p className="text-slate-800 font-bold mb-1">Redeem at Venue</p>
-                    <p className="text-slate-600 text-sm">Present your digital or printed voucher code to the business staff at the time of service or checkout.</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-white/80 rounded-2xl text-xs text-slate-500 italic border border-teal-100/30 leading-relaxed">
-                  <p className="font-bold text-teal-800 mb-1 not-italic">Important Instructions:</p>
-                  • Please ensure you redeem your voucher before the validity period expires.<br/>
-                  • Some businesses may require a prior reservation (at least 24 hours in advance).<br/>
-                  • The voucher is valid for a one-time use only.
-                </div>
-              </div>
-            </div>
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none">{deal.title}</h1>
             
-            <ul className="space-y-4 text-slate-600 bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm">
-              <li className="flex items-start gap-3">
-                <ShieldCheck size={20} className="text-teal-600 shrink-0 mt-0.5" />
-                <span className="font-medium">Valid for {deal.category.toLowerCase()} only.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <ShieldCheck size={20} className="text-teal-600 shrink-0 mt-0.5" />
-                <span className="font-medium">Cannot be combined with other offers.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <ShieldCheck size={20} className="text-teal-600 shrink-0 mt-0.5" />
-                <span className="font-medium">{deal.validity}</span>
-              </li>
-            </ul>
+            <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-slate-200">
+              <div className="flex flex-wrap items-center gap-6 text-slate-400">
+                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest">
+                  <MapPin size={16} className="text-indigo-600" /> {deal.location}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest">
+                  <Star size={16} className="text-amber-400 fill-amber-400" /> 4.8 (120 reviews)
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="p-3 rounded-full hover:bg-white transition-all text-slate-300 hover:text-rose-500 shadow-sm"><Heart size={20} /></button>
+                <button className="p-3 rounded-full hover:bg-white transition-all text-slate-300 hover:text-indigo-600 shadow-sm"><Share2 size={20} /></button>
+              </div>
+            </div>
+
+            <div className="space-y-10 py-4">
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">About this deal</h3>
+                <p className="text-slate-600 leading-relaxed text-lg font-medium">
+                  {deal.description}
+                </p>
+              </div>
+
+              {/* Redeem Sequence - Synchronized with Screenshot */}
+              <div className="bg-emerald-50/50 p-10 rounded-[2.5rem] border border-emerald-100 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Clock size={160} /></div>
+                <h3 className="text-xl font-black mb-8 text-emerald-900 flex items-center gap-3 relative z-10">
+                  <Clock size={24} className="text-emerald-600" /> How to Redeem
+                </h3>
+                <div className="space-y-8 relative z-10">
+                  <div className="flex gap-6">
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">1</div>
+                    <div>
+                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Purchase the Deal</p>
+                      <p className="text-slate-600 text-sm font-medium">Click the "Buy Now" button and complete your payment securely via Paystack.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-6">
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">2</div>
+                    <div>
+                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Get Your Voucher</p>
+                      <p className="text-slate-600 text-sm font-medium">Your unique Slasham voucher code will be sent to your email and will also be available in your dashboard.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-6">
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">3</div>
+                    <div>
+                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Redeem at Venue</p>
+                      <p className="text-slate-600 text-sm font-medium">Present your digital or printed voucher code to the business staff at the time of service or checkout.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-10 p-6 bg-white/80 rounded-3xl text-[10px] text-slate-400 italic border border-emerald-100 leading-relaxed font-bold">
+                    <p className="font-black text-emerald-800 mb-2 not-italic uppercase tracking-widest text-[8px]">Important Instructions:</p>
+                    • Please ensure you redeem your voucher before the validity period expires.<br/>
+                    • Some businesses may require a prior reservation (at least 24 hours in advance).<br/>
+                    • The voucher is valid for a one-time use only.
+                  </div>
+                </div>
+              </div>
+              
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  `Valid for ${deal.category.toLowerCase()} only.`,
+                  "Cannot be combined with other offers.",
+                  deal.validity
+                ].map((item, i) => (
+                  <li key={i} className="flex gap-3 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-emerald-200 transition-colors">
+                    <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+                    <span className="text-[11px] font-black uppercase text-slate-600 tracking-tight">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* Right: Purchase Card */}
-        <div className="lg:pl-12">
-          <div className="bg-white border border-slate-200/60 rounded-3xl p-8 sticky top-32 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-            <div className="bg-red-50 text-red-600 px-4 py-2 rounded-full inline-flex items-center gap-2 font-bold text-sm mb-6">
-              <Clock size={16} /> Deal ends in 2 days
+        {/* Right: Pricing Artifact */}
+        <div className="lg:pl-8">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 sticky top-32 shadow-[0_30px_60px_rgba(0,0,0,0.03)] space-y-8">
+            <div className="bg-rose-50 text-rose-600 px-5 py-2.5 rounded-full inline-flex items-center gap-3 font-black text-[10px] uppercase tracking-[0.2em] animate-pulse">
+              <Clock size={14} /> {calculateExpiry(deal.expiryDate)}
             </div>
             
-            <h2 className="text-3xl font-bold mb-2 text-slate-900">{deal.tag || "Special Offer"}</h2>
-            <p className="text-slate-500 mb-8 font-medium">Pay small now to unlock your discount.</p>
+            <div>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">{discountPercent}% Off</h2>
+              <p className="text-slate-400 text-xs font-bold tracking-tight uppercase">Authorized deployment. Pay small to unlock discount.</p>
+            </div>
             
-            <div className="bg-[#FAFAFA] rounded-2xl p-6 border border-slate-100 mb-8">
-              <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Original Price</span>
-                <span className="text-xl font-bold text-slate-400 line-through">{deal.original}</span>
+            <div className="bg-[#FAFAFA] rounded-3xl p-8 border border-slate-100 space-y-6">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Original Price</span>
+                <span className="text-xl font-bold text-slate-300 line-through">{deal.original}</span>
               </div>
-              <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Current Price</span>
-                <span className="text-2xl font-bold text-slate-900">{deal.price}</span>
+              <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Slasham Price</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter">{deal.price}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Estimated Savings</span>
-                <span className="text-xl font-bold text-teal-600">
-                  {/* Simple calculation mock, assuming format like ₦5,000 */}
-                  ₦{(parseInt(deal.original.replace(/\D/g, '')) - parseInt(deal.price.replace(/\D/g, ''))).toLocaleString()}
-                </span>
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Estimated Savings</span>
+                <span className="text-2xl font-black text-emerald-500 tracking-tighter">₦{savings.toLocaleString()}</span>
               </div>
             </div>
 
             <button 
               onClick={handleBuy}
               disabled={isBuying}
-              className={`w-full py-4 rounded-full font-bold text-lg transition-all mb-4 shadow-sm flex items-center justify-center gap-2 ${
-                isBuying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
+              className={`w-full py-6 rounded-3xl font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] ${
+                isBuying ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white hover:bg-black shadow-slate-900/20'
               }`}
             >
-              {isBuying ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" /> Processing...
-                </>
-              ) : (
-                "Buy Now"
-              )}
+              {isBuying ? <Loader2 size={24} className="animate-spin" /> : "Authorize Purchase"}
             </button>
-            <p className="text-center text-xs text-slate-400 font-medium">
-              Secure payment via Paystack • 100% Money Back Guarantee if unredeemed
+            <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest opacity-60">
+              Verified Gateway • 100% Money Back if unredeemed
             </p>
           </div>
         </div>
       </div>
 
-      {/* Reviews Section */}
-      <div className="pt-16 border-t border-slate-200/60">
-        
-        {/* Rating Overview */}
-        <div className="bg-white rounded-3xl p-8 md:p-12 ring-1 ring-slate-200/60 shadow-sm mb-16">
-          <div className="grid md:grid-cols-3 gap-12 items-center">
-            <div className="text-center md:text-left">
-              <h2 className="text-3xl font-bold tracking-tight mb-2 text-slate-900">Customer Reviews</h2>
-              <p className="text-slate-500 mb-6">See what others are saying about this experience.</p>
-              <div className="flex items-end justify-center md:justify-start gap-4 mb-2">
-                <span className="text-6xl font-bold text-slate-900 tracking-tighter">4.8</span>
+      {/* Customer Reviews - Synchronized static grid as requested */}
+      <div className="pt-24 border-t border-slate-200 space-y-16">
+        <div className="bg-white rounded-[3rem] p-10 md:p-16 border border-slate-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-50 rounded-full blur-3xl opacity-20 group-hover:scale-125 transition-transform duration-1000" />
+          <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
+            <div>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-4">Customer Intelligence</h2>
+              <p className="text-slate-400 font-medium mb-10 leading-relaxed max-w-sm">Aggregated sentiment analysis from verified artifact liquidations across the network.</p>
+              
+              <div className="flex items-end gap-6 mb-12">
+                <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">4.8</span>
                 <div className="pb-2">
-                  <div className="flex text-amber-400 mb-1">
+                  <div className="flex text-amber-400 gap-1 mb-2">
                     <Star size={20} className="fill-current" />
                     <Star size={20} className="fill-current" />
                     <Star size={20} className="fill-current" />
                     <Star size={20} className="fill-current" />
-                    <Star size={20} className="fill-current text-slate-200" />
+                    <Star size={20} className="text-slate-100 fill-slate-100" />
                   </div>
-                  <span className="text-sm font-medium text-slate-500">Based on 120 reviews</span>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Based on 120 verified reviews</p>
                 </div>
               </div>
+
+              <button className="flex items-center gap-3 bg-slate-900 text-white px-8 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 active:scale-95">
+                <MessageSquare size={16} /> Leave a Review
+              </button>
             </div>
 
-            <div className="md:col-span-2 space-y-3">
+            <div className="space-y-4">
               {[
-                { stars: 5, percent: 85 },
-                { stars: 4, percent: 10 },
-                { stars: 3, percent: 3 },
-                { stars: 2, percent: 1 },
-                { stars: 1, percent: 1 },
+                { s: 5, p: 85 },
+                { s: 4, p: 10 },
+                { s: 3, p: 3 },
+                { s: 2, p: 1 },
+                { s: 1, p: 1 },
               ].map((bar) => (
-                <div key={bar.stars} className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 w-12 shrink-0 text-sm font-medium text-slate-600">
-                    {bar.stars} <Star size={12} className="fill-slate-400 text-slate-400" />
+                <div key={bar.s} className="flex items-center gap-6">
+                  <div className="w-12 text-[10px] font-black text-slate-400 flex items-center gap-1.5 uppercase">
+                    {bar.s} <Star size={12} className="fill-slate-300 text-slate-300" />
                   </div>
-                  <div className="grow h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-amber-400 rounded-full" 
-                      style={{ width: `${bar.percent}%` }}
-                    ></div>
+                  <div className="flex-1 h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${bar.p}%` }} />
                   </div>
-                  <div className="w-10 text-right text-sm font-medium text-slate-500 shrink-0">
-                    {bar.percent}%
-                  </div>
+                  <div className="w-8 text-[10px] font-black text-slate-900 text-right">{bar.p}%</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end mb-12">
-          <button 
-            onClick={() => setShowReviewForm(!showReviewForm)}
-            className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-sm"
-          >
-            <MessageSquare size={18} />
-            Leave a Review
-          </button>
-        </div>
-
-        {showReviewForm && (
-          <div className="mb-12 bg-white p-8 rounded-3xl ring-1 ring-slate-200/60 shadow-sm max-w-2xl">
-            <h3 className="text-xl font-bold mb-4 text-slate-900">Write a Review</h3>
-            <div className="flex gap-2 mb-6">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button key={star} className="text-slate-300 hover:text-amber-400 transition-colors">
-                  <Star size={24} className="fill-current" />
-                </button>
-              ))}
-            </div>
-            <textarea 
-              className="w-full bg-[#FAFAFA] border border-slate-200 rounded-xl p-4 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
-              rows={4}
-              placeholder="Share your experience with this deal..."
-            ></textarea>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setShowReviewForm(false)}
-                className="px-6 py-2.5 rounded-lg font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-6 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors">
-                Submit Review
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Infinite Scrolling Reviews */}
-        <div className="relative overflow-hidden -mx-6 px-6 pb-12">
-          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-linear-to-r from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-linear-to-l from-[#FAFAFA] to-transparent z-10 pointer-events-none"></div>
-          
-          {/* Top Row (LTR) */}
-          <div className="flex overflow-hidden w-full mb-6">
-            <div className="animate-marquee-ltr flex items-center gap-6">
-              {[...REVIEWS_TOP, ...REVIEWS_TOP].map((review, i) => (
-                <div key={`top-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm shrink-0">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={review.avatar} 
-                      alt={review.name} 
-                      className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-100"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div>
-                      <p className="font-semibold text-sm text-slate-900">{review.name}</p>
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {[...Array(5)].map((_, j) => (
-                          <Star key={j} size={10} className={j < review.rating ? "fill-amber-400" : "text-slate-200 fill-slate-200"} />
-                        ))}
-                      </div>
+        {/* Reviews Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+          {REVIEWS.map((review, i) => (
+            <motion.div 
+               key={i} 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: i * 0.1 }}
+               className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
+            >
+               <div className="flex items-center gap-4 mb-8">
+                  <img src={review.avatar} className="w-12 h-12 rounded-2xl object-cover ring-4 ring-slate-50 shadow-lg group-hover:scale-110 transition-transform" alt="" />
+                  <div>
+                    <p className="text-sm font-black text-slate-900 tracking-tight">{review.name}</p>
+                    <div className="flex text-amber-400 gap-0.5">
+                       {[...Array(5)].map((_, j) => <Star key={j} size={10} className={j < review.rating ? "fill-amber-400" : "text-slate-200 fill-slate-200"} />)}
                     </div>
                   </div>
-                  <p className="text-slate-600 text-sm leading-relaxed">"{review.text}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom Row (RTL) */}
-          <div className="flex overflow-hidden w-full">
-            <div className="animate-marquee-rtl flex items-center gap-6">
-              {[...REVIEWS_BOTTOM, ...REVIEWS_BOTTOM].map((review, i) => (
-                <div key={`bottom-${i}`} className="w-[300px] md:w-[350px] bg-white p-6 rounded-2xl ring-1 ring-slate-200/60 shadow-sm shrink-0">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={review.avatar} 
-                      alt={review.name} 
-                      className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-100"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div>
-                      <p className="font-semibold text-sm text-slate-900">{review.name}</p>
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {[...Array(5)].map((_, j) => (
-                          <Star key={j} size={10} className={j < review.rating ? "fill-amber-400" : "text-slate-200 fill-slate-200"} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-slate-600 text-sm leading-relaxed">"{review.text}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Sticky CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-xl border-t border-slate-200 z-50 shadow-[0_-8px_30px_rgb(0,0,0,0.05)]">
-        <div className="flex items-center justify-between gap-4 max-w-xl mx-auto">
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Current Price</p>
-            <p className="text-xl font-bold text-slate-900 leading-none">{deal.price}</p>
-          </div>
-          <button 
-            onClick={handleBuy}
-            disabled={isBuying}
-            className={`grow py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2 ${
-              isBuying ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white active:scale-[0.98]'
-            }`}
-          >
-            {isBuying ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Processing...
-              </>
-            ) : (
-              "Buy Now"
-            )}
-          </button>
+               </div>
+               <p className="text-slate-600 font-medium leading-relaxed italic">"{review.text}"</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>

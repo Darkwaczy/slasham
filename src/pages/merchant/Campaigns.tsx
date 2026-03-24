@@ -1,4 +1,4 @@
-import { Ticket, Plus, Search, Target, Eye, Store, Tag, MapPin, Info, Clock, CheckCircle2, XCircle, Edit3, Image as ImageIcon, DollarSign } from "lucide-react";
+import { Ticket, Plus, Search, Target, Eye, Store, Tag, MapPin, Info, Clock, CheckCircle2, XCircle, Edit3, Image as ImageIcon, DollarSign, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -40,6 +40,7 @@ export default function MerchantCampaigns() {
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
       couponType: formData.get('couponType') as any,
+      expiryDate: formData.get('expiryDate') as string,
     };
 
     if (editingRequest) {
@@ -263,12 +264,19 @@ export default function MerchantCampaigns() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Price / Normal Selling Price</label>
                        <div className="relative">
                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                           <input name="originalPrice" defaultValue={editingRequest?.originalPrice} placeholder="₦25,000" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                       </div>
+                   </div>
+                   <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Expiry Date / Offer Duration</label>
+                       <div className="relative">
+                          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                          <input type="date" name="expiryDate" defaultValue={editingRequest?.expiryDate} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                        </div>
                    </div>
                 </div>

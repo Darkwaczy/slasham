@@ -20,6 +20,7 @@ export interface CampaignRequest {
   status: 'Pending' | 'Approved' | 'Rejected';
   adminNote?: string;
   submittedAt: string;
+  expiryDate?: string;
 }
 
 export interface Notification {

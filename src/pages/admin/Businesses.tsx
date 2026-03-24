@@ -1,4 +1,4 @@
-import { Search, Filter, MoreHorizontal, Plus, Store, Star, MapPin, ExternalLink, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Tag, Image as ImageIcon, ChevronRight } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -91,6 +91,7 @@ export default function AdminBusinesses() {
       email: selectedBiz.email,
       phone: "+234-DASH-GHOST",
       couponType: "Voucher",
+      expiryDate: formData.get('expiryDate') as string,
     });
 
     // 2. Mark it as approved immediately
@@ -106,7 +107,8 @@ export default function AdminBusinesses() {
         category: selectedBiz.category,
         tag: "Verified",
         description: formData.get('description') as string,
-        validity: "Valid for 30 days. No booking required."
+        validity: "Valid for 30 days. No booking required.",
+        expiryDate: formData.get('expiryDate') as string,
     });
 
     setIsQuickDealModalOpen(false);
@@ -237,6 +239,22 @@ export default function AdminBusinesses() {
         </div>
       </div>
 
+      {/* New Partner Modal */}
+      <AdminModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Node Registration Protocol"
+        description="Initialize a new strategic partner identity in the network."
+      >
+        <div className="space-y-6 pt-6 mb-8">
+           <p className="text-slate-500 font-medium text-sm">Onboarding a new business requires legal verification and node verification. Proceed with identity verification?</p>
+           <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => setIsAddModalOpen(false)} className="py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Abandon</button>
+              <button className="py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/10">Proceed</button>
+           </div>
+        </div>
+      </AdminModal>
+
       {/* Action/Manage Business Modal */}
       <AdminModal
         isOpen={isActionModalOpen}
@@ -318,6 +336,16 @@ export default function AdminBusinesses() {
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Price</label>
                    <input name="originalPrice" required placeholder="₦25,000" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+             </div>
+
+             <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Expiry Date / Deployment Duration</label>
+                   <div className="relative">
+                      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input type="date" name="expiryDate" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                   </div>
                 </div>
              </div>
 
