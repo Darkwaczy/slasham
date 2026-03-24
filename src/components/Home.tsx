@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   ArrowRight, MapPin, TrendingUp, Zap,
-  Truck, Timer, ChevronDown
+  Truck, Timer, ChevronDown, Star
 } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -219,25 +219,26 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 p-8 md:p-12">
-            {/* NEW: Sidebar Category Navigator */}
-            <aside className="w-full lg:w-[120px] shrink-0">
+            {/* Standardized Sidebar Category Navigator */}
+            <aside className="w-full lg:w-[110px] shrink-0">
                <div className="sticky top-6">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1">Discover</p>
-                 <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-1 gap-2 bg-slate-100 p-2 rounded-3xl border border-slate-200/50 shadow-inner">
+                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-1">Discover</p>
+                 <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-full">
                     {[
-                        { name: "Food", icon: <TrendingUp size={16}/>, color: "text-orange-600 bg-orange-50" },
-                        { name: "Spa", icon: <Zap size={16}/>, color: "text-teal-600 bg-teal-50" },
-                        { name: "Fun", icon: <ArrowRight size={16}/>, color: "text-rose-600 bg-rose-50" },
-                        { name: "Goods", icon: <Truck size={16}/>, color: "text-amber-600 bg-amber-50" },
+                        { name: "Dining", icon: <TrendingUp size={18}/>, color: "text-orange-600 bg-orange-50" },
+                        { name: "Spa", icon: <Zap size={18}/>, color: "text-teal-600 bg-teal-50" },
+                        { name: "Fun", icon: <ArrowRight size={18}/>, color: "text-rose-600 bg-rose-50" },
+                        { name: "Goods", icon: <Truck size={18}/>, color: "text-amber-600 bg-amber-50" },
+                        { name: "Stay", icon: <MapPin size={18}/>, color: "text-blue-600 bg-blue-50" },
                     ].map((cat, i) => (
-                        <button key={i} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl hover:bg-slate-900 hover:text-white transition-all group shadow-sm border border-slate-200/30">
-                           <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-1 group-hover:scale-110 transition-transform`}>{cat.icon}</div>
-                           <span className="text-[8px] font-black uppercase tracking-tight">{cat.name}</span>
+                        <button key={i} className="bg-white p-4 hover:bg-slate-900 hover:text-white transition-all group flex flex-col items-center text-center w-full min-h-[100px] border-b lg:border-b border-slate-100 relative shrink-0">
+                           <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm border border-slate-100`}>{cat.icon}</div>
+                           <span className="text-[9px] font-black uppercase tracking-tight leading-none">{cat.name}</span>
                         </button>
                     ))}
-                    <Link to="/deals" className="flex flex-col items-center justify-center p-4 bg-teal-600 text-white rounded-2xl hover:bg-slate-900 transition-all shadow-lg shadow-teal-500/20">
-                        <ArrowRight size={16} className="mb-1" />
-                        <span className="text-[7px] font-black uppercase tracking-widest">More</span>
+                    <Link to="/deals" className="bg-teal-600 p-4 hover:bg-slate-900 text-white transition-all group flex flex-col items-center justify-center text-center w-full min-h-[100px] relative shrink-0">
+                        <ArrowRight size={18} className="mb-2 group-hover:translate-x-1 transition-transform" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">All</span>
                     </Link>
                  </div>
                </div>
@@ -268,16 +269,21 @@ export default function Home() {
                       </div>
                       
                       <div className="flex flex-col grow px-1">
-                        <p className="text-[8px] font-black text-indigo-600/40 uppercase tracking-widest truncate leading-none mb-1">{deal.companyName || "Market Partner"}</p>
-                        <h3 className="text-xs font-black mb-2 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-8 uppercase tracking-tight leading-tight">
-                            {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                        </h3>
-                        
-                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold mb-3 uppercase tracking-widest opacity-60">
-                          <MapPin size={10} className="text-slate-400" />
-                          <span className="truncate">{deal.redeemAddress || deal.location}</span>
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-[8px] font-black text-teal-600/60 uppercase tracking-[0.2em]">{deal.category || "Deals"}</p>
+                            <div className="flex items-center gap-0.5 text-amber-400">
+                                <Star size={10} className="fill-amber-400" />
+                                <span className="text-[8px] font-black text-slate-900">4.9</span>
+                            </div>
                         </div>
-    
+
+                        <div className="mb-2">
+                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate mb-0.5">{deal.companyName || "Exclusive Partner"}</p>
+                            <h3 className="text-sm font-black text-slate-900 leading-tight uppercase tracking-tight group-hover:text-teal-600 transition-colors line-clamp-2">
+                                {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                            </h3>
+                        </div>
+                        
                         <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-slate-50">
                           <div className="flex items-baseline gap-2">
                             <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
@@ -299,65 +305,88 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW: 4. SUCCESS STORIES (Impact Theater) */}
-      <section className="py-24 bg-white overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-16">
-            <div>
-               <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-4">Platform <span className="text-teal-600">Impact</span></h2>
-               <p className="text-slate-400 font-bold uppercase tracking-widest text-xs italic">What our community is saying</p>
-            </div>
-          </div>
+      {/* RE-ENGINEERED: SUCCESS STORIES DUAL MARQUEE (6 Up, 6 Down) */}
+      <section className="py-24 bg-[#FAFAFA] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
+           <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-600 rounded-full text-[10px] font-black tracking-widest uppercase mb-4 shadow-sm border border-teal-100">
+             <TrendingUp size={12} /> Success Stories
+           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { 
-                name: "Mrs. Adebayo", 
-                role: "Entrepreneur", 
-                business: "Gourmet Kitchen", 
-                image: "https://images.unsplash.com/photo-1556740734-7f95834d0ff9", 
-                quote: "Slasham helped us fill our tables during weekday lunch hours. 40% increase in new customers!",
-                stats: "₦4.2M+ In Sales"
-              },
-              { 
-                name: "Tunde Williams", 
-                role: "Operations Dealer", 
-                business: "FitLife Gym", 
-                image: "https://images.unsplash.com/photo-1581291417006-03e4514f7348", 
-                quote: "The digital validation protocol is a game-changer. Seamless, fast, and 100% accurate.",
-                stats: "1.2k+ Redemptions"
-              },
-              { 
-                name: "Sarah Johnson", 
-                role: "Creative Director", 
-                business: "Glow Up Spa", 
-                image: "https://images.unsplash.com/photo-1600334129128-685c5582fd35", 
-                quote: "Best platform in Nigeria for brand awareness. We were fully booked for 3 months after launch.",
-                stats: "98% Positive Rating"
-              }
-            ].map((story, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 + 0.5 }}
-                className="group relative h-[450px] rounded-[3rem] overflow-hidden bg-slate-900 border border-slate-100 shadow-2xl"
-              >
-                <img src={story.image} className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" />
-                <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-900/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-10 w-full">
-                   <div className="bg-teal-500 text-slate-950 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest inline-block mb-4 shadow-xl">
-                      {story.stats}
+        <div className="space-y-6">
+           {/* ROW 1: GOES RIGHT */}
+           <div className="flex animate-marquee-rtl gap-6 px-6">
+              {[
+                { name: "Tobi D.", text: "Great customer service. I had an issue with a voucher and they resolved it in minutes." },
+                { name: "Aisha M.", text: "I've saved over ₦50,000 this month alone just by using Slasham for my weekend dinners." },
+                { name: "Chidi O.", text: "The app is so seamless. I walked into the spa, showed my voucher, and got treated like royalty." },
+                { name: "Sarah T.", text: "Finally, a discount platform that works in Nigeria. 10/10 highly recommend to everyone!" },
+                { name: "Nneka L.", text: "Best deals for staycations. Slasham is my go-to for planning quality family time." },
+                { name: "David S.", text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended." }
+              ].map((s, i) => (
+                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                   <div className="flex gap-0.5 text-amber-400 mb-4">
+                      {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
                    </div>
-                   <p className="text-white text-lg font-medium italic mb-6 leading-relaxed">"{story.quote}"</p>
-                   <div>
-                      <h4 className="text-xl font-black text-white leading-none uppercase tracking-tighter">{story.name}</h4>
-                      <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest mt-1">{story.role} • {story.business}</p>
-                   </div>
+                   <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6 italic min-h-[60px]">"{s.text}"</p>
+                   <h4 className="text-slate-900 font-black uppercase text-[10px] tracking-widest">{s.name}</h4>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+              {/* Duplicate for seamless loop */}
+               {[
+                { name: "Tobi D.", text: "Great customer service. I had an issue with a voucher and they resolved it in minutes." },
+                { name: "Aisha M.", text: "I've saved over ₦50,000 this month alone just by using Slasham for my weekend dinners." },
+                { name: "Chidi O.", text: "The app is so seamless. I walked into the spa, showed my voucher, and got treated like royalty." },
+                { name: "Sarah T.", text: "Finally, a discount platform that works in Nigeria. 10/10 highly recommend to everyone!" },
+                { name: "Nneka L.", text: "Best deals for staycations. Slasham is my go-to for planning quality family time." },
+                { name: "David S.", text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended." }
+              ].map((s, i) => (
+                <div key={`dup1-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                   <div className="flex gap-0.5 text-amber-400 mb-4">
+                      {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
+                   </div>
+                   <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6 italic min-h-[60px]">"{s.text}"</p>
+                   <h4 className="text-slate-900 font-black uppercase text-[10px] tracking-widest">{s.name}</h4>
+                </div>
+              ))}
+           </div>
+
+           {/* ROW 2: GOES LEFT */}
+           <div className="flex animate-marquee-ltr gap-6 px-6">
+              {[
+                { name: "Amaka U.", text: "I was skeptical at first, but the voucher was accepted immediately. Great service and verify fast." },
+                { name: "Ibrahim Y.", text: "Nice spots for a quiet evening. The savings are actually real. Best discovery app so far." },
+                { name: "Blessing O.", text: "Everything was perfect from start to finish. I've even started using this platform for work." },
+                { name: "Chinelo K.", text: "The UI is beautiful and easy to navigate. Finding deals has never been this satisfying." },
+                { name: "Ola W.", text: "A must-have for anyone living in Lagos. The variety of categories is impressive." },
+                { name: "Kelechi E.", text: "Transparent pricing and verified venues. You always know exactly what you're getting." }
+              ].map((s, i) => (
+                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                   <div className="flex gap-0.5 text-amber-400 mb-4">
+                      {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
+                   </div>
+                   <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6 italic min-h-[60px]">"{s.text}"</p>
+                   <h4 className="text-slate-900 font-black uppercase text-[10px] tracking-widest">{s.name}</h4>
+                </div>
+              ))}
+              {/* Duplicate for seamless loop */}
+              {[
+                { name: "Amaka U.", text: "I was skeptical at first, but the voucher was accepted immediately. Great service and verify fast." },
+                { name: "Ibrahim Y.", text: "Nice spots for a quiet evening. The savings are actually real. Best discovery app so far." },
+                { name: "Blessing O.", text: "Everything was perfect from start to finish. I've even started using this platform for work." },
+                { name: "Chinelo K.", text: "The UI is beautiful and easy to navigate. Finding deals has never been this satisfying." },
+                { name: "Ola W.", text: "A must-have for anyone living in Lagos. The variety of categories is impressive." },
+                { name: "Kelechi E.", text: "Transparent pricing and verified venues. You always know exactly what you're getting." }
+              ].map((s, i) => (
+                <div key={`dup2-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                   <div className="flex gap-0.5 text-amber-400 mb-4">
+                      {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
+                   </div>
+                   <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6 italic min-h-[60px]">"{s.text}"</p>
+                   <h4 className="text-slate-900 font-black uppercase text-[10px] tracking-widest">{s.name}</h4>
+                </div>
+              ))}
+           </div>
         </div>
       </section>
 
