@@ -14,6 +14,11 @@ export interface Deal {
   description: string;
   validity: string;
   expiryDate?: string;
+  shippingInfo?: { enabled: boolean; fee: string; note: string };
+  isHotCoupon?: boolean;
+  companyName?: string;
+  unlockNote?: string;
+  redeemAddress?: string;
 }
 
 export const getPersistentDeals = (): Deal[] => {

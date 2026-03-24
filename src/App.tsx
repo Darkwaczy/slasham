@@ -9,6 +9,7 @@ import Layout from "./components/Layout";
 import Home from "./components/Home";
 import Deals from "./pages/Deals";
 import DealDetail from "./pages/DealDetail";
+import HotDeals from "./pages/HotDeals";
 import Business from "./pages/Business";
 import MyBusinessBenefits from "./pages/business/MyBusinessBenefits";
 import RunCampaign from "./pages/business/RunCampaign";
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="deals" element={<Deals />} />
+          <Route path="deals/hot" element={<HotDeals />} />
           <Route path="deal/:id" element={<DealDetail />} />
           <Route path="business" element={<Business />} />
           <Route path="business/benefits" element={<MyBusinessBenefits />} />

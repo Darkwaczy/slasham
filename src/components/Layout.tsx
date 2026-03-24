@@ -251,7 +251,7 @@ export default function Layout() {
               <Settings size={14} /> LOCAL SERVICES
             </Link>
             <div className="h-4 w-px bg-slate-200 mx-2 shrink-0"></div>
-            <Link to="/how-it-works" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors whitespace-nowrap shrink-0">
+            <Link to="/deals/hot" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors whitespace-nowrap shrink-0">
               <Zap size={14} className="fill-rose-500" /> HOT COUPONS
             </Link>
           </div>

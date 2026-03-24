@@ -21,9 +21,7 @@ export default function DealDetail() {
   const [deal, setDeal] = useState<any>(null);
 
   useEffect(() => {
-    // Scroll to top on id change as requested
     window.scrollTo({ top: 0, behavior: "smooth" });
-    
     const allDeals = getPersistentDeals();
     const found = allDeals.find(d => String(d.id) === String(id));
     setDeal(found);
@@ -68,20 +66,23 @@ export default function DealDetail() {
   const savings = originalPriceNum - dealPriceNum;
   const discountPercent = Math.round((savings / originalPriceNum) * 100);
 
+  // Determine actual validity text to fix consistency
+  const actualValidity = deal.validity || "Valid for 30 days. No booking required.";
+
   return (
     <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto bg-[#FAFAFA] min-h-screen font-sans">
-      <Link to="/deals" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 font-black uppercase text-[10px] tracking-widest group">
+      <Link to="/deals" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 font-black uppercase text-[10px] tracking-widest group text-sm">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Deals
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24 deal-content-animate">
         {/* Left: Media & Details */}
         <div className="space-y-12">
-          <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-slate-900/5 ring-1 ring-slate-200">
+          <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-slate-900/5 ring-1 ring-slate-200 bg-white flex items-center justify-center">
             <img 
               src={deal.image} 
               alt={deal.title} 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
               {deal.category}
@@ -89,12 +90,15 @@ export default function DealDetail() {
           </div>
           
           <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none">{deal.title}</h1>
+            <div className="space-y-1">
+                {deal.companyName && <p className="text-indigo-600 font-bold uppercase tracking-widest text-[10px]">{deal.companyName} Presents</p>}
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight">{deal.title}</h1>
+            </div>
             
             <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-slate-200">
               <div className="flex flex-wrap items-center gap-6 text-slate-400">
                 <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest">
-                  <MapPin size={16} className="text-indigo-600" /> {deal.location}
+                  <MapPin size={16} className="text-indigo-600" /> {deal.redeemAddress || deal.location}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest">
                   <Star size={16} className="text-amber-400 fill-amber-400" /> 4.8 (120 reviews)
@@ -112,9 +116,18 @@ export default function DealDetail() {
                 <p className="text-slate-600 leading-relaxed text-lg font-medium">
                   {deal.description}
                 </p>
+                {deal.redeemAddress && (
+                    <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3">
+                        <MapPin size={18} className="text-indigo-600" />
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Redeem at:</p>
+                            <p className="text-sm font-bold text-slate-900">{deal.redeemAddress}</p>
+                        </div>
+                    </div>
+                )}
               </div>
 
-              {/* Redeem Sequence - Synchronized with Screenshot */}
+              {/* Redeem Sequence */}
               <div className="bg-emerald-50/50 p-10 rounded-[2.5rem] border border-emerald-100 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Clock size={160} /></div>
                 <h3 className="text-xl font-black mb-8 text-emerald-900 flex items-center gap-3 relative z-10">
@@ -124,29 +137,29 @@ export default function DealDetail() {
                   <div className="flex gap-6">
                     <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">1</div>
                     <div>
-                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Purchase the Deal</p>
-                      <p className="text-slate-600 text-sm font-medium">Click the "Buy Now" button and complete your payment securely via Paystack.</p>
+                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Purchase Coupon</p>
+                      <p className="text-slate-600 text-sm font-medium">Click "Buy Coupon" and complete your payment securely via Paystack.</p>
                     </div>
                   </div>
                   <div className="flex gap-6">
                     <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">2</div>
                     <div>
                       <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Get Your Voucher</p>
-                      <p className="text-slate-600 text-sm font-medium">Your unique Slasham voucher code will be sent to your email and will also be available in your dashboard.</p>
+                      <p className="text-slate-600 text-sm font-medium">Your unique code will be sent to your email and available in your dashboard instantly.</p>
                     </div>
                   </div>
                   <div className="flex gap-6">
                     <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm shadow-lg shadow-emerald-500/20">3</div>
                     <div>
-                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Redeem at Venue</p>
-                      <p className="text-slate-600 text-sm font-medium">Present your digital or printed voucher code to the business staff at the time of service or checkout.</p>
+                      <p className="text-slate-900 font-black mb-1 uppercase text-xs tracking-widest">Redeem at Business</p>
+                      <p className="text-slate-600 text-sm font-medium">Present your voucher code to the staff at the time of service or checkout.</p>
                     </div>
                   </div>
                   
                   <div className="mt-10 p-6 bg-white/80 rounded-3xl text-[10px] text-slate-400 italic border border-emerald-100 leading-relaxed font-bold">
                     <p className="font-black text-emerald-800 mb-2 not-italic uppercase tracking-widest text-[8px]">Important Instructions:</p>
                     • Please ensure you redeem your voucher before the validity period expires.<br/>
-                    • Some businesses may require a prior reservation (at least 24 hours in advance).<br/>
+                    • {actualValidity}<br/>
                     • The voucher is valid for a one-time use only.
                   </div>
                 </div>
@@ -156,7 +169,7 @@ export default function DealDetail() {
                 {[
                   `Valid for ${deal.category.toLowerCase()} only.`,
                   "Cannot be combined with other offers.",
-                  deal.validity
+                  actualValidity
                 ].map((item, i) => (
                   <li key={i} className="flex gap-3 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-emerald-200 transition-colors">
                     <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
@@ -177,12 +190,14 @@ export default function DealDetail() {
             
             <div>
               <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">{discountPercent}% Off</h2>
-              <p className="text-slate-400 text-xs font-bold tracking-tight uppercase">Authorized deployment. Pay small to unlock discount.</p>
+              <p className="text-slate-400 text-[10px] font-black tracking-widest uppercase">
+                {deal.unlockNote || "Pay small amount to unlock this exclusive discount."}
+              </p>
             </div>
             
             <div className="bg-[#FAFAFA] rounded-3xl p-8 border border-slate-100 space-y-6">
               <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
-                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Original Price</span>
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Market Price</span>
                 <span className="text-xl font-bold text-slate-300 line-through">{deal.original}</span>
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
@@ -190,7 +205,7 @@ export default function DealDetail() {
                 <span className="text-3xl font-black text-slate-900 tracking-tighter">{deal.price}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Estimated Savings</span>
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Your Savings</span>
                 <span className="text-2xl font-black text-emerald-500 tracking-tighter">₦{savings.toLocaleString()}</span>
               </div>
             </div>
@@ -198,27 +213,27 @@ export default function DealDetail() {
             <button 
               onClick={handleBuy}
               disabled={isBuying}
-              className={`w-full py-6 rounded-3xl font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] ${
+              className={`w-full py-6 rounded-3xl font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] uppercase tracking-widest ${
                 isBuying ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white hover:bg-black shadow-slate-900/20'
               }`}
             >
-              {isBuying ? <Loader2 size={24} className="animate-spin" /> : "Authorize Purchase"}
+              {isBuying ? <Loader2 size={24} className="animate-spin" /> : "Buy Coupon"}
             </button>
             <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest opacity-60">
-              Verified Gateway • 100% Money Back if unredeemed
+              Verified Gateway • 100% Secure Checkout
             </p>
           </div>
         </div>
       </div>
 
-      {/* Customer Reviews - Synchronized static grid as requested */}
+      {/* Customer Reviews */}
       <div className="pt-24 border-t border-slate-200 space-y-16">
         <div className="bg-white rounded-[3rem] p-10 md:p-16 border border-slate-100 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-50 rounded-full blur-3xl opacity-20 group-hover:scale-125 transition-transform duration-1000" />
           <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
             <div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-4">Customer Intelligence</h2>
-              <p className="text-slate-400 font-medium mb-10 leading-relaxed max-w-sm">Aggregated sentiment analysis from verified artifact liquidations across the network.</p>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">Verified Reviews</h2>
+              <p className="text-slate-400 font-medium mb-10 leading-relaxed max-w-sm">Authentic feedback from real users who redeemed this offer at {deal.companyName || deal.title.split("'")[0]}.</p>
               
               <div className="flex items-end gap-6 mb-12">
                 <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">4.8</span>
@@ -235,7 +250,7 @@ export default function DealDetail() {
               </div>
 
               <button className="flex items-center gap-3 bg-slate-900 text-white px-8 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 active:scale-95">
-                <MessageSquare size={16} /> Leave a Review
+                <MessageSquare size={16} /> Write a Review
               </button>
             </div>
 
@@ -261,7 +276,6 @@ export default function DealDetail() {
           </div>
         </div>
 
-        {/* Reviews Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
           {REVIEWS.map((review, i) => (
             <motion.div 

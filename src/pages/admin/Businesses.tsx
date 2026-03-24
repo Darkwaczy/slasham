@@ -1,9 +1,10 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Truck, Zap, Upload, Building, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import AdminModal from "../../components/AdminModal";
 import { getCampaignRequests, saveCampaignRequest, updateRequestStatus } from "../../utils/merchantPersistence";
 import { addPersistentDeal } from "../../utils/mockPersistence";
+import { getLocationNames } from "../../utils/locations";
 
 const INITIAL_BUSINESSES = [
   { id: "B-882", name: "Zaza Lounge", owner: "Kunle A.", category: "Dining", rating: 4.8, status: "Verified", deals: 12, city: "Lagos", email: "ops@zaza.com", address: "14, Victoria Island, Lagos" },
@@ -24,7 +25,7 @@ export default function AdminBusinesses() {
       rating: 4.5,
       status: r.status === 'Approved' ? 'Verified' : 'Pending',
       deals: 1,
-      city: r.address.split(',').pop()?.trim() || "Lagos",
+      city: r.location || r.address.split(',').pop()?.trim() || "Lagos",
       email: r.email,
       address: r.address
     }));
@@ -45,6 +46,10 @@ export default function AdminBusinesses() {
   const [isQuickDealModalOpen, setIsQuickDealModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("All");
 
+  const [shippingEnabled, setShippingEnabled] = useState(false);
+  const [isHotCoupon, setIsHotCoupon] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const filteredBusinesses = businesses.filter(b => {
     const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          b.owner.toLowerCase().includes(searchQuery.toLowerCase());
@@ -62,6 +67,13 @@ export default function AdminBusinesses() {
     setIsActionModalOpen(false);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
   const handleDeleteBiz = (id: string) => {
     setBusinesses(prev => prev.filter(b => b.id !== id));
     setIsActionModalOpen(false);
@@ -73,25 +85,40 @@ export default function AdminBusinesses() {
     
     const formData = new FormData(e.target as HTMLFormElement);
     const productName = formData.get('productName') as string;
+    const companyName = formData.get('companyName') as string;
     const slashamPrice = formData.get('slashamPrice') as string;
     const originalPrice = formData.get('originalPrice') as string;
-    const image = formData.get('image') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400`;
+    const category = formData.get('category') as string;
+    const location = formData.get('location') as string;
+    const redeemAddress = formData.get('redeemAddress') as string || selectedBiz.address;
+    const unlockNote = formData.get('unlockNote') as string;
+    const image = previewImage || formData.get('imageUrl') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400`;
 
-    // 1. Create a "Ghost" approved request for history/notifications
+    // 1. Create a "Ghost" approved request for history
     const req = saveCampaignRequest({
       merchantId: selectedBiz.id,
       businessName: selectedBiz.name,
+      companyName,
       productName,
       productImage: image,
       originalPrice,
       dealPrice: slashamPrice,
-      category: selectedBiz.category,
+      category,
       description: formData.get('description') as string,
-      address: selectedBiz.address,
+      address: redeemAddress,
+      location,
       email: selectedBiz.email,
-      phone: "+234-DASH-GHOST",
+      phone: "+234-ADMIN-DIRECT",
       couponType: "Voucher",
       expiryDate: formData.get('expiryDate') as string,
+      isHotCoupon,
+      unlockNote,
+      shippingInfo: {
+          enabled: shippingEnabled,
+          fee: formData.get('shippingFee') as string || "0",
+          note: formData.get('shippingNote') as string || ""
+      },
+      redeemAddress
     });
 
     // 2. Mark it as approved immediately
@@ -99,21 +126,33 @@ export default function AdminBusinesses() {
 
     // 3. Add to live inventory
     addPersistentDeal({
-        title: `${selectedBiz.name}'s ${productName}`,
-        location: selectedBiz.address,
+        title: companyName ? `${companyName} - ${productName}` : `${selectedBiz.name}'s ${productName}`,
+        companyName: companyName || selectedBiz.name,
+        location: location,
         price: slashamPrice,
         original: originalPrice,
         image,
-        category: selectedBiz.category,
-        tag: "Verified",
+        category,
+        tag: isHotCoupon ? "Hot Deal" : "Verified",
         description: formData.get('description') as string,
         validity: "Valid for 30 days. No booking required.",
         expiryDate: formData.get('expiryDate') as string,
+        isHotCoupon,
+        unlockNote,
+        shippingInfo: {
+            enabled: shippingEnabled,
+            fee: formData.get('shippingFee') as string || "0",
+            note: formData.get('shippingNote') as string || ""
+        },
+        redeemAddress
     });
 
     setIsQuickDealModalOpen(false);
     setIsActionModalOpen(false);
-    alert(`Live deployment finalized for ${selectedBiz.name}. Campaign is currently active!`);
+    setPreviewImage(null);
+    setShippingEnabled(false);
+    setIsHotCoupon(false);
+    alert(`Success: Live deal launched for ${selectedBiz.name} in ${location}.`);
   };
 
   return (
@@ -121,24 +160,24 @@ export default function AdminBusinesses() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Merchant Intelligence</h1>
-          <p className="text-slate-500 font-medium">Manage partners and authorize direct deployments</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Business Partners</h1>
+          <p className="text-slate-500 font-medium">Manage your verified marketplace partners and launch new deals.</p>
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/10 hover:scale-105 transition-all"
+          className="flex items-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/10 hover:scale-105 transition-all active:scale-95"
         >
-          <Plus size={18} /> New Partner
+          <Plus size={18} /> Add New Partner
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Partners", count: businesses.length, sub: `${businesses.filter(b => b.status ==='Pending').length} pending approval` },
-          { label: "Active Nodes", count: businesses.filter(b => b.status === 'Verified').length, sub: "Trusted network status" },
-          { label: "Avg Velocity", count: "4.2d", sub: "Clearance time" },
-          { label: "Satisfaction", count: "98%", sub: "Partner sentiment" },
+          { label: "Total Partners", count: businesses.length, sub: `${businesses.filter(b => b.status ==='Pending').length} pending` },
+          { label: "Active Partners", count: businesses.filter(b => b.status === 'Verified').length, sub: "Trusted network status" },
+          { label: "Deal Velocity", count: "4.2d", sub: "Clearance time" },
+          { label: "Success Rate", count: "98%", sub: "Order fulfillment" },
         ].map((stat, i) => (
           <div key={i} className="p-6 bg-white rounded-4xl border border-slate-100 shadow-sm relative overflow-hidden group">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
@@ -155,7 +194,7 @@ export default function AdminBusinesses() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
-              placeholder="Filter partners..." 
+              placeholder="Search businesses..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -167,7 +206,7 @@ export default function AdminBusinesses() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-sm font-bold text-slate-600 outline-none"
             >
-              <option value="All">All Sectors</option>
+              <option value="All">All Categories</option>
               <option value="Dining">Dining</option>
               <option value="Wellness">Wellness</option>
               <option value="Food">Food</option>
@@ -179,10 +218,10 @@ export default function AdminBusinesses() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Node Identity</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Business Identity</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Gate Controls</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -226,9 +265,9 @@ export default function AdminBusinesses() {
                           setSelectedBiz(biz);
                           setIsActionModalOpen(true);
                         }}
-                        className="px-4 py-2 bg-slate-100 text-slate-900 rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-indigo-600 hover:text-white transition-all"
+                        className="px-4 py-2 bg-slate-100 text-slate-900 rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
                       >
-                        Manage Node
+                        Manage Business
                       </button>
                     </td>
                   </motion.tr>
@@ -243,14 +282,14 @@ export default function AdminBusinesses() {
       <AdminModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Node Registration Protocol"
-        description="Initialize a new strategic partner identity in the network."
+        title="Register New Partner"
+        description="Initialize a new business identity in the Slasham network."
       >
-        <div className="space-y-6 pt-6 mb-8">
-           <p className="text-slate-500 font-medium text-sm">Onboarding a new business requires legal verification and node verification. Proceed with identity verification?</p>
+        <div className="space-y-6 pt-6 mb-8 text-sm">
+           <p className="text-slate-500 font-medium">Onboarding a new business requires manual verification of legal documents. Proceed with adding this business?</p>
            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setIsAddModalOpen(false)} className="py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Abandon</button>
-              <button className="py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/10">Proceed</button>
+              <button onClick={() => setIsAddModalOpen(false)} className="py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancel</button>
+              <button className="py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/10">Add Partner</button>
            </div>
         </div>
       </AdminModal>
@@ -259,10 +298,10 @@ export default function AdminBusinesses() {
       <AdminModal
         isOpen={isActionModalOpen}
         onClose={() => setIsActionModalOpen(false)}
-        title="Artifact Deployment Protocol"
-        description={`Execute platform-level overrides for ${selectedBiz?.name}`}
+        title="Manage Business Account"
+        description={`Account controls for ${selectedBiz?.name}`}
       >
-        <div className="space-y-4 pt-4">
+        <div className="space-y-4 pt-4 text-sm">
           <div className="flex items-center justify-between p-6 bg-slate-50 rounded-4xl border border-slate-100 mb-6">
              <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl">
@@ -270,7 +309,7 @@ export default function AdminBusinesses() {
                 </div>
                 <div>
                    <h3 className="text-xl font-black text-slate-900 leading-none mb-1">{selectedBiz?.name}</h3>
-                   <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 opacity-60">Strategic Partner Identity</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 opacity-60">Verified Business Partner</span>
                 </div>
              </div>
              {selectedBiz?.status === 'Verified' && <ShieldCheck size={32} className="text-emerald-500 opacity-50" />}
@@ -281,83 +320,206 @@ export default function AdminBusinesses() {
                onClick={() => setIsQuickDealModalOpen(true)}
                className="w-full flex items-center justify-between px-6 py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 transition-all active:scale-95 group"
             >
-               <span className="flex items-center gap-3"><Ticket size={18} /> Authorize Direct Campaign Deployment</span>
+               <span className="flex items-center gap-3"><Ticket size={18} /> Launch New Live Deal</span>
                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button 
               onClick={() => handleToggleVerify(selectedBiz.id)}
-              className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-slate-600 hover:bg-slate-50 transition-all"
+              className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
             >
-              <ShieldAlert size={18} className="text-amber-500" /> Toggle Verification Gate
+              <ShieldAlert size={18} className="text-amber-500" /> Toggle Verification Status
             </button>
 
             <button 
               onClick={() => handleDeleteBiz(selectedBiz.id)}
-              className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-rose-500 hover:bg-rose-50 transition-all"
+              className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-rose-500 hover:bg-rose-50 transition-all shadow-sm"
             >
-              <Trash2 size={18} /> Offboard Partner
+              <Trash2 size={18} /> Remove Partner
             </button>
           </div>
         </div>
       </AdminModal>
 
-      {/* Direct Campaign Modal */}
+      {/* Launch Deal Modal */}
       <AdminModal
         isOpen={isQuickDealModalOpen}
         onClose={() => setIsQuickDealModalOpen(false)}
-        title="Direct Deployment Authorization"
-        description="Skip the merchant review gate and deploy an active artifact directly to the global marketplace."
+        title="Launch New Deal"
+        description="Skip the manual approval gate and publish this deal directly to the global shop."
       >
-        <form onSubmit={handleCreateDirectDeal} className="space-y-6 pt-6 mb-8">
+        <form onSubmit={handleCreateDirectDeal} className="space-y-6 pt-6 mb-8 overflow-y-auto max-h-[70vh] px-2 text-sm">
           <div className="space-y-4">
+             {/* Core Identity */}
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Product Title</label>
-                   <input name="productName" required placeholder="Saturday Night BBQ" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Holding Company Name</label>
+                   <div className="relative">
+                      <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input name="companyName" defaultValue={selectedBiz?.name} placeholder="e.g. Come Again Foods" className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                   </div>
                 </div>
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Artifact Image (URL)</label>
-                   <div className="relative">
-                      <ImageIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input name="image" placeholder="https://..." className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
-                   </div>
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Product Title</label>
+                   <input name="productName" required placeholder="e.g. Tapiokies Cassava Biscuit" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
              </div>
 
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-1">Live Slasham Price</label>
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Target City Node (Hub)</label>
+                   <div className="relative">
+                      <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <select name="location" defaultValue={selectedBiz?.city || "Lagos"} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
+                         {getLocationNames().map(name => <option key={name} value={name}>{name}</option>)}
+                      </select>
+                   </div>
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Redemption Address</label>
+                   <input name="redeemAddress" defaultValue={selectedBiz?.address} required placeholder="Where will customers pick up this item?" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Category</label>
+                    <div className="relative">
+                        <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <select name="category" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
+                            <option value="Dining">Dining & Food</option>
+                            <option value="Wellness">Beauty & Wellness</option>
+                            <option value="Nightlife">Nightlife & Drinks</option>
+                            <option value="Events">Events & Fun</option>
+                            <option value="Goods">Goods & Shopping</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Unlock Note (Small text under %)</label>
+                    <input name="unlockNote" placeholder="e.g. Pay small amount to unlock this 55% discount." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+             </div>
+
+             {/* Images */}
+             <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 space-y-4">
+                <div className="flex items-center justify-between">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 px-1">Product Photo (Full View Rendering)</label>
+                   {previewImage && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Photo Ready</span>}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                      <div className="relative">
+                         <ImageIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                         <input name="imageUrl" placeholder="Image URL (Alternative)" className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                      </div>
+                   </div>
+                   <div className="relative">
+                      <input type="file" id="imageUpload" onChange={handleImageChange} className="hidden" accept="image/*" />
+                      <label htmlFor="imageUpload" className="w-full h-full flex items-center justify-center gap-3 px-5 py-4 bg-indigo-100 border-2 border-dashed border-indigo-300 text-indigo-700 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-pointer hover:bg-indigo-200 transition-all">
+                         <Upload size={18} /> {previewImage ? "Change Photo" : "Upload Full Photo"}
+                      </label>
+                   </div>
+                </div>
+                {previewImage && (
+                    <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-white flex items-center justify-center">
+                        <img src={previewImage} className="w-full h-full object-contain" />
+                    </div>
+                )}
+             </div>
+
+             {/* Pricing & Scheduling */}
+             <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-1">Slasham Price</label>
                    <div className="relative">
                       <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" />
-                      <input name="slashamPrice" required placeholder="₦12,000" className="w-full pl-12 pr-5 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl font-black text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                      <input name="slashamPrice" required placeholder="4500" className="w-full pl-12 pr-5 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl font-black text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none" />
                    </div>
                 </div>
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Price</label>
-                   <input name="originalPrice" required placeholder="₦25,000" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                   <input name="originalPrice" required placeholder="10000" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
-             </div>
-
-             <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Expiry Date / Deployment Duration</label>
-                   <div className="relative">
-                      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input type="date" name="expiryDate" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Expiry Date</label>
+                   <div className="relative overflow-hidden">
+                      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input type="date" name="expiryDate" required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
                    </div>
                 </div>
              </div>
 
+             {/* Hot Deals & Shipping */}
+             <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 space-y-6">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <Zap size={20} className={isHotCoupon ? "text-amber-500 fill-amber-500" : "text-slate-300"} />
+                      <div>
+                         <p className="text-xs font-black text-slate-900 tracking-tight leading-none mb-1 uppercase">Recommended Deal</p>
+                         <p className="text-[10px] text-slate-400 font-medium">Flag this as a best-seller in VIP zones</p>
+                      </div>
+                   </div>
+                   <button 
+                      type="button"
+                      onClick={() => setIsHotCoupon(!isHotCoupon)}
+                      className={`w-12 h-6 rounded-full relative transition-all duration-300 ${isHotCoupon ? 'bg-amber-500' : 'bg-slate-200'}`}
+                   >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isHotCoupon ? 'left-7' : 'left-1'}`} />
+                   </button>
+                </div>
+
+                <div className="h-px bg-slate-200" />
+
+                <div className="space-y-4">
+                   <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <Truck size={20} className={shippingEnabled ? "text-indigo-600" : "text-slate-300"} />
+                         <div>
+                            <p className="text-xs font-black text-slate-900 tracking-tight leading-none mb-1 uppercase">Enable Shipping</p>
+                            <p className="text-[10px] text-slate-400 font-medium">Add delivery logistics for this product</p>
+                         </div>
+                      </div>
+                      <button 
+                         type="button"
+                         onClick={() => setShippingEnabled(!shippingEnabled)}
+                         className={`w-12 h-6 rounded-full relative transition-all duration-300 ${shippingEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                      >
+                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${shippingEnabled ? 'left-7' : 'left-1'}`} />
+                      </button>
+                   </div>
+
+                   <AnimatePresence>
+                      {shippingEnabled && (
+                        <motion.div 
+                           initial={{ opacity: 0, height: 0 }}
+                           animate={{ opacity: 1, height: 'auto' }}
+                           exit={{ opacity: 0, height: 0 }}
+                           className="grid grid-cols-2 gap-4 pt-2"
+                        >
+                           <div className="space-y-2">
+                              <label className="text-[8px] font-black uppercase text-indigo-600 px-1">Delivery Fee</label>
+                              <input name="shippingFee" defaultValue="2000" placeholder="₦2,000" className="w-full px-4 py-3 bg-white border border-indigo-100 rounded-xl font-bold text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-[8px] font-black uppercase text-indigo-600 px-1">Shipping Terms</label>
+                              <input name="shippingNote" placeholder="Free delivery in Lagos..." className="w-full px-4 py-3 bg-white border border-indigo-100 rounded-xl font-bold text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                           </div>
+                        </motion.div>
+                      )}
+                   </AnimatePresence>
+                </div>
+             </div>
+
              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Artifact Description</label>
-                <textarea name="description" required placeholder="Deployment description for storefront..." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold min-h-[100px] outline-none focus:ring-2 focus:ring-indigo-500" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deal Details</label>
+                <textarea name="description" required placeholder="Write a short pitch for this regular customer store..." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold min-h-[100px] outline-none focus:ring-2 focus:ring-indigo-500" />
              </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
-             <button type="button" onClick={() => setIsQuickDealModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Abandon Task</button>
-             <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/10">Authorize Deployment</button>
+          <div className="flex gap-4 pt-6 pb-4">
+             <button type="button" onClick={() => setIsQuickDealModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">Cancel</button>
+             <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/20 active:scale-95 transition-all">Launch Deal</button>
           </div>
         </form>
       </AdminModal>

@@ -21,6 +21,12 @@ export interface CampaignRequest {
   adminNote?: string;
   submittedAt: string;
   expiryDate?: string;
+  shippingInfo?: { enabled: boolean; fee: string; note: string };
+  isHotCoupon?: boolean;
+  companyName?: string;
+  unlockNote?: string;
+  redeemAddress?: string;
+  location: string;
 }
 
 export interface Notification {
