@@ -1,332 +1,338 @@
-import { Search, Plus, TrendingUp, Play, Pause, Square, Trash2, MoreHorizontal, Eye } from "lucide-react";
+import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { getPersistentDeals, addPersistentDeal, deletePersistentDeal } from "../../utils/mockPersistence";
+import { getCampaignRequests, updateRequestStatus, CampaignRequest } from "../../utils/merchantPersistence";
 
 export default function AdminDeals() {
   const [deals, setDeals] = useState<any[]>([]);
+  const [requests, setRequests] = useState<CampaignRequest[]>([]);
+  const [activeTab, setActiveTab ] = useState<'inventory' | 'requests'>('inventory');
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState<any>(null);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<CampaignRequest | null>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [rejectNote, setRejectNote] = useState("");
 
   useEffect(() => {
-    // Initial Load - combine public deals with some admin-only attributes
-    const publicDeals = getPersistentDeals();
-    const mappedDeals = publicDeals.map(d => ({
-        id: d.id,
-        title: d.title,
-        merchant: d.title.split("'")[0] || "Merchant Partner",
-        category: d.category,
-        reached: `${Math.floor(Math.random() * 100)}%`,
-        status: "Active",
-        expires: `${Math.floor(Math.random() * 30)} days`,
-        isPublic: true
-    }));
-    setDeals(mappedDeals);
+    const loadData = () => {
+      const publicDeals = getPersistentDeals();
+      setDeals(publicDeals.map(d => ({
+          ...d,
+          merchant: d.title.split("'")[0] || "Merchant Partner",
+          reached: d.tag === 'Verified' ? "85%" : "0%",
+          status: "Active",
+          expires: "30 days",
+      })));
+      setRequests(getCampaignRequests());
+    };
+    loadData();
+    window.addEventListener('campaignRequestsUpdate', loadData);
+    return () => window.removeEventListener('campaignRequestsUpdate', loadData);
   }, []);
 
-  const handleUpdateStatus = (id: number | string, newStatus: string) => {
-    setDeals(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d));
-    setIsActionModalOpen(false);
+  const handleApprove = (req: CampaignRequest) => {
+    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.');
+    addPersistentDeal({
+        title: req.productName,
+        location: req.address,
+        price: req.dealPrice,
+        original: req.originalPrice,
+        image: req.productImage,
+        category: req.category,
+        tag: "Verified",
+        description: req.description,
+        validity: `Valid for 30 days after purchase.`
+    });
+    setIsRequestModalOpen(false);
+  };
+
+  const handleReject = (id: string) => {
+    updateRequestStatus(id, 'Rejected', rejectNote || "Does not meet platform guidelines.");
+    setRejectNote("");
+    setIsRequestModalOpen(false);
   };
 
   const handleDeleteDeal = (id: number | string) => {
     setDeals(prev => prev.filter(d => d.id !== id));
     deletePersistentDeal(Number(id));
-    setIsActionModalOpen(false);
-  };
-
-  const handleLaunchCampaign = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const title = formData.get('title') as string;
-    const merchant = formData.get('merchant') as string;
-    const category = formData.get('category') as string;
-    const expires = formData.get('expires') as string;
-    
-    // 1. Add to Public Deals Persistence (reflect on Home/Deals pages)
-    const publicDeal = addPersistentDeal({
-        title,
-        location: "Abuja, Nigeria",
-        price: `₦${Math.floor(Math.random() * 10000 + 1000).toLocaleString()}`,
-        original: `₦${Math.floor(Math.random() * 20000 + 10000).toLocaleString()}`,
-        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1604329760661-e71dc83f8f26' : '1540555700478-4be289fbecef'}?auto=format&fit=crop&w=400&q=60`,
-        category,
-        tag: "New Launch",
-        description: "Freshly launched campaign via Admin Intelligence Console.",
-        validity: `Expires ${expires} days after purchase.`
-    });
-
-    // 2. Add to Local Admin State
-    const newDeal = {
-      id: publicDeal.id,
-      title,
-      merchant,
-      category,
-      reached: "0%",
-      status: "Active",
-      expires: expires + " days",
-      isPublic: true
-    };
-    setDeals([newDeal, ...deals]);
-    setIsLaunchModalOpen(false);
   };
 
   const filteredDeals = (deals || []).filter(d => {
     const matchesSearch = d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         d.merchant.toLowerCase().includes(searchQuery.toLowerCase());
+                         (d.merchant && d.merchant.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === "All" || d.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  const pendingRequests = requests.filter(r => r.status === 'Pending');
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Active Campaigns</h1>
-          <p className="text-slate-500 font-medium">Monitor deal performance and redemption rates</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Platform Marketplace</h1>
+          <p className="text-slate-500 font-medium">Coordinate inventory and handle merchant submissions</p>
         </div>
-        <button 
-          onClick={() => setIsLaunchModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/10 hover:scale-105 transition-all"
-        >
-          <Plus size={18} /> Launch Campaign
-        </button>
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl shadow-inner">
+          <button 
+            onClick={() => setActiveTab('inventory')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeTab === 'inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Inventory
+          </button>
+          <button 
+            onClick={() => setActiveTab('requests')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative ${
+              activeTab === 'requests' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Requests
+            {pendingRequests.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white">
+                {pendingRequests.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Grid of Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: "Active Deals", count: deals.filter((d: any) => d.status === 'Active').length, color: "emerald", sub: "Currently Live" },
-          { label: "Total Claims", count: "12,402", color: "blue", sub: "All time redemptions" },
-          { label: "Avg Discount", count: "35%", color: "amber", sub: "Platform average" },
-          { label: "Gross Value", count: "₦42.5M", color: "indigo", sub: "Locked liquidity" },
-        ].map((stat, i) => (
-          <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-5 group-hover:scale-110 transition-transform ${
-               stat.color === 'emerald' ? 'bg-emerald-500' : 
-               stat.color === 'blue' ? 'bg-blue-500' : 
-               stat.color === 'amber' ? 'bg-amber-500' : 'bg-indigo-500'
-            }`} />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
-            <p className="text-2xl font-black text-slate-900 mb-1">{stat.count}</p>
-            <p className="text-[11px] text-slate-500 font-medium">{stat.sub}</p>
+      {activeTab === 'inventory' ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { label: "Active Deals", count: deals.length, color: "emerald", sub: "Live on Storefront" },
+              { label: "Pending Review", count: pendingRequests.length, color: "rose", sub: "Merchant Submissions" },
+              { label: "Avg Discount", count: "42%", color: "amber", sub: "Platform Strength" },
+              { label: "Claims (24h)", count: "842", color: "indigo", sub: "Mock Velocity" },
+            ].map((stat, i) => (
+              <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
+                <p className="text-2xl font-black text-slate-900 mb-1">{stat.count}</p>
+                <p className="text-[11px] text-slate-500 font-medium">{stat.sub}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Deals Table */}
-      <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
-        <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Filter campaigns..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 transition-all outline-none"
+          <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/10">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Filter inventory..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-sm font-bold text-slate-600 outline-none"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Paused">Paused</option>
+              </select>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Information</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Performance</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  <AnimatePresence mode="popLayout">
+                    {filteredDeals.map((deal: any, idx: number) => (
+                      <motion.tr 
+                        key={deal.id}
+                        layout
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="hover:bg-slate-50/50 transition-colors group"
+                      >
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden shadow-sm">
+                              <img src={deal.image} className="w-full h-full object-cover" alt="" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900 mb-0.5">{deal.title}</p>
+                              <p className="text-[11px] text-slate-500 font-medium">{deal.category} • {deal.price}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 text-nowrap text-sm font-bold text-slate-700">{deal.merchant}</td>
+                        <td className="px-8 py-5">
+                          <div className="space-y-1.5 w-32">
+                            <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
+                              <span>REACHED</span>
+                              <span className="text-indigo-600">{deal.reached}</span>
+                            </div>
+                            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-indigo-500 rounded-full" style={{ width: deal.reached }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                             deal.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'
+                           }`}>
+                             {deal.status}
+                           </span>
+                        </td>
+                        <td className="px-8 py-5 text-right space-x-1">
+                          <button 
+                            onClick={() => handleDeleteDeal(deal.id)}
+                            className="p-2.5 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 transition-all"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <AnimatePresence mode="popLayout">
+            {pendingRequests.length === 0 ? (
+              <div className="col-span-full py-20 text-center bg-white rounded-4xl border-2 border-dashed border-slate-200">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                  <FileText size={40} />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 italic">No Pending Merchant Inquiries</h3>
+                <p className="text-slate-400 font-medium mt-1">Platform queue is currently synchronized.</p>
+              </div>
+            ) : (
+              pendingRequests.map((req, idx) => (
+                <motion.div
+                  key={req.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all group relative overflow-hidden"
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-slate-900/5">
+                        <img src={req.productImage} className="w-full h-full object-cover" alt="" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.productName}</h3>
+                        <p className="text-sm font-bold text-indigo-600">{req.businessName}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl animate-pulse">
+                      <Clock size={20} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Slasham Price</p>
+                      <p className="text-lg font-black text-emerald-600 leading-none">{req.dealPrice}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coupon Type</p>
+                      <p className="text-lg font-black text-slate-900 leading-none">{req.couponType}</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => { setSelectedRequest(req); setIsRequestModalOpen(true); }}
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all flex items-center justify-center gap-2"
+                  >
+                    Review Artifact <ChevronRight size={14} />
+                  </button>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Request Review Modal */}
+      <AdminModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        title="Artifact Verification"
+        description="Verify merchant parameters before authorizing storefront deployment."
+      >
+        <div className="space-y-8 pt-6">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 bg-slate-100 rounded-4xl overflow-hidden shadow-xl shadow-slate-900/10">
+              <img src={selectedRequest?.productImage} className="w-full h-full object-cover" alt="" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">{selectedRequest?.businessName}</p>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{selectedRequest?.productName}</h2>
+              <p className="text-slate-400 font-medium mt-2 max-w-sm leading-relaxed">{selectedRequest?.description}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                <div className="flex items-center gap-3">
+                   <Tag className="text-slate-400" size={18} />
+                   <p className="text-sm font-black text-slate-900">Pricing Logic: <span className="text-emerald-600">{selectedRequest?.dealPrice}</span> <span className="text-slate-400 line-through text-xs ml-2">{selectedRequest?.originalPrice}</span></p>
+                </div>
+                <div className="flex items-center gap-3">
+                   <MapPin className="text-slate-400" size={18} />
+                   <p className="text-sm font-bold text-slate-600 truncate">{selectedRequest?.address}</p>
+                </div>
+             </div>
+             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                <div className="flex items-center gap-3">
+                   <Mail className="text-slate-400" size={18} />
+                   <p className="text-sm font-bold text-slate-600">{selectedRequest?.email}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                   <Phone className="text-slate-400" size={18} />
+                   <p className="text-sm font-bold text-slate-600">{selectedRequest?.phone}</p>
+                </div>
+             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Internal Note / Response</label>
+            <textarea 
+              value={rejectNote}
+              onChange={(e) => setRejectNote(e.target.value)}
+              placeholder="e.g. Imagery needs optimization or Pricing approved for launch..." 
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]" 
             />
           </div>
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-sm font-bold text-slate-600 outline-none hover:bg-slate-50"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Paused">Paused</option>
-            <option value="Ended">Ended</option>
-          </select>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Information</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Performance</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              <AnimatePresence mode="popLayout">
-                {filteredDeals.map((deal: any, idx: number) => (
-                  <motion.tr 
-                    key={deal.id}
-                    layout
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="hover:bg-slate-50/50 transition-colors group"
-                  >
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-900 flex items-center justify-center font-bold">
-                          {deal.merchant.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 mb-0.5">{deal.title}</p>
-                          <p className="text-[11px] text-slate-500 font-medium">{deal.category} • ID: {deal.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-nowrap">
-                      <div className="text-sm font-bold text-slate-700">{deal.merchant}</div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="space-y-1.5 w-32">
-                        <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
-                          <span>REACHED</span>
-                          <span className="text-indigo-600">{deal.reached}</span>
-                        </div>
-                        <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: deal.reached }}
-                            className="h-full bg-indigo-500 rounded-full" 
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                         deal.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 
-                         deal.status === 'Ended' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'
-                       }`}>
-                         {deal.status}
-                       </span>
-                    </td>
-                    <td className="px-8 py-5 text-right space-x-1">
-                      <button 
-                         onClick={() => {
-                           setSelectedDeal(deal);
-                           setIsActionModalOpen(true);
-                         }}
-                        className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900"
-                      >
-                        <TrendingUp size={18} />
-                      </button>
-                      <button 
-                        onClick={() => {
-                           setSelectedDeal(deal);
-                           setIsActionModalOpen(true);
-                         }}
-                        className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900"
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Launch Campaign Modal */}
-      <AdminModal
-        isOpen={isLaunchModalOpen}
-        onClose={() => setIsLaunchModalOpen(false)}
-        title="Launch New Campaign"
-        description="Help a merchant go live with a new deal on the platform."
-      >
-        <form onSubmit={handleLaunchCampaign} className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Deal Title</label>
-              <input name="title" required placeholder="Summer Discount 40% Off" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all outline-none" />
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-400">Merchant Partner</label>
-                <input name="merchant" required placeholder="Select Merchant Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all outline-none" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-400">Category</label>
-                <select name="category" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all outline-none appearance-none">
-                  <option value="Dining">Dining</option>
-                  <option value="Wellness">Wellness</option>
-                  <option value="Food">Food & Drink</option>
-                  <option value="Services">Services</option>
-                </select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Duration (Days)</label>
-              <input name="expires" type="number" required placeholder="30" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all outline-none" />
-            </div>
-          </div>
-          <div className="pt-4 flex gap-4">
-            <button type="button" onClick={() => setIsLaunchModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
-            <button type="submit" className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-emerald-600/10 transition-all">Start Campaign</button>
-          </div>
-        </form>
-      </AdminModal>
-
-      {/* Deal Settings/Actions Modal */}
-      <AdminModal
-        isOpen={isActionModalOpen}
-        onClose={() => setIsActionModalOpen(false)}
-        title="Campaign Controls"
-        description={selectedDeal ? `Managing ${selectedDeal.title}` : ""}
-      >
-        <div className="space-y-6 pt-4">
-          <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 flex items-center justify-between">
-            <div>
-              <p className="text-lg font-black text-slate-900">{selectedDeal?.title}</p>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedDeal?.merchant} • {selectedDeal?.status}</p>
-            </div>
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              selectedDeal?.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
-            }`}>
-              <Play className={selectedDeal?.status === 'Active' ? 'animate-pulse' : ''} size={20} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {selectedDeal?.status === 'Active' ? (
-              <button 
-                onClick={() => handleUpdateStatus(selectedDeal.id, 'Paused')}
-                className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all"
-              >
-                <Pause size={18} /> Pause Campaign
-              </button>
-            ) : (
-              <button 
-                onClick={() => handleUpdateStatus(selectedDeal.id, 'Active')}
-                className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all"
-              >
-                <Play size={18} /> Resume Campaign
-              </button>
-            )}
-
+          <div className="flex gap-4 pb-8">
             <button 
-               onClick={() => handleUpdateStatus(selectedDeal.id, 'Ended')}
-               className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all"
+              onClick={() => handleReject(selectedRequest?.id || '')}
+              className="flex-1 py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-100 transition-all flex items-center justify-center gap-2"
             >
-              <Square size={18} /> Terminate Deal
+              <XCircle size={18} /> Deny Request
             </button>
-            
-            <button className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 transition-all col-span-1 sm:col-span-2">
-              <Eye size={18} /> View Storefront Page
-            </button>
-
-            <div className="col-span-1 sm:col-span-2 my-2 border-t border-slate-100"></div>
-
             <button 
-              onClick={() => handleDeleteDeal(selectedDeal.id)}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all col-span-1 sm:col-span-2"
+              onClick={() => handleApprove(selectedRequest!)}
+              className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
             >
-              <Trash2 size={18} /> Delete Campaign Artifacts
+              <CheckCircle2 size={18} /> Authorize Launch
             </button>
           </div>
         </div>

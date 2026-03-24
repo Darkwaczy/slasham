@@ -46,6 +46,7 @@ import Rewards from "./pages/user/RewardsReferrals";
 import Settings from "./pages/user/Settings";
 import Press from "./pages/company/Press";
 import Contact from "./pages/company/Contact";
+import MerchantScanner from "./pages/merchant/Scanner";
 
 // Category Pages
 import FoodDeals from "./pages/categories/FoodDeals";
@@ -160,6 +161,7 @@ export default function App() {
            <Route path="reviews" element={<MerchantReviews />} />
            <Route path="analytics" element={<MerchantAnalytics />} />
            <Route path="settings" element={<MerchantSettings />} />
+           <Route path="scanner" element={<MerchantScanner />} />
         </Route>
       </Routes>
     </HashRouter>

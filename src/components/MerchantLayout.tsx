@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -11,13 +11,37 @@ import {
   Menu, 
   Plus,
   MessageSquare,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  QrCode
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { getNotifications, markNotifsRead, Notification } from "../utils/merchantPersistence";
 
 export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const merchantId = "M-99"; // Mock merchant
+
+  useEffect(() => {
+    const loadNotifs = () => {
+      setNotifications(getNotifications(merchantId));
+    };
+    loadNotifs();
+    window.addEventListener('notificationsUpdate', loadNotifs);
+    return () => window.removeEventListener('notificationsUpdate', loadNotifs);
+  }, []);
+
+  const handleMarkRead = () => {
+    markNotifsRead(merchantId);
+    setIsNotifOpen(false);
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = () => {
     localStorage.removeItem("slasham_user");
@@ -26,6 +50,7 @@ export default function MerchantLayout() {
 
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/merchant/dashboard" },
+    { icon: <QrCode size={20} />, label: "Coupon Scanner", path: "/merchant/scanner" },
     { icon: <Ticket size={20} />, label: "My Campaigns", path: "/merchant/campaigns" },
     { icon: <Users size={20} />, label: "Customers", path: "/merchant/customers" },
     { icon: <MessageSquare size={20} />, label: "Reviews", path: "/merchant/reviews" },
@@ -143,15 +168,67 @@ export default function MerchantLayout() {
             <Menu size={20} />
           </button>
 
-          <div className="flex items-center gap-3 lg:gap-5 ml-auto">
-            <button className="relative p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all group">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
-            </button>
+          <div className="flex items-center gap-3 lg:gap-5 ml-auto relative">
+            {/* Notification Bell */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`relative p-2.5 rounded-xl transition-all group ${isNotifOpen ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Dropdown */}
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-4 w-80 bg-white rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-50 overflow-hidden"
+                    >
+                      <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Intelligence Brief</span>
+                        <button onClick={handleMarkRead} className="text-[10px] font-black text-indigo-600 hover:underline">Clear All</button>
+                      </div>
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="p-10 text-center text-slate-400 italic text-sm">No new intelligence data...</div>
+                        ) : (
+                          notifications.map((n) => (
+                            <div key={n.id} className={`p-5 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-4 ${n.read ? 'opacity-60' : ''}`}>
+                               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                                 n.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 
+                                 n.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'
+                               }`}>
+                                 {n.type === 'success' ? <CheckCircle2 size={20}/> : n.type === 'error' ? <XCircle size={20}/> : <Clock size={20}/>}
+                               </div>
+                               <div>
+                                  <p className="text-sm font-black text-slate-900 leading-tight mb-1">{n.title}</p>
+                                  <p className="text-xs text-slate-500 font-medium leading-relaxed">{n.message}</p>
+                                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-2">{new Date(n.createdAt).toLocaleTimeString()}</p>
+                               </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="h-4 w-px bg-slate-200 hidden md:block mx-1" />
             <div className="flex items-center gap-3">
                <button 
-                 onClick={() => navigate("/business/campaign")}
+                 onClick={() => navigate("/merchant/campaigns")}
                  className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/10 hover:scale-105 active:scale-95 transition-all"
                >
                   <Plus size={16} /> New Campaign
