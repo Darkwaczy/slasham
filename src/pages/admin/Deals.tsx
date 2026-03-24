@@ -1,4 +1,4 @@
-import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2 } from "lucide-react";
+import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -14,19 +14,23 @@ export default function AdminDeals() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [rejectNote, setRejectNote] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadData = () => {
+    setIsRefreshing(true);
+    const publicDeals = getPersistentDeals();
+    setDeals(publicDeals.map(d => ({
+        ...d,
+        merchant: d.title.split("'")[0] || "Merchant Partner",
+        reached: d.tag === 'Verified' ? "85%" : "0%",
+        status: "Active",
+        expires: "30 days",
+    })));
+    setRequests(getCampaignRequests());
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   useEffect(() => {
-    const loadData = () => {
-      const publicDeals = getPersistentDeals();
-      setDeals(publicDeals.map(d => ({
-          ...d,
-          merchant: d.title.split("'")[0] || "Merchant Partner",
-          reached: d.tag === 'Verified' ? "85%" : "0%",
-          status: "Active",
-          expires: "30 days",
-      })));
-      setRequests(getCampaignRequests());
-    };
     loadData();
     window.addEventListener('campaignRequestsUpdate', loadData);
     return () => window.removeEventListener('campaignRequestsUpdate', loadData);
@@ -35,7 +39,7 @@ export default function AdminDeals() {
   const handleApprove = (req: CampaignRequest) => {
     updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.');
     addPersistentDeal({
-        title: req.productName,
+        title: `${req.businessName}'s ${req.productName}`, // Link merchant name to title for storefront visibility
         location: req.address,
         price: req.dealPrice,
         original: req.originalPrice,
@@ -67,6 +71,7 @@ export default function AdminDeals() {
   });
 
   const pendingRequests = requests.filter(r => r.status === 'Pending');
+  const otherRequests = requests.filter(r => r.status !== 'Pending');
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -75,28 +80,36 @@ export default function AdminDeals() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Platform Marketplace</h1>
           <p className="text-slate-500 font-medium">Coordinate inventory and handle merchant submissions</p>
         </div>
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl shadow-inner">
+        <div className="flex items-center gap-4">
           <button 
-            onClick={() => setActiveTab('inventory')}
-            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === 'inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-            }`}
+            onClick={loadData}
+            className={`p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm ${isRefreshing ? 'animate-spin' : ''}`}
           >
-            Inventory
+            <RefreshCw size={20} />
           </button>
-          <button 
-            onClick={() => setActiveTab('requests')}
-            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative ${
-              activeTab === 'requests' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Requests
-            {pendingRequests.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white">
-                {pendingRequests.length}
-              </span>
-            )}
-          </button>
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl shadow-inner">
+            <button 
+              onClick={() => setActiveTab('inventory')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === 'inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Inventory
+            </button>
+            <button 
+              onClick={() => setActiveTab('requests')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative ${
+                activeTab === 'requests' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Requests
+              {pendingRequests.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white">
+                  {pendingRequests.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -153,7 +166,11 @@ export default function AdminDeals() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   <AnimatePresence mode="popLayout">
-                    {filteredDeals.map((deal: any, idx: number) => (
+                    {filteredDeals.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-8 py-20 text-center text-slate-400 italic">No deals found matching your criteria.</td>
+                      </tr>
+                    ) : filteredDeals.map((deal: any, idx: number) => (
                       <motion.tr 
                         key={deal.id}
                         layout
@@ -210,62 +227,98 @@ export default function AdminDeals() {
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <AnimatePresence mode="popLayout">
-            {pendingRequests.length === 0 ? (
-              <div className="col-span-full py-20 text-center bg-white rounded-4xl border-2 border-dashed border-slate-200">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                  <FileText size={40} />
+        <div className="space-y-12">
+          {/* Main Pending Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <AnimatePresence mode="popLayout">
+              {pendingRequests.length === 0 ? (
+                <div className="col-span-full py-20 text-center bg-white rounded-4xl border-2 border-dashed border-slate-200">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                    <FileText size={40} />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900 italic">No Pending Merchant Inquiries</h3>
+                  <p className="text-slate-400 font-medium mt-1">Platform queue is currently synchronized.</p>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 italic">No Pending Merchant Inquiries</h3>
-                <p className="text-slate-400 font-medium mt-1">Platform queue is currently synchronized.</p>
-              </div>
-            ) : (
-              pendingRequests.map((req, idx) => (
-                <motion.div
-                  key={req.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all group relative overflow-hidden"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-slate-900/5">
-                        <img src={req.productImage} className="w-full h-full object-cover" alt="" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.productName}</h3>
-                        <p className="text-sm font-bold text-indigo-600">{req.businessName}</p>
-                      </div>
-                    </div>
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl animate-pulse">
-                      <Clock size={20} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Slasham Price</p>
-                      <p className="text-lg font-black text-emerald-600 leading-none">{req.dealPrice}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coupon Type</p>
-                      <p className="text-lg font-black text-slate-900 leading-none">{req.couponType}</p>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => { setSelectedRequest(req); setIsRequestModalOpen(true); }}
-                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all flex items-center justify-center gap-2"
+              ) : (
+                pendingRequests.map((req, idx) => (
+                  <motion.div
+                    key={req.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all group relative overflow-hidden"
                   >
-                    Review Artifact <ChevronRight size={14} />
-                  </button>
-                </motion.div>
-              ))
-            )}
-          </AnimatePresence>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-slate-900/5">
+                          <img src={req.productImage} className="w-full h-full object-cover" alt="" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.productName}</h3>
+                          <p className="text-sm font-bold text-indigo-600">{req.businessName}</p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl animate-pulse">
+                        <Clock size={20} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Slasham Price</p>
+                        <p className="text-lg font-black text-emerald-600 leading-none">{req.dealPrice}</p>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coupon Type</p>
+                        <p className="text-lg font-black text-slate-900 leading-none">{req.couponType}</p>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => { setSelectedRequest(req); setIsRequestModalOpen(true); }}
+                      className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all flex items-center justify-center gap-2"
+                    >
+                      Review Artifact <ChevronRight size={14} />
+                    </button>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* History / Other Section */}
+          {otherRequests.length > 0 && (
+            <div className="pt-8 border-t border-slate-100">
+               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 px-2">Decision History</h3>
+               <div className="overflow-x-auto bg-white rounded-4xl border border-slate-50">
+                  <table className="w-full text-left">
+                    <thead>
+                       <tr className="bg-slate-50/50">
+                          <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Business</th>
+                          <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Product</th>
+                          <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Outcome</th>
+                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                       {otherRequests.map((r) => (
+                         <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-8 py-4 font-bold text-slate-700 text-sm whitespace-nowrap">{r.businessName}</td>
+                            <td className="px-8 py-4 font-medium text-slate-500 text-sm">{r.productName}</td>
+                            <td className="px-8 py-4 text-center">
+                               <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                 r.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                               }`}>
+                                 {r.status}
+                               </span>
+                            </td>
+                         </tr>
+                       ))}
+                    </tbody>
+                  </table>
+               </div>
+            </div>
+          )}
         </div>
       )}
 
