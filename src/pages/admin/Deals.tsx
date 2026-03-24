@@ -274,7 +274,7 @@ export default function AdminDeals() {
                         </div>
                         <div>
                           <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.productName}</h3>
-                          <p className="text-sm font-bold text-indigo-600">{req.businessName}</p>
+                          <p className="text-sm font-bold text-indigo-600">{req.companyName || req.businessName}</p>
                         </div>
                       </div>
                       <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl animate-pulse">
@@ -321,7 +321,7 @@ export default function AdminDeals() {
                     <tbody className="divide-y divide-slate-50">
                        {otherRequests.map((r) => (
                          <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-8 py-4 font-bold text-slate-700 text-sm whitespace-nowrap">{r.businessName}</td>
+                            <td className="px-8 py-4 font-bold text-slate-700 text-sm whitespace-nowrap">{r.companyName || r.businessName}</td>
                             <td className="px-8 py-4 font-medium text-slate-500 text-sm">{r.productName}</td>
                             <td className="px-8 py-4 text-center">
                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${

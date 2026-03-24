@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, Share2, Heart, ShieldCheck, CreditCard, X, ChevronRight, Building } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, Share2, Heart, ShieldCheck, CreditCard, X, ChevronRight, Building, Truck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import gsap from "gsap";
 import { getPersistentDeals } from "../utils/mockPersistence";
@@ -106,8 +106,15 @@ export default function DealDetail() {
                    {deal.category}
                 </div>
                 {deal.shippingInfo?.enabled && (
-                    <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2">
-                        <Loader2 size={12} className="animate-spin" /> Delivery: Enabled
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2 border border-slate-700">
+                            <Truck size={14} className="text-emerald-500" /> Delivery within Lagos FREE
+                        </div>
+                        {deal.shippingInfo.fee && (
+                            <div className="bg-indigo-600/90 backdrop-blur-md text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2">
+                                <MapPin size={12} className="text-white" /> Outside Lagos: ₦{deal.shippingInfo.fee}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
