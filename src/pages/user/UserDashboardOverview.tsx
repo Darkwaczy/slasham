@@ -20,19 +20,23 @@ export default function UserDashboardOverview() {
   }, []);
 
   const activeCount = vouchers.filter(v => v.status === "Active").length;
-  const expiringSoon = vouchers.find(v => v.status === "Active"); // Mock logic for first active voucher
+  const expiringSoon = vouchers.find(v => v.status === "Active"); 
+
+  const recentActivity = vouchers.slice(0, 3).map(v => ({
+    id: v.id,
+    type: v.status === "Redeemed" ? "Redemption" : "Purchase",
+    title: v.title,
+    date: v.status === "Redeemed" ? "Just now" : "Today",
+    amount: v.price || v.original || "₦4,500",
+    status: v.status === "Redeemed" ? "Redeemed" : "Successful",
+    icon: v.status === "Redeemed" ? <Pizza size={16} /> : <ShieldCheck size={16} />
+  }));
 
   const stats = [
     { title: "Active Vouchers", value: activeCount.toString(), icon: <Ticket size={24} />, color: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-600" },
     { title: "Points Earned", value: "2,450", icon: <Star size={24} />, color: "bg-amber-500", light: "bg-amber-50", text: "text-amber-600" },
     { title: "Total Savings", value: "₦15,000", icon: <TrendingUp size={24} />, color: "bg-blue-500", light: "bg-blue-50", text: "text-blue-600" },
     { title: "Wallet Balance", value: "₦0.00", icon: <Wallet size={24} />, color: "bg-slate-900", light: "bg-slate-50", text: "text-slate-900" },
-  ];
-
-  const recentActivity = [
-    { id: 1, type: "Redemption", title: "RSVP Lagos Dinner", date: "2 hours ago", amount: "₦12,500", status: "Successful", icon: <Pizza size={16} /> },
-    { id: 2, type: "Earned", title: "Review Reward", date: "Yesterday", amount: "+50 pts", status: "Pending", icon: <Star size={16} /> },
-    { id: 3, type: "Purchase", title: "Oasis Spa Voucher", date: "Mar 15, 2026", amount: "₦15,000", status: "Successful", icon: <ShieldCheck size={16} /> },
   ];
 
   const recommendations = [
@@ -121,7 +125,7 @@ export default function UserDashboardOverview() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 + 0.5 }}
-                  className="flex items-center justify-between p-5 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group"
+                  className="flex items-center justify-between p-5 rounded-4xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group"
                 >
                   <div className="flex items-center gap-5">
                     <div className="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 shadow-sm transition-all group-hover:scale-105">
@@ -137,8 +141,8 @@ export default function UserDashboardOverview() {
                   <div className="text-right">
                     <p className="font-black text-slate-900 tracking-tight mb-1">{activity.amount}</p>
                     <div className="flex items-center justify-end gap-1.5">
-                       <div className={`w-1.5 h-1.5 rounded-full ${activity.status === 'Successful' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                       <p className={`text-[10px] font-black uppercase tracking-widest ${activity.status === 'Successful' ? 'text-emerald-500' : 'text-amber-500'}`}>{activity.status}</p>
+                       <div className={`w-1.5 h-1.5 rounded-full ${activity.status === 'Successful' || activity.status === 'Redeemed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                       <p className={`text-[10px] font-black uppercase tracking-widest ${activity.status === 'Successful' || activity.status === 'Redeemed' ? 'text-emerald-500' : 'text-amber-500'}`}>{activity.status}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -162,7 +166,7 @@ export default function UserDashboardOverview() {
                     className="group relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl transition-all h-[320px]"
                   >
                     <img src={rec.image} alt={rec.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
                     
                     {/* Like Button */}
                     <button className="absolute top-6 right-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white hover:text-rose-500 transition-all group/like">
@@ -190,7 +194,7 @@ export default function UserDashboardOverview() {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-gradient-to-br from-rose-500 to-rose-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group"
+              className="bg-linear-to-br from-rose-500 to-rose-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">

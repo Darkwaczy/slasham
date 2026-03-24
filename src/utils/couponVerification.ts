@@ -69,5 +69,19 @@ export const validateCoupon = (hash: string): { success: boolean; message: strin
   );
   
   localStorage.setItem(STORAGE_KEY_COUPONS, JSON.stringify(updated));
+
+  // --- NEW: SYNC WITH USER WALLET ---
+  try {
+    const VOUCHER_KEY = "slasham_user_vouchers";
+    const userVouchers = JSON.parse(localStorage.getItem(VOUCHER_KEY) || "[]");
+    const updatedUserVouchers = userVouchers.map((v: any) => 
+      v.code === hash ? { ...v, status: "Redeemed", redeemedAt: new Date().toISOString() } : v
+    );
+    localStorage.setItem(VOUCHER_KEY, JSON.stringify(updatedUserVouchers));
+    window.dispatchEvent(new Event('vouchersUpdate'));
+  } catch (err) {
+    console.error("Wallet sync failed:", err);
+  }
+
   return { success: true, message: "Secure Validation Success - Coupon Cleared" };
 };
