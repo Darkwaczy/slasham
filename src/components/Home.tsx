@@ -50,7 +50,7 @@ export default function Home() {
 
         <div className="w-full overflow-hidden relative">
           <div className="flex animate-marquee-rtl gap-6 py-4">
-            {(hotDeals.length > 0 ? hotDeals : filteredDeals).map((deal, index) => (
+            {(hotDeals.length > 0 ? hotDeals : filteredDeals).slice(0, 15).map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`hot-${deal.id}-${index}`} 
@@ -61,9 +61,10 @@ export default function Home() {
                     HOT
                   </div>
                   <img 
-                    src={deal.image} 
+                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
                     alt={deal.title} 
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    loading="lazy"
                   />
                 </div>
                 <div className="p-4">
@@ -81,7 +82,7 @@ export default function Home() {
               </Link>
             ))}
             {/* Seamless loop duplication */}
-            {(hotDeals.length > 0 ? hotDeals : filteredDeals).map((deal, index) => (
+            {(hotDeals.length > 0 ? hotDeals : filteredDeals).slice(0, 15).map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`hot-dup-${deal.id}-${index}`} 
@@ -92,9 +93,10 @@ export default function Home() {
                     HOT
                   </div>
                   <img 
-                    src={deal.image} 
+                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
                     alt={deal.title} 
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    loading="lazy"
                   />
                 </div>
                 <div className="p-4">
@@ -126,7 +128,7 @@ export default function Home() {
 
         <div className="w-full overflow-hidden relative">
           <div className="flex animate-marquee-ltr gap-6 py-4">
-            {[...filteredDeals, ...filteredDeals].map((deal, index) => (
+            {filteredDeals.slice(0, 15).map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`flash-${deal.id}-${index}`} 
@@ -137,24 +139,54 @@ export default function Home() {
                     LIMITED
                   </div>
                   <img 
-                    src={deal.image} 
+                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
                     alt={deal.title} 
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    loading="lazy"
                   />
                 </div>
-                <div className="p-3 flex flex-col grow">
-                  <span className="text-red-600 text-[8px] font-black uppercase tracking-widest mb-0.5">{deal.category}</span>
-                  <div className="mb-1">
-                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate leading-none mb-0.5">{deal.companyName || "Partner"}</p>
-                    <h3 className="text-[11px] font-black text-slate-900 line-clamp-1 uppercase tracking-tight leading-tight">
+                <div className="p-4">
+                   <div className="mb-1 text-center">
+                    <p className="text-[7px] font-black text-red-500/60 uppercase tracking-widest">{deal.category}</p>
+                    <h3 className="text-[10px] font-black text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors uppercase tracking-tight">
                         {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
                     </h3>
                   </div>
-                  <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-sm font-black text-slate-900">{formatPrice(deal.price)}</p>
-                      <p className="text-[9px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</p>
-                    </div>
+                  <div className="flex items-center justify-center gap-3">
+                     <span className="text-red-600 font-black text-sm">{formatPrice(deal.price)}</span>
+                     <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+            {/* Seamless loop duplication */}
+            {filteredDeals.slice(0, 15).map((deal, index) => (
+              <Link 
+                to={`/deal/${deal.id}`} 
+                key={`flash-dup-${deal.id}-${index}`} 
+                className="w-[160px] sm:w-[190px] bg-white rounded-2xl overflow-hidden border border-red-100 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex flex-col relative"
+              >
+                <div className="aspect-4/3 relative overflow-hidden bg-white flex items-center justify-center">
+                  <div className="absolute top-2 left-2 z-10 bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-sm">
+                    LIMITED
+                  </div>
+                  <img 
+                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
+                    alt={deal.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4">
+                   <div className="mb-1 text-center">
+                    <p className="text-[7px] font-black text-red-500/60 uppercase tracking-widest">{deal.category}</p>
+                    <h3 className="text-[10px] font-black text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors uppercase tracking-tight">
+                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                     <span className="text-red-600 font-black text-sm">{formatPrice(deal.price)}</span>
+                     <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
                   </div>
                 </div>
               </Link>

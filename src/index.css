@@ -58,7 +58,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-marquee-ltr {
-  animation: marquee-ltr 40s linear infinite;
+  animation: marquee-ltr 120s linear infinite;
   display: flex;
   width: max-content;
 }
@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-marquee-rtl {
-  animation: marquee-rtl 40s linear infinite;
+  animation: marquee-rtl 120s linear infinite;
   display: flex;
   width: max-content;
 }
