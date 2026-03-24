@@ -1,4 +1,4 @@
-import { Search, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, DollarSign } from "lucide-react";
+import { Search, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -382,6 +382,53 @@ export default function AdminDeals() {
              </div>
           </div>
 
+          {/* NEW: Extended Parameters for Admin Review */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 space-y-3">
+                <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Logistical Strategy</p>
+                <div className="flex items-start gap-3">
+                   <Clock className="text-indigo-600 mt-0.5" size={16} />
+                   <div>
+                      <p className="text-xs font-black text-slate-900 leading-tight">Delivery Terms</p>
+                      <p className="text-[11px] font-medium text-slate-500 mt-1 leading-relaxed">
+                        {selectedRequest?.shippingInfo ? (
+                          typeof selectedRequest.shippingInfo === 'string' 
+                            ? selectedRequest.shippingInfo 
+                            : `${selectedRequest.shippingInfo.enabled ? 'Enabled' : 'Disabled'} - ₦${selectedRequest.shippingInfo.fee || '0'} (${selectedRequest.shippingInfo.note || 'No note'})`
+                        ) : "No shipping details provided."}
+                      </p>
+                   </div>
+                </div>
+             </div>
+             <div className="p-6 bg-amber-50/50 rounded-3xl border border-amber-100/50 space-y-3">
+                <p className="text-[9px] font-black uppercase tracking-widest text-amber-400">Claim Protocol</p>
+                <div className="flex items-start gap-3">
+                   <FileText className="text-amber-600 mt-0.5" size={16} />
+                   <div>
+                      <p className="text-xs font-black text-slate-900 leading-tight">Unlock Notes</p>
+                      <p className="text-[11px] font-medium text-slate-500 mt-1 leading-relaxed">{selectedRequest?.unlockNote || "Standard deployment notes."}</p>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {selectedRequest?.isHotCoupon && (
+            <div className="mx-1 px-5 py-3 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3 text-rose-600">
+                    <TrendingUp size={18} className="animate-bounce" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Priority Flag: HOT COUPON</span>
+                </div>
+                <span className="text-[9px] font-bold text-rose-400 italic">Featured Placement Requested</span>
+            </div>
+          )}
+
+          {selectedRequest?.expiryDate && (
+             <div className="mx-1 px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3 text-slate-500">
+                <Clock size={16} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Campaign Expiry: {new Date(selectedRequest.expiryDate).toLocaleDateString()}</span>
+             </div>
+          )}
+
           <div className="space-y-4 p-8 bg-emerald-50 rounded-4xl border border-emerald-100 shadow-inner">
              <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Set Slasham Discount Price</label>
@@ -390,13 +437,13 @@ export default function AdminDeals() {
                 </div>
              </div>
              <div className="relative">
-                <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600" size={24} />
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600 font-black text-xl">₦</div>
                 <input 
                   type="text"
                   value={slashamPrice}
                   onChange={(e) => setSlashamPrice(e.target.value)}
-                  placeholder="₦00,000"
-                  className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-6 pl-16 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
+                  placeholder="00,000"
+                  className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-6 pl-14 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
                 />
              </div>
           </div>
