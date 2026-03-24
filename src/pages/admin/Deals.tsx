@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { getPersistentDeals, addPersistentDeal, deletePersistentDeal } from "../../utils/mockPersistence";
-import { getCampaignRequests, updateRequestStatus, CampaignRequest } from "../../utils/merchantPersistence";
+import { getCampaignRequests, updateRequestStatus, CampaignRequest, deleteCampaignRequest } from "../../utils/merchantPersistence";
 
 export default function AdminDeals() {
   const [deals, setDeals] = useState<any[]>([]);
@@ -63,7 +63,8 @@ export default function AdminDeals() {
         unlockNote: req.unlockNote,
         shippingInfo: req.shippingInfo,
         expiryDate: req.expiryDate,
-        isHotCoupon: req.isHotCoupon
+        isHotCoupon: req.isHotCoupon,
+        requestId: req.id // STORE THE LINK
     });
     
     setIsRequestModalOpen(false);
@@ -76,9 +77,12 @@ export default function AdminDeals() {
     setIsRequestModalOpen(false);
   };
 
-  const handleDeleteDeal = (id: number | string) => {
-    setDeals(prev => prev.filter(d => d.id !== id));
-    deletePersistentDeal(Number(id));
+  const handleDeleteDeal = (deal: any) => {
+    if (deal.requestId) {
+        deleteCampaignRequest(deal.requestId);
+    }
+    deletePersistentDeal(Number(deal.id));
+    loadData();
   };
 
   const filteredDeals = (deals || []).filter(d => {
@@ -230,7 +234,7 @@ export default function AdminDeals() {
                         </td>
                         <td className="px-8 py-5 text-right space-x-1">
                           <button 
-                            onClick={() => handleDeleteDeal(deal.id)}
+                            onClick={() => handleDeleteDeal(deal)}
                             className="p-2.5 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 transition-all"
                           >
                             <Trash2 size={18} />

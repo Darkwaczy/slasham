@@ -19,6 +19,7 @@ export interface Deal {
   companyName?: string;
   unlockNote?: string;
   redeemAddress?: string;
+  requestId?: string;
 }
 
 export const getPersistentDeals = (): Deal[] => {

@@ -120,3 +120,9 @@ export const markNotifsRead = (userId: string) => {
   localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(updated));
   window.dispatchEvent(new Event('notificationsUpdate'));
 };
+export const deleteCampaignRequest = (id: string) => {
+  const requests = getCampaignRequests();
+  const updated = requests.filter(r => r.id !== id);
+  localStorage.setItem(STORAGE_KEY_REQUESTS, JSON.stringify(updated));
+  window.dispatchEvent(new Event('campaignRequestsUpdate'));
+};
