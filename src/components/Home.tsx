@@ -218,55 +218,145 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="p-8 md:p-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-10 lg:gap-x-8">
-            {trendingDeals.map((deal, i) => (
-                <Link 
-                  to={`/deal/${deal.id}`} 
-                  key={i} 
-                  className="group flex flex-col bg-white transition-all duration-300 relative"
-                >
-                  <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-white flex items-center justify-center shadow-sm">
-                    <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm ${deal.isHotCoupon ? 'bg-amber-500 text-slate-900' : 'bg-teal-600 text-white'}`}>
-                      {deal.isHotCoupon ? 'HOT' : (deal.tag || 'NEW')}
-                    </div>
-                    {deal.shippingInfo?.enabled && (
-                        <div className="absolute top-3 right-3 z-10 bg-indigo-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1">
-                            <Truck size={10} /> DELIVERY
-                        </div>
-                    )}
-                    <img 
-                      src={deal.image} 
-                      alt={deal.title} 
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out" 
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col grow px-1">
-                    <p className="text-[8px] font-black text-indigo-600/40 uppercase tracking-widest truncate leading-none mb-1">{deal.companyName || "Market Partner"}</p>
-                    <h3 className="text-xs font-black mb-2 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-8 uppercase tracking-tight leading-tight">
-                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                    </h3>
-                    
-                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold mb-3 uppercase tracking-widest opacity-60">
-                      <MapPin size={10} className="text-slate-400" />
-                      <span className="truncate">{deal.redeemAddress || deal.location}</span>
-                    </div>
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 p-8 md:p-12">
+            {/* NEW: Sidebar Category Navigator */}
+            <aside className="w-full lg:w-[120px] shrink-0">
+               <div className="sticky top-6">
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1">Discover</p>
+                 <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-1 gap-2 bg-slate-100 p-2 rounded-3xl border border-slate-200/50 shadow-inner">
+                    {[
+                        { name: "Food", icon: <TrendingUp size={16}/>, color: "text-orange-600 bg-orange-50" },
+                        { name: "Spa", icon: <Zap size={16}/>, color: "text-teal-600 bg-teal-50" },
+                        { name: "Fun", icon: <ArrowRight size={16}/>, color: "text-rose-600 bg-rose-50" },
+                        { name: "Goods", icon: <Truck size={16}/>, color: "text-amber-600 bg-amber-50" },
+                    ].map((cat, i) => (
+                        <button key={i} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl hover:bg-slate-900 hover:text-white transition-all group shadow-sm border border-slate-200/30">
+                           <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-1 group-hover:scale-110 transition-transform`}>{cat.icon}</div>
+                           <span className="text-[8px] font-black uppercase tracking-tight">{cat.name}</span>
+                        </button>
+                    ))}
+                    <Link to="/deals" className="flex flex-col items-center justify-center p-4 bg-teal-600 text-white rounded-2xl hover:bg-slate-900 transition-all shadow-lg shadow-teal-500/20">
+                        <ArrowRight size={16} className="mb-1" />
+                        <span className="text-[7px] font-black uppercase tracking-widest">More</span>
+                    </Link>
+                 </div>
+               </div>
+            </aside>
 
-                    <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-slate-50">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
-                        <span className="text-[11px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</span>
+            <div className="flex-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-4 gap-y-10 lg:gap-x-8">
+                {trendingDeals.map((deal, i) => (
+                    <Link 
+                      to={`/deal/${deal.id}`} 
+                      key={i} 
+                      className="group flex flex-col bg-white transition-all duration-300 relative"
+                    >
+                      <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-white flex items-center justify-center shadow-sm">
+                        <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm ${deal.isHotCoupon ? 'bg-amber-500 text-slate-900' : 'bg-teal-600 text-white'}`}>
+                          {deal.isHotCoupon ? 'HOT' : (deal.tag || 'NEW')}
+                        </div>
+                        {deal.shippingInfo?.enabled && (
+                            <div className="absolute top-3 right-3 z-10 bg-indigo-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1">
+                                <Truck size={10} /> {deal.shippingInfo.fee ? `₦${deal.shippingInfo.fee}` : 'FREE'}
+                            </div>
+                        )}
+                        <img 
+                          src={deal.image} 
+                          alt={deal.title} 
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out" 
+                        />
                       </div>
-                    </div>
-                  </div>
-                </Link>
-            ))}
+                      
+                      <div className="flex flex-col grow px-1">
+                        <p className="text-[8px] font-black text-indigo-600/40 uppercase tracking-widest truncate leading-none mb-1">{deal.companyName || "Market Partner"}</p>
+                        <h3 className="text-xs font-black mb-2 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-8 uppercase tracking-tight leading-tight">
+                            {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                        </h3>
+                        
+                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold mb-3 uppercase tracking-widest opacity-60">
+                          <MapPin size={10} className="text-slate-400" />
+                          <span className="truncate">{deal.redeemAddress || deal.location}</span>
+                        </div>
+    
+                        <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-slate-50">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
+                            <span className="text-[11px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                ))}
+              </div>
+            </div>
           </div>
           
           <div className="p-8 md:p-12 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
              <Link to="/deals" className="px-12 py-4 bg-white border border-slate-200 rounded-full font-black text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95 uppercase tracking-widest text-[10px]">
                View All Deals
              </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: 4. SUCCESS STORIES (Impact Theater) */}
+      <section className="py-24 bg-white overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between mb-16">
+            <div>
+               <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-4">Platform <span className="text-teal-600">Impact</span></h2>
+               <p className="text-slate-400 font-bold uppercase tracking-widest text-xs italic">What our community is saying</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { 
+                name: "Mrs. Adebayo", 
+                role: "Entrepreneur", 
+                business: "Gourmet Kitchen", 
+                image: "https://images.unsplash.com/photo-1556740734-7f95834d0ff9", 
+                quote: "Slasham helped us fill our tables during weekday lunch hours. 40% increase in new customers!",
+                stats: "₦4.2M+ In Sales"
+              },
+              { 
+                name: "Tunde Williams", 
+                role: "Operations Dealer", 
+                business: "FitLife Gym", 
+                image: "https://images.unsplash.com/photo-1581291417006-03e4514f7348", 
+                quote: "The digital validation protocol is a game-changer. Seamless, fast, and 100% accurate.",
+                stats: "1.2k+ Redemptions"
+              },
+              { 
+                name: "Sarah Johnson", 
+                role: "Creative Director", 
+                business: "Glow Up Spa", 
+                image: "https://images.unsplash.com/photo-1600334129128-685c5582fd35", 
+                quote: "Best platform in Nigeria for brand awareness. We were fully booked for 3 months after launch.",
+                stats: "98% Positive Rating"
+              }
+            ].map((story, i) => (
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 + 0.5 }}
+                className="group relative h-[450px] rounded-[3rem] overflow-hidden bg-slate-900 border border-slate-100 shadow-2xl"
+              >
+                <img src={story.image} className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-900/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-10 w-full">
+                   <div className="bg-teal-500 text-slate-950 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest inline-block mb-4 shadow-xl">
+                      {story.stats}
+                   </div>
+                   <p className="text-white text-lg font-medium italic mb-6 leading-relaxed">"{story.quote}"</p>
+                   <div>
+                      <h4 className="text-xl font-black text-white leading-none uppercase tracking-tighter">{story.name}</h4>
+                      <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest mt-1">{story.role} • {story.business}</p>
+                   </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
