@@ -17,8 +17,20 @@ export default function MyCoupons() {
     const handleUpdate = () => {
       setUserVouchers(getUserVouchers());
     };
+
     window.addEventListener('vouchersUpdate', handleUpdate);
-    return () => window.removeEventListener('vouchersUpdate', handleUpdate);
+    // Listen for storage changes from other tabs (e.g., Merchant Scanner)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'slasham_user_vouchers') {
+        handleUpdate();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('vouchersUpdate', handleUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const staticCoupons = [

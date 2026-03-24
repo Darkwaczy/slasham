@@ -9,7 +9,7 @@ export default defineConfig(({mode}) => {
     base: './',
     plugins: [react(), tailwindcss()],
     build: {
-      outDir: 'docs',
+      outDir: 'dist',
       chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {

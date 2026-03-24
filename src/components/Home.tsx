@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   ArrowRight, MapPin, TrendingUp, Zap,
-  Truck, Timer, ChevronDown, Star
+  Truck, Timer, ChevronDown, Star, Heart
 } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -28,7 +28,7 @@ export default function Home() {
   // Filtered Deals
   const filteredDeals = allDeals.filter(d => d.location.toLowerCase().includes(city.toLowerCase()));
   const hotDeals = filteredDeals.filter(d => d.isHotCoupon || d.tag?.toLowerCase().includes('hot'));
-  const trendingDeals = filteredDeals.slice(0, 24);
+  const trendingDeals = filteredDeals.slice(0, 36);
 
   const formatPrice = (p: string) => {
     const digits = p.replace(/\D/g, '');
@@ -163,25 +163,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. TRENDING DEALS */}
-      <section className="pt-2 pb-8 px-6 md:px-8 bg-slate-50/50 -mt-2">
-        <div className="max-w-400 mx-auto bg-white rounded-[2.5rem] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
-          <div className="p-8 md:p-12 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      {/* 3. TRENDING DEALS (Expanded High Fidelity Container) */}
+      <section className="pt-2 pb-12 px-4 md:px-10 bg-slate-50/50 -mt-2">
+        <div className="max-w-[1550px] mx-auto bg-white rounded-[3.5rem] shadow-[0_10px_60px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+          <div className="p-12 md:p-16 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
             <div>
-              <div className="flex items-center gap-2 text-slate-900 font-black mb-1">
-                <TrendingUp size={16} className="text-teal-500" />
-                <span className="uppercase tracking-[0.2em] text-[10px]">Top Trending Deals</span>
+              <div className="flex items-center gap-3 text-slate-900 font-black mb-2">
+                <TrendingUp size={24} className="text-emerald-500" />
+                <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">Trending Deals</h2>
               </div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Live Inventory Synchronized Daily</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.3em] pl-1">Over 60 fresh experiences added today</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <div className="relative">
                 <div 
                   onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-                  className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors z-20"
+                  className="flex items-center gap-3 bg-slate-50 px-6 py-3.5 rounded-2xl border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors z-20"
                 >
-                  <MapPin size={16} className="text-teal-600" />
-                  <span className="text-sm font-bold text-slate-700">{city}</span>
+                  <MapPin size={18} className="text-teal-600" />
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-700">{city}</span>
                   <ChevronDown size={14} className="text-slate-400" />
                 </div>
                 
@@ -193,7 +193,7 @@ export default function Home() {
                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-40 overflow-hidden"
+                        className="absolute top-full right-0 mt-2 w-56 bg-white rounded-3xl shadow-2xl border border-slate-100 py-3 z-40 overflow-hidden"
                     >
                       {SUPPORTED_LOCATIONS.map((loc) => (
                         <button
@@ -202,7 +202,7 @@ export default function Home() {
                             setCity(loc.name);
                             setIsLocationDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-5 py-3 text-sm font-bold hover:bg-slate-50 transition-colors ${city === loc.name ? "text-teal-600 bg-teal-50/50" : "text-slate-600"}`}
+                          className={`w-full text-left px-6 py-4 text-[13px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors ${city === loc.name ? "text-teal-600 bg-teal-50/50" : "text-slate-500"}`}
                         >
                           {loc.name}
                         </button>
@@ -212,88 +212,49 @@ export default function Home() {
                 )}
                 </AnimatePresence>
               </div>
-              <Link to="/deals" className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1 uppercase tracking-widest text-[10px]">
-                Explore All <ArrowRight size={16} />
+              <Link to="/deals" className="text-[11px] font-black text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-2 uppercase tracking-[0.2em] group border-b-2 border-transparent hover:border-teal-600 pb-1">
+                View all <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 p-8 md:p-12">
-            {/* Standardized Sidebar Category Navigator */}
-            <aside className="w-full lg:w-[110px] shrink-0">
-               <div className="sticky top-6">
-                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-1">Discover</p>
-                 <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-1 bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/40 w-full">
-                    {[
-                        { name: "Dining", icon: <TrendingUp size={18}/>, color: "text-orange-600 bg-orange-50" },
-                        { name: "Spa", icon: <Zap size={18}/>, color: "text-teal-600 bg-teal-50" },
-                        { name: "Fun", icon: <ArrowRight size={18}/>, color: "text-rose-600 bg-rose-50" },
-                        { name: "Goods", icon: <Truck size={18}/>, color: "text-amber-600 bg-amber-50" },
-                        { name: "Stay", icon: <MapPin size={18}/>, color: "text-blue-600 bg-blue-50" },
-                    ].map((cat, i) => (
-                        <button key={i} className="bg-white p-4 hover:bg-slate-900 hover:text-white transition-all group flex flex-col items-center text-center w-full min-h-[100px] border-b lg:border-b border-slate-100 relative shrink-0">
-                           <div className={`w-8 h-8 ${cat.color} rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm border border-slate-100`}>{cat.icon}</div>
-                           <span className="text-[9px] font-black uppercase tracking-tight leading-none">{cat.name}</span>
-                        </button>
-                    ))}
-                    <Link to="/deals" className="bg-teal-600 p-4 hover:bg-slate-900 text-white transition-all group flex flex-col items-center justify-center text-center w-full min-h-[100px] relative shrink-0">
-                        <ArrowRight size={18} className="mb-2 group-hover:translate-x-1 transition-transform" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">All</span>
-                    </Link>
-                 </div>
-               </div>
-            </aside>
-
-            <div className="flex-1">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-4 gap-y-10 lg:gap-x-8">
-                {trendingDeals.map((deal, i) => (
-                    <Link 
-                      to={`/deal/${deal.id}`} 
-                      key={i} 
-                      className="group flex flex-col bg-white transition-all duration-300 relative"
-                    >
-                      <div className="aspect-4/3 relative overflow-hidden rounded-xl border border-slate-100 mb-4 bg-white flex items-center justify-center shadow-sm">
-                        <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm ${deal.isHotCoupon ? 'bg-amber-500 text-slate-900' : 'bg-teal-600 text-white'}`}>
-                          {deal.isHotCoupon ? 'HOT' : (deal.tag || 'NEW')}
-                        </div>
-                        {deal.shippingInfo?.enabled && (
-                            <div className="absolute top-3 right-3 z-10 bg-indigo-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1">
-                                <Truck size={10} /> {deal.shippingInfo.fee ? `₦${deal.shippingInfo.fee}` : 'FREE'}
-                            </div>
-                        )}
-                        <img 
-                          src={deal.image} 
-                          alt={deal.title} 
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out" 
-                        />
+          <div className="p-12 md:p-16">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-10 gap-y-16">
+               {trendingDeals.map((deal, i) => (
+                 <motion.div key={i} whileHover={{ y: -8 }} className="group">
+                    <Link to={`/deal/${deal.id}`}>
+                      <div className="aspect-4/3 rounded-4xl overflow-hidden relative mb-6 border border-slate-100 shadow-sm bg-white">
+                         <div className="absolute top-3 left-3 z-10 px-3 py-1.5 bg-[#4A7266]/90 text-white text-[9px] font-black rounded-lg uppercase tracking-widest shadow-xl">
+                           {deal.tag || "DEAL"}
+                         </div>
+                         <div className="absolute top-3 right-3 z-10 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-400 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all shadow-lg border border-slate-200/50">
+                           <Heart size={18} />
+                         </div>
+                         <img src={deal.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
                       </div>
-                      
-                      <div className="flex flex-col grow px-1">
-                        <div className="flex items-center justify-between mb-2">
-                            <p className="text-[8px] font-black text-teal-600/60 uppercase tracking-[0.2em]">{deal.category || "Deals"}</p>
-                            <div className="flex items-center gap-0.5 text-amber-400">
-                                <Star size={10} className="fill-amber-400" />
-                                <span className="text-[8px] font-black text-slate-900">4.9</span>
-                            </div>
-                        </div>
-
-                        <div className="mb-2">
-                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate mb-0.5">{deal.companyName || "Exclusive Partner"}</p>
-                            <h3 className="text-sm font-black text-slate-900 leading-tight uppercase tracking-tight group-hover:text-teal-600 transition-colors line-clamp-2">
-                                {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                            </h3>
-                        </div>
-                        
-                        <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-slate-50">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
-                            <span className="text-[11px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</span>
-                          </div>
-                        </div>
+                      <div className="space-y-3 px-1">
+                         <h4 className="text-base font-black text-slate-900 leading-none uppercase tracking-tight truncate group-hover:text-teal-600 transition-colors">{deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}</h4>
+                         <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                           <MapPin size={12} className="text-teal-500" /> {deal.location}
+                         </div>
+                         <div className="flex items-center gap-0.5 text-amber-400 mb-3">
+                            {[1,2,3,4,5].map(star => <Star key={star} size={12} className="fill-amber-400" />)}
+                            <span className="text-[10px] font-black text-slate-400 ml-1.5">(421)</span>
+                         </div>
+                         <div className="flex items-baseline gap-2.5">
+                            <span className="text-2xl font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
+                            <span className="text-sm font-bold text-slate-300 line-through">{formatPrice(deal.original)}</span>
+                         </div>
+                         <div className="flex items-center gap-3 pt-1">
+                            <span className="text-[#3EB28F] text-[11px] font-black uppercase tracking-widest">
+                                {Math.round((1 - (parseInt(deal.price.replace(/\D/g,'')) / parseInt(deal.original.replace(/\D/g,'')))) * 100)}% OFF
+                            </span>
+                            <span className="text-slate-300 text-[11px] font-black uppercase tracking-widest">Limited Time</span>
+                         </div>
                       </div>
                     </Link>
-                ))}
-              </div>
+                 </motion.div>
+               ))}
             </div>
           </div>
           
@@ -324,7 +285,7 @@ export default function Home() {
                 { name: "Nneka L.", text: "Best deals for staycations. Slasham is my go-to for planning quality family time." },
                 { name: "David S.", text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended." }
               ].map((s, i) => (
-                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-4xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
                    <div className="flex gap-0.5 text-amber-400 mb-4">
                       {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
                    </div>
@@ -341,7 +302,7 @@ export default function Home() {
                 { name: "Nneka L.", text: "Best deals for staycations. Slasham is my go-to for planning quality family time." },
                 { name: "David S.", text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended." }
               ].map((s, i) => (
-                <div key={`dup1-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                <div key={`dup1-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-4xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
                    <div className="flex gap-0.5 text-amber-400 mb-4">
                       {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
                    </div>
@@ -361,7 +322,7 @@ export default function Home() {
                 { name: "Ola W.", text: "A must-have for anyone living in Lagos. The variety of categories is impressive." },
                 { name: "Kelechi E.", text: "Transparent pricing and verified venues. You always know exactly what you're getting." }
               ].map((s, i) => (
-                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                <div key={i} className="w-[300px] shrink-0 bg-white p-8 rounded-4xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
                    <div className="flex gap-0.5 text-amber-400 mb-4">
                       {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
                    </div>
@@ -378,7 +339,7 @@ export default function Home() {
                 { name: "Ola W.", text: "A must-have for anyone living in Lagos. The variety of categories is impressive." },
                 { name: "Kelechi E.", text: "Transparent pricing and verified venues. You always know exactly what you're getting." }
               ].map((s, i) => (
-                <div key={`dup2-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
+                <div key={`dup2-${i}`} className="w-[300px] shrink-0 bg-white p-8 rounded-4xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:border-teal-500 transition-all">
                    <div className="flex gap-0.5 text-amber-400 mb-4">
                       {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-amber-400" />)}
                    </div>
@@ -390,7 +351,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. BUSINESS CTA */}
+      {/* NEW: 4. SLASHAM GIFT COUPONS (6x6 Expanded Categorized Grid) */}
+      <section className="py-24 px-4 md:px-10 bg-white border-t border-slate-50">
+        <div className="max-w-[1550px] mx-auto flex flex-col lg:flex-row gap-14">
+            {/* CATEGORIES SIDEBAR */}
+            <aside className="w-full lg:w-[130px] shrink-0">
+               <div className="sticky top-6">
+                 <div className="bg-teal-50 px-3 py-2 rounded-xl border border-teal-100 text-[11px] font-black text-teal-600 uppercase tracking-widest mb-8 text-center shadow-sm">
+                    Categories
+                 </div>
+                 <div className="flex flex-col gap-3">
+                    {[
+                        { name: "Dining", icon: <TrendingUp size={20}/>, count: "120+" },
+                        { name: "Nightlife", icon: <Zap size={20}/>, count: "45+" },
+                        { name: "Travel", icon: <MapPin size={20}/>, count: "60+" },
+                        { name: "Shopping", icon: <ArrowRight size={20}/>, count: "200+" },
+                        { name: "Fitness", icon: <TrendingUp size={20}/>, count: "40+" },
+                        { name: "Services", icon: <Truck size={20}/>, count: "25+" },
+                    ].map((cat, i) => (
+                        <button key={i} className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-900 hover:text-white transition-all group shadow-sm">
+                           <div className="w-10 h-10 bg-white text-slate-900 rounded-xl flex items-center justify-center mb-2 group-hover:bg-teal-500 group-hover:text-white transition-all shadow-sm">{cat.icon}</div>
+                           <span className="text-[10px] font-black uppercase tracking-tight">{cat.name}</span>
+                           <span className="text-[8px] font-bold text-slate-400 group-hover:text-teal-400 mt-0.5">{cat.count}</span>
+                        </button>
+                    ))}
+                 </div>
+               </div>
+            </aside>
+
+            {/* GIFT COUPONS GRID */}
+            <div className="flex-1">
+               <div className="flex items-center gap-4 mb-12">
+                  <div className="bg-rose-50 text-rose-600 px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2.5 border border-rose-100 shadow-sm animate-pulse">
+                     <Zap size={16} className="fill-rose-500" /> Slasham gift coupons
+                  </div>
+                  <div className="h-px grow bg-slate-100" />
+                  <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-slate-900 transition-colors cursor-pointer flex items-center gap-2">Discover all <ArrowRight size={16}/></div>
+               </div>
+
+               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-x-8 gap-y-16">
+                  {filteredDeals.slice(0, 36).map((p, i) => (
+                    <motion.div key={i} whileHover={{ y: -8 }} className="group">
+                       <Link to={`/deal/${p.id}`}>
+                         <div className="aspect-4/3 rounded-4xl overflow-hidden relative mb-6 border border-slate-100 shadow-sm bg-white">
+                            <div className="absolute top-4 left-4 z-10 bg-slate-900/95 backdrop-blur-md text-white px-4 py-1.5 rounded-xl text-[11px] font-black shadow-2xl border border-white/20">
+                               {formatPrice(p.price)}
+                            </div>
+                            <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={p.title} />
+                         </div>
+                         <div className="space-y-2 px-1">
+                            <h4 className="text-base font-black text-slate-900 uppercase tracking-tighter mb-1 line-clamp-1 group-hover:text-rose-600 transition-colors">{p.title.includes(' - ') ? p.title.split(' - ')[1] : p.title}</h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.category}</p>
+                         </div>
+                       </Link>
+                    </motion.div>
+                  ))}
+               </div>
+            </div>
+        </div>
+      </section>
+
+      {/* 5. BUSINESS CTA */}
+
+      {/* 5. BUSINESS CTA */}
       <section className="py-32 px-6 max-w-7xl mx-auto overflow-hidden">
         <div className="bg-slate-900 rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl shadow-slate-900/40">
           <div className="grid lg:grid-cols-2 items-center relative z-10">

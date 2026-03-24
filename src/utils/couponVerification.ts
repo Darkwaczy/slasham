@@ -16,26 +16,18 @@ export interface Coupon {
  * Combines dealId, userId, and a high-resolution timestamp.
  */
 export const generateCouponHash = (dealId: string | number, userId: string): string => {
-  const seed = `${dealId}-${userId}-${Date.now()}-${Math.random().toString(36)}`;
+  // Scramble the seed with high-entropy components including userId
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const userSeed = userId.slice(0, 2).toUpperCase();
+  const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const dealRef = String(dealId).padStart(4, '0').slice(-4);
   
-  // Strong hash simulation ensuring valid alphanumeric characters
-  let hash = "";
-  for (let i = 0; i < seed.length && hash.length < 8; i++) {
-    const charCode = seed.charCodeAt(i);
-    if ((charCode >= 48 && charCode <= 57) || (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
-      hash += seed[i].toUpperCase();
-    }
-  }
+  // Create a mixed-alphabet hash that doesn't follow a simple dealID prefix
+  // Pattern: SLSH - [Random/User] - [Deal/Time]
+  const part1 = (randomPart[0] + userSeed + timestamp.slice(-1)).toUpperCase();
+  const part2 = (dealRef.slice(-2) + timestamp.slice(-2)).toUpperCase();
   
-  // Ensure we have exactly 8 characters after 'SLSH'
-  while (hash.length < 8) {
-    hash += Math.random().toString(36).substring(2, 3).toUpperCase();
-  }
-  
-  const part2 = hash.substring(0, 4);
-  const part3 = hash.substring(4, 8);
-  
-  return `SLSH-${part2}-${part3}`;
+  return `SLSH-${part1}-${part2}`;
 };
 
 const STORAGE_KEY_COUPONS = "slasham_verified_coupons";
