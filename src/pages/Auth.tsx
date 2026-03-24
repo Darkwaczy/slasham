@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle, ArrowLeft, Settings } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Zap, Store, UserCircle, ArrowLeft, Settings, Building, MapPin } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -33,11 +33,21 @@ export default function Auth() {
     setError(null);
     setIsLoading(true);
 
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const bName = formData.get("businessName") as string;
+    const loc = formData.get("location") as string;
+
     // Basic Validation
     if (!email || !password) {
       setError("Please fill in all fields.");
       setIsLoading(false);
       return;
+    }
+
+    if (!isLoginPage && role === 'business' && (!bName || !loc)) {
+        setError("Please provide both business name and location.");
+        setIsLoading(false);
+        return;
     }
 
     if (!validateEmail(email)) {
@@ -90,7 +100,7 @@ export default function Auth() {
           if (userExists) {
             setError("An account with this email already exists.");
           } else {
-            const newUser = { id: Date.now().toString(), name, email, password, role };
+            const newUser = { id: Date.now().toString(), name, email, password, role, businessName: bName, location: loc };
             users.push(newUser);
             localStorage.setItem("slasham_users", JSON.stringify(users));
             localStorage.setItem("slasham_user", JSON.stringify(newUser));
@@ -248,19 +258,54 @@ export default function Auth() {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="space-y-2"
+                          className="space-y-4"
                         >
-                          <label className="text-sm font-bold text-slate-700 uppercase tracking-wider ml-1">Full Name</label>
-                          <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
-                            <input 
-                              type="text" 
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              placeholder="John Doe"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                            />
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider ml-1">Full Name</label>
+                            <div className="relative group">
+                              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                              <input 
+                                type="text" 
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="John Doe"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold"
+                              />
+                            </div>
                           </div>
+
+                          {role === 'business' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 uppercase tracking-wider ml-1">Business Name</label>
+                                    <div className="relative group">
+                                        <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input 
+                                            name="businessName"
+                                            placeholder="e.g. Lagos Lounge"
+                                            required
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 uppercase tracking-wider ml-1">Primary Location</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <select 
+                                            name="location"
+                                            required
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold appearance-none cursor-pointer"
+                                        >
+                                            <option value="Lagos">Lagos</option>
+                                            <option value="Abuja">Abuja</option>
+                                            <option value="Port Harcourt">Port Harcourt</option>
+                                            <option value="Ibadan">Ibadan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>

@@ -30,6 +30,11 @@ export default function Home() {
   const hotDeals = filteredDeals.filter(d => d.isHotCoupon || d.tag?.toLowerCase().includes('hot'));
   const trendingDeals = filteredDeals.slice(0, 24);
 
+  const formatPrice = (p: string) => {
+    const digits = p.replace(/\D/g, '');
+    return `₦${Number(digits).toLocaleString()}`;
+  };
+
   return (
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
       
@@ -62,12 +67,15 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-[11px] font-bold text-white mb-1 line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
-                    {deal.companyName ? `${deal.companyName} - ${deal.title.split(' - ')[1] || deal.title}` : deal.title}
-                  </h3>
+                  <div className="mb-1">
+                    <p className="text-[8px] font-black text-amber-500/60 uppercase tracking-widest truncate">{deal.companyName || "Exclusive Partner"}</p>
+                    <h3 className="text-[11px] font-black text-white line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
+                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                    </h3>
+                  </div>
                   <div className="flex items-center justify-between">
-                     <span className="text-amber-500 font-black text-sm">{deal.price}</span>
-                     <span className="text-[9px] text-slate-500 line-through font-bold">{deal.original}</span>
+                     <span className="text-amber-500 font-black text-sm">{formatPrice(deal.price)}</span>
+                     <span className="text-[9px] text-slate-500 line-through font-bold">{formatPrice(deal.original)}</span>
                   </div>
                 </div>
               </Link>
@@ -90,12 +98,15 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-[11px] font-bold text-white mb-1 line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
-                    {deal.companyName ? `${deal.companyName} - ${deal.title.split(' - ')[1] || deal.title}` : deal.title}
-                  </h3>
+                  <div className="mb-1">
+                    <p className="text-[8px] font-black text-amber-500/60 uppercase tracking-widest truncate">{deal.companyName || "Exclusive Partner"}</p>
+                    <h3 className="text-[11px] font-black text-white line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
+                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                    </h3>
+                  </div>
                   <div className="flex items-center justify-between">
-                     <span className="text-amber-500 font-black text-sm">{deal.price}</span>
-                     <span className="text-[9px] text-slate-500 line-through font-bold">{deal.original}</span>
+                     <span className="text-amber-500 font-black text-sm">{formatPrice(deal.price)}</span>
+                     <span className="text-[9px] text-slate-500 line-through font-bold">{formatPrice(deal.original)}</span>
                   </div>
                 </div>
               </Link>
@@ -132,14 +143,17 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-3 flex flex-col grow">
-                  <span className="text-red-600 text-[8px] font-bold uppercase tracking-widest mb-0.5">{deal.category}</span>
-                  <h3 className="text-xs font-bold mb-1 text-slate-900 line-clamp-1">
-                    {deal.companyName ? `${deal.companyName} - ${deal.title.split(' - ')[1] || deal.title}` : deal.title}
-                  </h3>
+                  <span className="text-red-600 text-[8px] font-black uppercase tracking-widest mb-0.5">{deal.category}</span>
+                  <div className="mb-1">
+                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate leading-none mb-0.5">{deal.companyName || "Partner"}</p>
+                    <h3 className="text-[11px] font-black text-slate-900 line-clamp-1 uppercase tracking-tight leading-tight">
+                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                    </h3>
+                  </div>
                   <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex items-baseline gap-1">
-                      <p className="text-sm font-black text-slate-900">{deal.price}</p>
-                      <p className="text-[9px] font-bold text-slate-400 line-through">{deal.original}</p>
+                      <p className="text-sm font-black text-slate-900">{formatPrice(deal.price)}</p>
+                      <p className="text-[9px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</p>
                     </div>
                   </div>
                 </div>
@@ -227,20 +241,21 @@ export default function Home() {
                     />
                   </div>
                   
-                  <div className="flex flex-col grow">
-                    <h3 className="text-sm font-bold mb-1 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-10 uppercase tracking-tight">
-                        {deal.companyName ? `${deal.companyName} - ${deal.title.split(' - ')[1] || deal.title}` : deal.title}
+                  <div className="flex flex-col grow px-1">
+                    <p className="text-[8px] font-black text-indigo-600/40 uppercase tracking-widest truncate leading-none mb-1">{deal.companyName || "Market Partner"}</p>
+                    <h3 className="text-xs font-black mb-2 text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 min-h-8 uppercase tracking-tight leading-tight">
+                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
                     </h3>
                     
-                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-medium mb-1.5 uppercase tracking-widest opacity-60">
+                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold mb-3 uppercase tracking-widest opacity-60">
                       <MapPin size={10} className="text-slate-400" />
                       <span className="truncate">{deal.redeemAddress || deal.location}</span>
                     </div>
 
-                    <div className="mt-auto flex flex-col gap-0.5">
+                    <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-slate-50">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-black text-slate-900 tracking-tighter">{deal.price}</span>
-                        <span className="text-[11px] font-bold text-slate-400 line-through">{deal.original}</span>
+                        <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
+                        <span className="text-[11px] font-bold text-slate-400 line-through">{formatPrice(deal.original)}</span>
                       </div>
                     </div>
                   </div>

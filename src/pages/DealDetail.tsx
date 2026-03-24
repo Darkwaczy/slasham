@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, Share2, Heart, CheckCircle2 } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, Share2, Heart, ShieldCheck, CreditCard, X, ChevronRight, Building } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import gsap from "gsap";
 import { getPersistentDeals } from "../utils/mockPersistence";
 
@@ -18,6 +18,7 @@ export default function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isBuying, setIsBuying] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [deal, setDeal] = useState<any>(null);
 
   useEffect(() => {
@@ -45,12 +46,28 @@ export default function DealDetail() {
     return `Deal ends in ${days} ${days === 1 ? 'day' : 'days'}`;
   };
 
-  const handleBuy = () => {
+  const formatPrice = (p: string) => {
+    const digits = p.replace(/\D/g, '');
+    return `₦${Number(digits).toLocaleString()}`;
+  };
+
+  const handleBuyInitiate = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentComplete = () => {
     setIsBuying(true);
+    setShowPaymentModal(false);
+    
+    // SAVE TO VOUCHER PERSISTENCE
+    import("../utils/mockPersistence").then(m => {
+        m.saveUserVoucher(deal);
+    });
+
     setTimeout(() => {
       setIsBuying(false);
       navigate("/user/coupons");
-    }, 1500);
+    }, 2000);
   };
 
   if (!deal) {
@@ -84,15 +101,24 @@ export default function DealDetail() {
               alt={deal.title} 
               className="w-full h-full object-contain"
             />
-            <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
-              {deal.category}
+            <div className="absolute top-6 left-6 flex flex-col gap-2">
+                <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
+                   {deal.category}
+                </div>
+                {deal.shippingInfo?.enabled && (
+                    <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2">
+                        <Loader2 size={12} className="animate-spin" /> Delivery: Enabled
+                    </div>
+                )}
             </div>
           </div>
           
           <div className="space-y-6">
             <div className="space-y-1">
-                {deal.companyName && <p className="text-indigo-600 font-bold uppercase tracking-widest text-[10px]">{deal.companyName} Presents</p>}
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight">{deal.title}</h1>
+                <p className="text-indigo-600 font-bold uppercase tracking-[0.4em] text-[10px] leading-none mb-2">{deal.companyName || "Exclusive Partner"}</p>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none uppercase">
+                    {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                </h1>
             </div>
             
             <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-slate-200">
@@ -116,12 +142,12 @@ export default function DealDetail() {
                 <p className="text-slate-600 leading-relaxed text-lg font-medium">
                   {deal.description}
                 </p>
-                {deal.redeemAddress && (
+                {(deal.redeemAddress || deal.location) && (
                     <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3">
                         <MapPin size={18} className="text-indigo-600" />
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Redeem at:</p>
-                            <p className="text-sm font-bold text-slate-900">{deal.redeemAddress}</p>
+                            <p className="text-sm font-bold text-slate-900">{deal.redeemAddress || deal.location}</p>
                         </div>
                     </div>
                 )}
@@ -164,19 +190,6 @@ export default function DealDetail() {
                   </div>
                 </div>
               </div>
-              
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  `Valid for ${deal.category.toLowerCase()} only.`,
-                  "Cannot be combined with other offers.",
-                  actualValidity
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-3 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-emerald-200 transition-colors">
-                    <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                    <span className="text-[11px] font-black uppercase text-slate-600 tracking-tight">{item}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
@@ -190,7 +203,7 @@ export default function DealDetail() {
             
             <div>
               <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">{discountPercent}% Off</h2>
-              <p className="text-slate-400 text-[10px] font-black tracking-widest uppercase">
+              <p className="text-teal-600 text-[10px] font-black tracking-[0.2em] uppercase">
                 {deal.unlockNote || "Pay small amount to unlock this exclusive discount."}
               </p>
             </div>
@@ -198,11 +211,11 @@ export default function DealDetail() {
             <div className="bg-[#FAFAFA] rounded-3xl p-8 border border-slate-100 space-y-6">
               <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
                 <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Market Price</span>
-                <span className="text-xl font-bold text-slate-300 line-through">{deal.original}</span>
+                <span className="text-xl font-bold text-slate-300 line-through">{formatPrice(deal.original)}</span>
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
                 <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Slasham Price</span>
-                <span className="text-3xl font-black text-slate-900 tracking-tighter">{deal.price}</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Your Savings</span>
@@ -211,7 +224,7 @@ export default function DealDetail() {
             </div>
 
             <button 
-              onClick={handleBuy}
+              onClick={handleBuyInitiate}
               disabled={isBuying}
               className={`w-full py-6 rounded-3xl font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] uppercase tracking-widest ${
                 isBuying ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white hover:bg-black shadow-slate-900/20'
@@ -225,6 +238,88 @@ export default function DealDetail() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal Mockup */}
+      <AnimatePresence>
+        {showPaymentModal && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
+             <motion.div 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               exit={{ opacity: 0 }} 
+               onClick={() => setShowPaymentModal(false)}
+               className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+             />
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.9, y: 20 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.9, y: 20 }}
+               className="relative w-full max-w-md bg-white rounded-[2.5rem] overflow-hidden shadow-2xl"
+             >
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">S</div>
+                        <div>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Slasham Pay</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Secure Payment Processing</p>
+                        </div>
+                    </div>
+                    <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={24} /></button>
+                </div>
+
+                <div className="p-10 space-y-8">
+                   <div className="text-center space-y-2">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Amount Payable</p>
+                       <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</h2>
+                   </div>
+
+                   <div className="space-y-4">
+                      <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                            <CreditCard size={20} className="text-indigo-600" />
+                            <div>
+                               <p className="text-xs font-black text-slate-900 uppercase">Pay with Card</p>
+                               <p className="text-[9px] text-slate-400 font-bold">Visa, Mastercard, Verve</p>
+                            </div>
+                         </div>
+                         <ChevronRight size={18} className="text-slate-300" />
+                      </div>
+                      <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                            <Building size={20} className="text-indigo-600" />
+                            <div>
+                               <p className="text-xs font-black text-slate-900 uppercase">Bank Transfer</p>
+                               <p className="text-[9px] text-slate-400 font-bold">Dynamic Nigerian Bank Account</p>
+                            </div>
+                         </div>
+                         <ChevronRight size={18} className="text-slate-300" />
+                      </div>
+                   </div>
+
+                   <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-start gap-3">
+                      <ShieldCheck size={20} className="text-emerald-600 shrink-0" />
+                      <p className="text-[10px] font-bold text-emerald-800 leading-relaxed italic">
+                        By clicking "Complete Payment", you agree to Slasham's terms of service and the {deal.companyName || "Vendor"}'s specific redemption protocols.
+                      </p>
+                   </div>
+
+                   <button 
+                     onClick={handlePaymentComplete}
+                     className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+                   >
+                     <ShieldCheck size={18} /> Complete Payment
+                   </button>
+                </div>
+                
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-6">
+                    <img src="https://static-00.iconduck.com/assets.00/visa-icon-512x163-j0s6c9er.png" className="h-4 object-contain opacity-40 grayscale" alt="" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" className="h-6 object-contain opacity-40 grayscale" alt="" />
+                    <img src="https://paystack.com/assets/img/v3/logo-black.svg" className="h-4 object-contain opacity-40 grayscale" alt="" />
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Customer Reviews */}
       <div className="pt-24 border-t border-slate-200 space-y-16">

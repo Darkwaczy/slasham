@@ -52,3 +52,31 @@ export const deletePersistentDeal = (id: number) => {
   const updated = deals.filter(d => d.id !== id);
   savePersistentDeals(updated);
 };
+
+// --- NEW: VOUCHER PERSISTENCE ---
+const VOUCHER_KEY = "slasham_user_vouchers";
+
+export const getUserVouchers = () => {
+  const stored = localStorage.getItem(VOUCHER_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+import { issueCoupon } from "./couponVerification";
+
+export const saveUserVoucher = (deal: Deal) => {
+  const vouchers = getUserVouchers();
+  
+  // SECURE: Issue a real, verifiable coupon hash from the engine
+  const verifiedCoupon = issueCoupon(deal.id, "USER_CURRENT");
+
+  const newVoucher = {
+      ...deal,
+      id: `S-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: "Active",
+      dateAdded: new Date().toISOString(),
+      code: verifiedCoupon.hash // Match the SLSH-XXXX-XXXX protocol
+  };
+  localStorage.setItem(VOUCHER_KEY, JSON.stringify([newVoucher, ...vouchers]));
+  window.dispatchEvent(new Event('vouchersUpdate'));
+  return newVoucher;
+};

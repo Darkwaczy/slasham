@@ -1,6 +1,6 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Truck, Zap, Upload, Building, MapPin } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Truck, Zap, Upload, Building, MapPin, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { getCampaignRequests, saveCampaignRequest, updateRequestStatus } from "../../utils/merchantPersistence";
 import { addPersistentDeal } from "../../utils/mockPersistence";
@@ -14,30 +14,39 @@ const INITIAL_BUSINESSES = [
 ];
 
 export default function AdminBusinesses() {
-  const [businesses, setBusinesses] = useState<any[]>(() => {
-    const staticBiz = INITIAL_BUSINESSES;
-    const requests = getCampaignRequests();
-    const requestBiz = requests.map(r => ({
-      id: r.merchantId,
-      name: r.businessName,
-      owner: r.email.split('@')[0],
-      category: r.category,
-      rating: 4.5,
-      status: r.status === 'Approved' ? 'Verified' : 'Pending',
-      deals: 1,
-      city: r.location || r.address.split(',').pop()?.trim() || "Lagos",
-      email: r.email,
-      address: r.address
-    }));
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const combined = [...staticBiz];
-    requestBiz.forEach((rb: any) => {
-      if (!combined.some(b => b.name === rb.name)) {
-        combined.push(rb);
-      }
-    });
-    return combined;
-  });
+  useEffect(() => {
+    const loadData = () => {
+        const staticBiz = INITIAL_BUSINESSES;
+        const requests = getCampaignRequests();
+        const requestBiz = requests.map(r => ({
+          id: r.merchantId,
+          name: r.businessName,
+          owner: r.email?.split('@')[0] || "Owner",
+          category: r.category,
+          rating: 4.5,
+          status: r.status === 'Approved' ? 'Verified' : 'Pending',
+          deals: 1,
+          city: r.location || r.address?.split(',').pop()?.trim() || "Lagos",
+          email: r.email,
+          address: r.address
+        }));
+
+        const combined = [...staticBiz];
+        requestBiz.forEach((rb: any) => {
+          if (!combined.some(b => b.name === rb.name)) {
+            combined.push(rb);
+          }
+        });
+        setBusinesses(combined);
+        setIsLoading(false);
+    };
+    loadData();
+    window.addEventListener('campaignRequestsUpdate', loadData);
+    return () => window.removeEventListener('campaignRequestsUpdate', loadData);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -51,8 +60,8 @@ export default function AdminBusinesses() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const filteredBusinesses = businesses.filter(b => {
-    const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         b.owner.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (b.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (b.owner || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "All" || b.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -126,7 +135,7 @@ export default function AdminBusinesses() {
 
     // 3. Add to live inventory
     addPersistentDeal({
-        title: companyName ? `${companyName} - ${productName}` : `${selectedBiz.name}'s ${productName}`,
+        title: productName,
         companyName: companyName || selectedBiz.name,
         location: location,
         price: slashamPrice,
@@ -154,6 +163,14 @@ export default function AdminBusinesses() {
     setIsHotCoupon(false);
     alert(`Success: Live deal launched for ${selectedBiz.name} in ${location}.`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="animate-spin text-slate-300" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -207,9 +224,9 @@ export default function AdminBusinesses() {
               className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-sm font-bold text-slate-600 outline-none"
             >
               <option value="All">All Categories</option>
-              <option value="Dining">Dining</option>
-              <option value="Wellness">Wellness</option>
-              <option value="Food">Food</option>
+              {Array.from(new Set(businesses.map(b => b.category))).map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -228,7 +245,7 @@ export default function AdminBusinesses() {
               <AnimatePresence mode="popLayout">
                 {filteredBusinesses.map((biz, idx) => (
                   <motion.tr 
-                    key={biz.id}
+                    key={biz.id || idx}
                     layout
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -239,7 +256,7 @@ export default function AdminBusinesses() {
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black">
-                          {biz.name.charAt(0)}
+                          {(biz.name || "?").charAt(0)}
                         </div>
                         <div>
                           <p className="text-sm font-black text-slate-900 mb-0.5">{biz.name}</p>
@@ -275,6 +292,11 @@ export default function AdminBusinesses() {
               </AnimatePresence>
             </tbody>
           </table>
+          {filteredBusinesses.length === 0 && (
+              <div className="py-20 text-center text-slate-400">
+                  <p className="text-sm font-bold uppercase tracking-widest">No matching partners found.</p>
+              </div>
+          )}
         </div>
       </div>
 

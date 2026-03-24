@@ -1,4 +1,4 @@
-import { Search, MoreHorizontal, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, DollarSign } from "lucide-react";
+import { Search, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -45,18 +45,25 @@ export default function AdminDeals() {
       return;
     }
 
-    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.', slashamPrice);
+    const priceWithNaira = slashamPrice.startsWith('₦') ? slashamPrice : `₦${slashamPrice.replace(/\D/g, '')}`;
+
+    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.', priceWithNaira);
     
     addPersistentDeal({
-        title: `${req.businessName}'s ${req.productName}`, 
-        location: req.address,
-        price: slashamPrice,
+        title: req.productName,
+        companyName: req.companyName || req.businessName,
+        location: req.location || req.address,
+        price: priceWithNaira,
         original: req.originalPrice,
         image: req.productImage,
         category: req.category,
         tag: "Verified",
         description: req.description,
-        validity: `Valid for 30 days after purchase.`
+        validity: `Valid for 30 days. No booking required.`,
+        unlockNote: req.unlockNote,
+        shippingInfo: req.shippingInfo,
+        expiryDate: req.expiryDate,
+        isHotCoupon: req.isHotCoupon
     });
     
     setIsRequestModalOpen(false);

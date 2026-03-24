@@ -6,10 +6,24 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { getUserVouchers } from "../../utils/mockPersistence";
 
 export default function UserDashboardOverview() {
+  const [vouchers, setVouchers] = useState<any[]>([]);
+
+  useEffect(() => {
+    setVouchers(getUserVouchers());
+    const handleUpdate = () => setVouchers(getUserVouchers());
+    window.addEventListener('vouchersUpdate', handleUpdate);
+    return () => window.removeEventListener('vouchersUpdate', handleUpdate);
+  }, []);
+
+  const activeCount = vouchers.filter(v => v.status === "Active").length;
+  const expiringSoon = vouchers.find(v => v.status === "Active"); // Mock logic for first active voucher
+
   const stats = [
-    { title: "Active Vouchers", value: "3", icon: <Ticket size={24} />, color: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-600" },
+    { title: "Active Vouchers", value: activeCount.toString(), icon: <Ticket size={24} />, color: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-600" },
     { title: "Points Earned", value: "2,450", icon: <Star size={24} />, color: "bg-amber-500", light: "bg-amber-50", text: "text-amber-600" },
     { title: "Total Savings", value: "₦15,000", icon: <TrendingUp size={24} />, color: "bg-blue-500", light: "bg-blue-50", text: "text-blue-600" },
     { title: "Wallet Balance", value: "₦0.00", icon: <Wallet size={24} />, color: "bg-slate-900", light: "bg-slate-50", text: "text-slate-900" },
@@ -172,24 +186,27 @@ export default function UserDashboardOverview() {
 
         {/* Right Column: Premium & Growth */}
         <div className="lg:col-span-4 space-y-10">
-          {/* Urgent Alert */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-br from-rose-500 to-rose-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative z-10">
-              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
-                 <AlertCircle size={32} className="text-white" />
+          {expiringSoon && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-gradient-to-br from-rose-500 to-rose-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                   <AlertCircle size={32} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-black mb-3 leading-tight tracking-tight">Expiring Soon!</h3>
+                <p className="text-rose-100/80 text-sm mb-10 leading-relaxed font-medium">
+                  Your <span className="text-white font-black underline decoration-white/40 decoration-2 underline-offset-4">{expiringSoon.title}</span> voucher expires on {new Date(expiringSoon.expiryDate || Date.now() + 86400000).toLocaleDateString()}. Don't let it go to waste!
+                </p>
+                <Link to="/user/coupons" className="block w-full py-5 bg-white text-rose-600 rounded-[3rem] font-black text-xs text-center uppercase tracking-[0.2em] hover:bg-rose-50 transition-all shadow-xl active:scale-95">
+                  Redeem Now
+                </Link>
               </div>
-              <h3 className="text-2xl font-black mb-3 leading-tight tracking-tight">Expiring Soon!</h3>
-              <p className="text-rose-100/80 text-sm mb-10 leading-relaxed font-medium">Your <span className="text-white font-black underline decoration-white/40 decoration-2 underline-offset-4">Delicious Pizza</span> voucher expires in 24 hours. Don't let it go to waste!</p>
-              <button className="w-full py-5 bg-white text-rose-600 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-50 transition-all shadow-xl active:scale-95">
-                Redeem Now
-              </button>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* New: Refer & Earn card */}
           <div className="bg-indigo-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-600/20 relative overflow-hidden group">
