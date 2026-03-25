@@ -3,15 +3,31 @@ import {
   Search, Filter, Receipt, Wallet, 
   ArrowUpRight, ArrowDownRight
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect } from "react";
+import { getUserTransactions } from "../../utils/userPersistence";
 
 export default function OrdersPayments() {
-  const transactions = [
-    { id: "TX-9021", date: "Mar 18, 2026", type: "Voucher Purchase", merchant: "Zaza Lounge", amount: "₦12,500", status: "Completed", method: "Mastercard •• 4582" },
-    { id: "TX-9020", date: "Mar 15, 2026", type: "Points Redemption", merchant: "Slasham Rewards", amount: "-500 pts", status: "Completed", method: "Points Wallet" },
-    { id: "TX-9019", date: "Mar 12, 2026", type: "Voucher Purchase", merchant: "Oasis Spa", amount: "₦15,000", status: "Completed", method: "Visa •• 9012" },
-    { id: "TX-9018", date: "Mar 08, 2026", type: "Wallet Top-up", merchant: "Slasham Pay", amount: "₦25,000", status: "Completed", method: "Bank Transfer" },
-  ];
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    const load = () => {
+       const txs = getUserTransactions();
+       setTransactions(txs);
+       // Calculate ongoing wallet balance
+       let bal = 0;
+       txs.forEach((t: any) => {
+         const amt = parseInt(t.amount.replace(/[^0-9]/g, '')) || 0;
+         if (t.type === "Wallet Top-up") bal += amt;
+         if (t.type === "Voucher Purchase") bal -= amt;
+       });
+       setBalance(bal < 0 ? 0 : bal);
+    };
+    load();
+    window.addEventListener('userDataUpdate', load);
+    return () => window.removeEventListener('userDataUpdate', load);
+  }, []);
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -34,7 +50,7 @@ export default function OrdersPayments() {
            <div className="relative z-10">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Available Balance</p>
               <div className="flex items-baseline gap-2">
-                 <span className="text-3xl font-black tracking-tight">₦0.00</span>
+                 <span className="text-3xl font-black tracking-tight">₦{balance.toLocaleString()}</span>
                  <button className="text-emerald-400 p-1 group/btn hover:scale-110 transition-transform">
                     <ArrowUpRight size={18} />
                  </button>
@@ -76,12 +92,15 @@ export default function OrdersPayments() {
                  </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
+                 <AnimatePresence mode="popLayout">
                  {transactions.map((tx, i) => (
                     <motion.tr 
                       key={tx.id} 
+                      layout
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 + 0.3 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: i * 0.05 }}
                       className="hover:bg-slate-50/50 transition-colors group cursor-default"
                     >
                        <td className="px-8 py-6">
@@ -121,6 +140,7 @@ export default function OrdersPayments() {
                        </td>
                     </motion.tr>
                  ))}
+                 </AnimatePresence>
               </tbody>
            </table>
         </div>

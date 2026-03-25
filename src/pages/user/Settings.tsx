@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   User, Shield, Bell, CreditCard, Star, 
   MapPin, Phone, Mail, Camera, 
@@ -7,10 +7,20 @@ import {
   QrCode, Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { getUserProfile, saveUserProfile } from "../../utils/userPersistence";
 
 export default function UserSettings() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const load = () => setProfile(getUserProfile());
+    load();
+    window.addEventListener('userDataUpdate', load);
+    return () => window.removeEventListener('userDataUpdate', load);
+  }, []);
+
+  if (!profile) return null;
 
   const tabs = [
     { id: "profile", label: "Profile", icon: <User size={18} /> },
@@ -59,7 +69,7 @@ export default function UserSettings() {
               >
                 <div className="flex items-center gap-8 pb-10 border-b border-slate-50">
                    <div className="relative group">
-                      <div className="w-24 h-24 rounded-[2rem] overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
+                      <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
                         <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=200" alt="Avatar" className="w-full h-full object-cover" />
                       </div>
                       <button className="absolute -bottom-2 -right-2 p-2.5 bg-slate-900 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
@@ -74,9 +84,9 @@ export default function UserSettings() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                    {[
-                      { label: "Full Identity", val: "John Doe", icon: <User size={18} /> },
-                      { label: "Official Email", val: "john.doe@example.com", icon: <Mail size={18} />, readOnly: true },
-                      { label: "Primary Phone", val: "+234 800 123 4567", icon: <Phone size={18} /> },
+                      { id: "name", label: "Full Identity", val: profile.name, icon: <User size={18} /> },
+                      { id: "email", label: "Official Email", val: profile.email, icon: <Mail size={18} />, readOnly: true },
+                      { id: "phone", label: "Primary Phone", val: profile.phone, icon: <Phone size={18} /> },
                    ].map((field, i) => (
                       <div key={i} className="space-y-2">
                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
@@ -84,7 +94,17 @@ export default function UserSettings() {
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
                                {field.icon}
                             </div>
-                            <input type="text" readOnly={field.readOnly} defaultValue={field.val} className={`w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white focus:border-emerald-500/10 transition-all outline-none ${field.readOnly ? 'cursor-not-allowed' : ''}`} />
+                            <input 
+                              type="text" 
+                              readOnly={field.readOnly} 
+                              value={field.val} 
+                              onChange={(e) => {
+                                if (!field.readOnly) {
+                                  setProfile({ ...profile, [field.id]: e.target.value });
+                                }
+                              }}
+                              className={`w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white focus:border-emerald-500/10 transition-all outline-none ${field.readOnly ? 'cursor-not-allowed' : ''}`} 
+                            />
                          </div>
                       </div>
                    ))}
@@ -92,7 +112,11 @@ export default function UserSettings() {
                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default City</label>
                      <div className="relative">
                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <select className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl text-sm font-black text-slate-900 appearance-none focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                        <select 
+                           value={profile.city}
+                           onChange={(e) => setProfile({ ...profile, city: e.target.value })}
+                           className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl text-sm font-black text-slate-900 appearance-none focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        >
                            <option>Lagos, Nigeria</option>
                            <option>Abuja, FCT</option>
                            <option>Port Harcourt</option>
@@ -102,7 +126,10 @@ export default function UserSettings() {
                 </div>
 
                 <div className="flex justify-end pt-6">
-                   <button className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:scale-105 transition-all">
+                   <button 
+                     onClick={() => saveUserProfile(profile)}
+                     className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:scale-105 transition-all"
+                   >
                       Save Profile Changes
                    </button>
                 </div>
@@ -126,12 +153,12 @@ export default function UserSettings() {
                 </div>
 
                 <div className="space-y-6">
-                   <div className="p-8 bg-slate-950 text-white rounded-[2rem] relative overflow-hidden group">
+                   <div className="p-8 bg-slate-950 text-white rounded-4xl relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
                       <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                          <div className="flex items-center gap-6">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${twoFactorEnabled ? 'bg-emerald-500 text-slate-950' : 'bg-white/10 text-white'}`}>
-                               {twoFactorEnabled ? <ShieldCheck size={28} /> : <Zap size={28} />}
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${profile.twoFactorEnabled ? 'bg-emerald-500 text-slate-950' : 'bg-white/10 text-white'}`}>
+                               {profile.twoFactorEnabled ? <ShieldCheck size={28} /> : <Zap size={28} />}
                             </div>
                             <div>
                                <p className="text-lg font-black tracking-tight">Two-Factor Authentication (2FA)</p>
@@ -139,14 +166,18 @@ export default function UserSettings() {
                             </div>
                          </div>
                          <button 
-                          onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                          className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${twoFactorEnabled ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-white text-slate-950 hover:bg-emerald-500'}`}
+                          onClick={() => {
+                            const updated = { ...profile, twoFactorEnabled: !profile.twoFactorEnabled };
+                            setProfile(updated);
+                            saveUserProfile(updated);
+                          }}
+                          className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${profile.twoFactorEnabled ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-white text-slate-950 hover:bg-emerald-500'}`}
                          >
-                            {twoFactorEnabled ? 'Disable 2FA' : 'Enable Now'}
+                            {profile.twoFactorEnabled ? 'Disable 2FA' : 'Enable Now'}
                          </button>
                       </div>
                       
-                      {twoFactorEnabled && (
+                      {profile.twoFactorEnabled && (
                         <motion.div 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -168,7 +199,7 @@ export default function UserSettings() {
                       )}
                    </div>
 
-                   <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col gap-6">
+                   <div className="p-8 bg-slate-50 rounded-4xl border border-slate-100 flex flex-col gap-6">
                       <p className="text-sm font-black text-slate-900">Update Account Password</p>
                       <div className="grid md:grid-cols-2 gap-4">
                          <input type="password" placeholder="Current Password" className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none" />
@@ -207,7 +238,7 @@ export default function UserSettings() {
                       { title: "Reward Bonuses", desc: "Notifications for points earned and tier achievements.", icon: <Gift size={18} /> },
                       { title: "Account Activity", desc: "Security alerts for new logins and password changes.", icon: <Shield size={18} /> },
                    ].map((item, i) => (
-                      <div key={i} className="p-6 bg-slate-50 flex items-center justify-between rounded-[1.5rem] border border-slate-100 group transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-100">
+                      <div key={i} className="p-6 bg-slate-50 flex items-center justify-between rounded-3xl border border-slate-100 group transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-100">
                          <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors shadow-sm">
                                {item.icon}
@@ -250,7 +281,7 @@ export default function UserSettings() {
 
                 <div className="space-y-6">
                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-8 bg-slate-900 rounded-[2rem] text-white relative overflow-hidden flex flex-col justify-between h-48 group">
+                      <div className="p-8 bg-slate-900 rounded-4xl text-white relative overflow-hidden flex flex-col justify-between h-48 group">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16" />
                          <div className="flex justify-between items-start">
                             <Smartphone size={28} className="text-white/40" />
@@ -265,7 +296,7 @@ export default function UserSettings() {
                          </div>
                       </div>
                       
-                      <button className="p-8 border-2 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all group">
+                      <button className="p-8 border-2 border-dashed border-slate-100 rounded-4xl flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all group">
                          <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Plus size={24} />
                          </div>
@@ -275,7 +306,7 @@ export default function UserSettings() {
 
                    <div className="pt-8 border-t border-slate-50">
                       <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Subscription Status</p>
-                      <div className="p-6 bg-slate-50 rounded-[1.5rem] flex items-center justify-between">
+                      <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-between">
                          <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm">
                                <Crown size={20} />
@@ -328,7 +359,7 @@ export default function UserSettings() {
                 ))}
               </div>
 
-              <button className="w-full py-5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-600/30 hover:scale-[1.02] active:scale-95 transition-all text-slate-950 flex items-center justify-center gap-2">
+              <button className="w-full py-5 bg-linear-to-r from-amber-500 to-orange-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-600/30 hover:scale-[1.02] active:scale-95 transition-all text-slate-950 flex items-center justify-center gap-2">
                 Become a Pro Member <ArrowRight size={16} />
               </button>
             </div>

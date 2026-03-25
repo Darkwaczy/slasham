@@ -3,19 +3,21 @@ import {
   TrendingUp, Award, Zap, History, ChevronRight
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState, useEffect } from "react";
+import { getUserPoints } from "../../utils/userPersistence";
 
 export default function RewardsReferrals() {
-  const referrals = [
-    { id: 1, name: "Tunde Afolabi", date: "2 days ago", status: "Completed", reward: "500 pts" },
-    { id: 2, name: "Chisom Okafor", date: "5 days ago", status: "Pending", reward: "---" },
-    { id: 3, name: "Amaka Peters", date: "1 week ago", status: "Completed", reward: "500 pts" },
-  ];
+  const [pointsData, setPointsData] = useState<any>(null);
 
-  const pointsHistory = [
-    { id: 1, activity: "RSVP Lagos Review", pts: "+20 pts", date: "Today" },
-    { id: 2, activity: "Weekly Login Bonus", pts: "+10 pts", date: "Yesterday" },
-    { id: 3, activity: "Referral Bonus (Tunde)", pts: "+500 pts", date: "2 days ago" },
-  ];
+  useEffect(() => {
+    const load = () => setPointsData(getUserPoints());
+    load();
+    window.addEventListener('userDataUpdate', load);
+    return () => window.removeEventListener('userDataUpdate', load);
+  }, []);
+
+  if (!pointsData) return null;
+  const { total, history, referrals } = pointsData;
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -33,7 +35,7 @@ export default function RewardsReferrals() {
                  <p className="text-slate-400 font-medium">Earn more points by sharing the love with your friends.</p>
               </div>
               <div className="text-center md:text-right">
-                 <p className="text-6xl font-black text-emerald-500 tracking-tighter mb-1">2,450</p>
+                 <p className="text-6xl font-black text-emerald-500 tracking-tighter mb-1">{total.toLocaleString()}</p>
                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Total Points</p>
               </div>
            </div>
@@ -55,7 +57,7 @@ export default function RewardsReferrals() {
            </div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[3rem] p-10 text-white shadow-2xl shadow-indigo-500/20 flex flex-col justify-between">
+        <div className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-[3rem] p-10 text-white shadow-2xl shadow-indigo-500/20 flex flex-col justify-between">
            <div>
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
                  <Zap size={32} className="text-white" />
@@ -81,7 +83,7 @@ export default function RewardsReferrals() {
                   <Gift size={40} className="text-slate-100" />
                </div>
 
-               <div className="p-8 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200 text-center space-y-6">
+               <div className="p-8 bg-slate-50 rounded-4xl border border-dashed border-slate-200 text-center space-y-6">
                   <p className="text-sm font-bold text-slate-500">Your Unique Invite Code</p>
                   <div className="flex items-center justify-center gap-3">
                      <span className="text-3xl font-black text-slate-900 tracking-widest">SLASH-JD-2026</span>
@@ -93,7 +95,7 @@ export default function RewardsReferrals() {
 
                <div className="mt-10 space-y-4">
                   <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 px-2 pb-2 border-b border-slate-50">Recent Invites</h4>
-                  {referrals.map((r) => (
+                  {referrals.map((r: any) => (
                      <div key={r.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-all group">
                         <div className="flex items-center gap-4">
                            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-black text-slate-400 text-xs">
@@ -130,7 +132,7 @@ export default function RewardsReferrals() {
                </div>
 
                <div className="space-y-6">
-                  {pointsHistory.map((h, idx) => (
+                  {history.map((h: any, idx: number) => (
                      <motion.div 
                         key={h.id}
                         initial={{ opacity: 0, x: 20 }}
@@ -150,13 +152,13 @@ export default function RewardsReferrals() {
                   ))}
                </div>
 
-               <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] relative overflow-hidden group">
+              <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] relative overflow-hidden group">
                   <div className="relative z-10 text-center">
                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Next Goal: Platinum</p>
                      <div className="h-2 bg-white rounded-full overflow-hidden mb-4">
-                        <div className="h-full bg-emerald-500 w-[65%]" />
+                        <div className={`h-full bg-emerald-500`} style={{ width: `${Math.min((total / 5000) * 100, 100)}%` }} />
                      </div>
-                     <p className="text-xs font-bold text-slate-600">550 pts until next tier unlock</p>
+                     <p className="text-xs font-bold text-slate-600">{Math.max(5000 - total, 0).toLocaleString()} pts until next tier unlock</p>
                   </div>
                </div>
             </section>

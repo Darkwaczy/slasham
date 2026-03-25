@@ -3,13 +3,50 @@ import {
   Send, ShieldCheck, Quote 
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState, useEffect } from "react";
+import { getUserReviews, saveUserReviews } from "../../utils/userPersistence";
 
 export default function UserReviews() {
-  const reviews = [
-    { id: 1, title: "Delicious Pizza Buffet", merchant: "Pizza Hut", rating: 5, status: "Published", text: "The crust was perfectly thin and the toppings were incredibly fresh. Best pizza in Lagos!", date: "2 days ago", response: "Thank you John! We look forward to serving you again." },
-    { id: 2, title: "Full Body Spa Day", merchant: "Oasis Spa", rating: 4, status: "Published", text: "Very relaxing environment, though I had to wait 10 mins beyond my appointment time.", date: "1 week ago", response: null },
-    { id: 3, title: "RSVP Dinner Experience", merchant: "RSVP Lagos", rating: 5, status: "Flagged", text: "Exceptional service and the ambience is second to none. Worth every naira.", date: "Mar 10, 2026", response: null },
-  ];
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [avgRating, setAvgRating] = useState("0.0");
+
+  useEffect(() => {
+    const load = () => {
+      const dbReviews = getUserReviews();
+      setReviews(dbReviews);
+      
+      const published = dbReviews.filter((r: any) => r.status === 'Published');
+      if (published.length > 0) {
+        const sum = published.reduce((acc: number, r: any) => acc + r.rating, 0);
+        setAvgRating((sum / published.length).toFixed(1));
+      } else {
+        setAvgRating("0.0");
+      }
+    };
+    load();
+    window.addEventListener('userDataUpdate', load);
+    return () => window.removeEventListener('userDataUpdate', load);
+  }, []);
+
+  const handleAddNewReview = () => {
+    const reviewText = window.prompt("Write your review:");
+    if (!reviewText) return;
+    
+    const newRev = {
+      id: Date.now(),
+      title: "New Review Experience",
+      merchant: "Verified Partner",
+      rating: 5,
+      status: "Published",
+      text: reviewText,
+      date: "Just now",
+      response: null
+    };
+    
+    const updated = [newRev, ...reviews];
+    setReviews(updated);
+    saveUserReviews(updated);
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -23,15 +60,15 @@ export default function UserReviews() {
            <p className="text-slate-500 font-medium mt-2">Share your experiences and earn points for every feedback.</p>
         </div>
         
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+        <div className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm flex items-center gap-4">
            <div className="w-12 h-12 bg-amber-500 text-slate-900 rounded-2xl flex items-center justify-center font-black text-xl">
-              4.8
+              {avgRating}
            </div>
            <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Avg. Rating</p>
               <div className="flex gap-0.5">
                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} size={12} fill={s <= 4 ? "#fbbf24" : "none"} className={s <= 4 ? "text-amber-400" : "text-slate-200"} />
+                    <Star key={s} size={12} fill={s <= parseFloat(avgRating) ? "#fbbf24" : "none"} className={s <= parseFloat(avgRating) ? "text-amber-400" : "text-slate-200"} />
                  ))}
               </div>
            </div>
@@ -120,7 +157,10 @@ export default function UserReviews() {
                <h3 className="text-3xl font-black mb-2 tracking-tight">Write more, earn more!</h3>
                <p className="text-slate-400 font-medium">Earn <span className="text-emerald-400 font-black tracking-tight">20 pts</span> for every verified review you submit this week.</p>
             </div>
-            <button className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-2xl">
+            <button 
+              onClick={handleAddNewReview}
+              className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-2xl"
+            >
                Start A New Review
             </button>
          </div>
