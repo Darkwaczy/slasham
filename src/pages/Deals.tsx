@@ -3,6 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Truck } from "lucide-react";
 import gsap from "gsap";
 import { motion } from "motion/react";
+import FavoriteButton from "../components/FavoriteButton";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
 
@@ -96,8 +97,9 @@ export default function Deals() {
               <motion.div key={`${deal.id}-${i}`} whileHover={{ y: -4 }} className="deal-card group">
                 <Link to={`/deal/${deal.id}`} className="relative bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all h-full flex flex-col">
                   <div className="aspect-4/3 overflow-hidden relative bg-white flex items-center justify-center">
+                    <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
                     <img src={deal.image} alt={deal.title} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                         <div className="bg-white/95 backdrop-blur-md px-2 py-1 rounded-full text-[8px] font-black text-teal-600 border border-white shadow-xl flex items-center gap-1 uppercase tracking-widest">
                           <Zap size={10} className="fill-amber-500 text-amber-500" /> {deal.tag || "Hot"}
                         </div>

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Heart, Clock, Trash2, ArrowRight, 
   LayoutGrid, List, Search, 
-  ArrowUpDown
+  ArrowUpDown, Ticket
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -10,54 +10,44 @@ import { motion, AnimatePresence } from "motion/react";
 export default function SavedDeals() {
   const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [searchQuery, setSearchQuery] = useState("");
+  const [deals, setDeals] = useState<any[]>([]);
 
-  const deals = [
-    { 
-      id: 1, 
-      title: "Luxury Hotel Stay", 
-      merchant: "The Wheatbaker",
-      price: "₦50,000", 
-      discount: "30% OFF",
-      rating: "4.9",
-      expiryDays: 5, 
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop"
-    },
-    { 
-      id: 2, 
-      title: "Gourmet Dinner", 
-      merchant: "RSVP Lagos",
-      price: "₦8,000", 
-      discount: "15% OFF",
-      rating: "4.8",
-      expiryDays: 2, 
-      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop"
-    },
-    { 
-      id: 3, 
-      title: "Spa Morning", 
-      merchant: "Oasis Spa",
-      price: "₦12,000", 
-      discount: "20% OFF",
-      rating: "4.7",
-      expiryDays: 12, 
-      image: "https://images.unsplash.com/photo-1544161515-4ae6ce6ca606?w=400&h=300&fit=crop"
-    },
-    { 
-      id: 4, 
-      title: "Gym Membership", 
-      merchant: "Urban Fit",
-      price: "₦25,000", 
-      discount: "10% OFF",
-      rating: "4.6",
-      expiryDays: 1, 
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop"
-    },
-  ];
+  const loadSavedDeals = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+      setDeals(saved);
+    } catch {
+      setDeals([]);
+    }
+  };
+
+  useEffect(() => {
+    loadSavedDeals();
+    window.addEventListener('savedDealsUpdate', loadSavedDeals);
+    return () => window.removeEventListener('savedDealsUpdate', loadSavedDeals);
+  }, []);
+
+  const removeDeal = (id: number) => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+      const updated = saved.filter((d: any) => String(d.id) !== String(id));
+      localStorage.setItem('slasham_saved_deals', JSON.stringify(updated));
+      loadSavedDeals();
+      window.dispatchEvent(new Event('savedDealsUpdate'));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const filteredDeals = deals.filter(d => 
     d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    d.merchant.toLowerCase().includes(searchQuery.toLowerCase())
+    (d.companyName && d.companyName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const formatPrice = (p: string) => {
+        const digits = p.replace(/\D/g, '');
+        return `₦${Number(digits).toLocaleString()}`;
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -110,7 +100,15 @@ export default function SavedDeals() {
       </div>
 
       <AnimatePresence mode="wait">
-        {viewMode === "grid" ? (
+        {deals.length === 0 ? (
+            <div className="py-20 text-center relative z-10 w-full flex flex-col items-center">
+                <Heart size={80} className="text-rose-100 mb-6" />
+                <p className="text-slate-400 text-lg font-black uppercase tracking-[0.2em] mb-10">Your wishlist is empty.</p>
+                <Link to="/deals" className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-emerald-500 transition-all shadow-xl active:scale-95">
+                    <Ticket size={20} /> Explore Market Deals
+                </Link>
+            </div>
+        ) : viewMode === "grid" ? (
           <motion.div 
             key="grid"
             initial={{ opacity: 0 }}
@@ -125,36 +123,37 @@ export default function SavedDeals() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.03 }}
-                className="group bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-slate-200/50 transition-all"
+                className="group bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-slate-200/50 transition-all"
               >
-                <div className="relative h-44 overflow-hidden">
+                <Link to={`/deal/${deal.id}`} className="relative h-44 overflow-hidden block">
                    <img src={deal.image} alt={deal.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                   <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="w-8 h-8 bg-white/90 backdrop-blur text-rose-500 rounded-lg flex items-center justify-center shadow-lg hover:scale-110 transition-all">
-                         <Trash2 size={16} />
-                      </button>
-                   </div>
                    <div className="absolute top-4 left-4 flex gap-1.5 flex-wrap">
                       <div className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg font-black text-[8px] uppercase tracking-widest shadow-lg">
-                         {deal.discount}
+                         SAVING!
                       </div>
-                      <div className={`px-2.5 py-1 bg-white/90 backdrop-blur rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 ${deal.expiryDays <= 2 ? 'text-rose-500' : 'text-slate-500'}`}>
-                         <Clock size={10} /> {deal.expiryDays}d left
+                      <div className={`px-2.5 py-1 bg-white/90 backdrop-blur rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 text-slate-500`}>
+                         <Clock size={10} /> Active
                       </div>
                    </div>
+                </Link>
+                
+                <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={(e) => { e.preventDefault(); removeDeal(deal.id); }} className="w-10 h-10 bg-white/90 backdrop-blur text-rose-500 rounded-2xl flex items-center justify-center shadow-2xl hover:bg-rose-500 hover:text-white transition-all scale-95 hover:scale-110 active:scale-90">
+                         <Trash2 size={16} />
+                      </button>
                 </div>
 
                 <div className="p-6 space-y-4 flex-1 flex flex-col">
-                   <div>
-                      <h4 className="font-black text-slate-900 tracking-tight truncate leading-none mb-1 group-hover:text-emerald-600 transition-colors">{deal.title}</h4>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{deal.merchant}</p>
-                   </div>
+                   <Link to={`/deal/${deal.id}`} className="block">
+                      <h4 className="font-black text-slate-900 tracking-tight truncate leading-none mb-1 group-hover:text-emerald-600 transition-colors uppercase">{deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}</h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{deal.companyName || "Exclusive Partner"}</p>
+                   </Link>
                    
                    <div className="flex items-center justify-between mt-auto">
-                      <p className="text-xl font-black text-slate-950 tracking-tight">{deal.price}</p>
-                      <button className="w-10 h-10 bg-slate-50 text-slate-400 group-hover:bg-emerald-600 group-hover:text-white rounded-xl flex items-center justify-center transition-all">
+                      <p className="text-xl font-black text-slate-950 tracking-tight">{formatPrice(deal.price)}</p>
+                      <Link to={`/deal/${deal.id}`} className="w-10 h-10 text-slate-400 group-hover:bg-emerald-600 group-hover:text-white rounded-xl flex items-center justify-center transition-all bg-emerald-50">
                          <ArrowRight size={18} />
-                      </button>
+                      </Link>
                    </div>
                 </div>
               </motion.div>
@@ -177,29 +176,28 @@ export default function SavedDeals() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-6 group hover:translate-x-2 transition-all hover:shadow-xl hover:shadow-slate-200/50"
               >
-                <div className="w-20 h-20 rounded-xl overflow-hidden shadow-inner flex-shrink-0">
+                <Link to={`/deal/${deal.id}`} className="w-20 h-20 rounded-xl overflow-hidden shadow-inner shrink-0 block">
                    <img src={deal.image} alt={deal.title} className="w-full h-full object-cover" />
-                </div>
+                </Link>
                 
-                <div className="flex-1 min-w-0">
-                   <h4 className="font-black text-lg text-slate-900 tracking-tight truncate">{deal.title}</h4>
+                <Link to={`/deal/${deal.id}`} className="flex-1 min-w-0 flex flex-col">
+                   <h4 className="font-black text-lg text-slate-900 tracking-tight truncate uppercase">{deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}</h4>
                    <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                      <span>{deal.merchant}</span>
+                      <span>{deal.companyName || "Exclusive Partner"}</span>
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-100" />
-                      <span className="text-emerald-600">{deal.discount}</span>
+                      <span className="text-emerald-600">Active</span>
                    </div>
-                </div>
+                </Link>
 
                 <div className="text-right flex items-center gap-8 px-6">
                    <div className="hidden md:block">
-                      <p className="text-sm font-black text-slate-900 leading-none mb-1">{deal.price}</p>
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${deal.expiryDays <= 2 ? 'text-rose-500' : 'text-slate-400'}`}>{deal.expiryDays}d left</p>
+                      <p className="text-sm font-black text-slate-900 leading-none mb-1">{formatPrice(deal.price)}</p>
                    </div>
                    <div className="flex items-center gap-3">
-                      <button className="p-3 bg-slate-50 text-slate-400 hover:text-rose-500 rounded-xl transition-all">
+                      <button onClick={() => removeDeal(deal.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-rose-500 rounded-xl transition-all">
                          <Trash2 size={18} />
                       </button>
-                      <Link to={`/deal/${deal.id}`} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors">
+                      <Link to={`/deal/${deal.id}`} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors hidden sm:block">
                          View Details
                       </Link>
                    </div>
@@ -209,18 +207,6 @@ export default function SavedDeals() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Pagination Placeholder */}
-      <div className="flex justify-center pt-10 border-t border-slate-50">
-         <div className="flex gap-2">
-            {[1, 2, 3].map((p) => (
-               <button key={p} className={`w-10 h-10 rounded-xl font-black text-xs ${p === 1 ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
-                  {p}
-               </button>
-            ))}
-            <button className="px-4 py-2 bg-slate-50 text-slate-400 hover:bg-slate-100 rounded-xl font-black text-xs uppercase tracking-widest">Next</button>
-         </div>
-      </div>
     </div>
   );
 }

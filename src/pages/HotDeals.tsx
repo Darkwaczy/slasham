@@ -1,7 +1,8 @@
 import { motion } from "motion/react";
 import { Link, useOutletContext } from "react-router-dom";
-import { Zap, MapPin, ArrowRight, Heart, Filter, Truck, Ticket } from "lucide-react";
+import { Zap, MapPin, ArrowRight, Filter, Truck, Ticket } from "lucide-react";
 import { useState, useEffect } from "react";
+import FavoriteButton from "../components/FavoriteButton";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
 
@@ -80,9 +81,7 @@ export default function HotDeals() {
                                         </div>
                                     )}
                                 </div>
-                                <button className="absolute top-4 right-4 z-20 w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white/40 hover:text-amber-500 transition-all flex items-center justify-center shadow-lg">
-                                    <Heart size={18} />
-                                </button>
+                                <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-4 right-4 z-20" />
                             </div>
 
                             <div className="p-6 flex flex-col grow bg-slate-800/50">

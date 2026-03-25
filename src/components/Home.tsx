@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { 
-  ArrowRight, MapPin, TrendingUp, Zap,
-  Truck, Timer, ChevronDown, Star, Heart
-} from "lucide-react";
+import { MapPin, Zap, ArrowRight, TrendingUp, Timer, ChevronDown, Star, Truck } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
 import { SUPPORTED_LOCATIONS } from "../utils/locations";
+import FavoriteButton from "./FavoriteButton";
 
 export default function Home() {
   const { city, setCity } = useOutletContext<{ city: string; setCity: (c: string) => void }>();
@@ -60,6 +58,7 @@ export default function Home() {
                   <div className="absolute top-2 left-2 z-10 bg-amber-500 text-slate-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-xl">
                     HOT
                   </div>
+                  <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-2 right-2 z-20" />
                   <img 
                     src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
                     alt={deal.title} 
@@ -92,6 +91,7 @@ export default function Home() {
                    <div className="absolute top-2 left-2 z-10 bg-amber-500 text-slate-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-xl">
                     HOT
                   </div>
+                  <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-2 right-2 z-20" />
                   <img 
                     src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
                     alt={deal.title} 
@@ -259,9 +259,7 @@ export default function Home() {
                          <div className="absolute top-3 left-3 z-10 px-3 py-1.5 bg-[#4A7266]/90 text-white text-[9px] font-black rounded-lg uppercase tracking-widest shadow-xl">
                            {deal.tag || "DEAL"}
                          </div>
-                         <div className="absolute top-3 right-3 z-10 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-400 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all shadow-lg border border-slate-200/50">
-                           <Heart size={18} />
-                         </div>
+                         <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
                          <img src={deal.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
                       </div>
                       <div className="space-y-3 px-1">
@@ -429,6 +427,7 @@ export default function Home() {
                             <div className="absolute top-4 left-4 z-10 bg-slate-900/95 backdrop-blur-md text-white px-4 py-1.5 rounded-xl text-[11px] font-black shadow-2xl border border-white/20">
                                {formatPrice(p.price)}
                             </div>
+                            <FavoriteButton dealId={p.id} deal={p} className="absolute top-4 right-4 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
                             <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={p.title} />
                          </div>
                          <div className="space-y-2 px-1">
