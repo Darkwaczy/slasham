@@ -1,22 +1,25 @@
 import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_USERS = [
-  { id: "#1024", name: "John Doe", email: "john@example.com", status: "Active", role: "Gold Member", joinDate: "Jan 12, 2026", location: "Lagos" },
-  { id: "#1025", name: "Sarah Smith", email: "sarah.s@gmail.com", status: "Active", role: "Platinum", joinDate: "Feb 02, 2026", location: "Abuja" },
-  { id: "#1026", name: "Mike Johnson", email: "mike.j@outlook.com", status: "Pending", role: "New User", joinDate: "Mar 20, 2026", location: "Lagos" },
-  { id: "#1027", name: "Emily Brown", email: "emily.b@slasham.com", status: "Active", role: "Gold Member", joinDate: "Mar 15, 2026", location: "Port Harcourt" },
-  { id: "#1028", name: "Alex Wilson", email: "alex.w@yahoo.com", status: "Suspended", role: "Basic", joinDate: "Dec 28, 2025", location: "Abuja" },
-];
+import { getAdminUsers, saveAdminUsers } from "../../utils/adminPersistence";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Load initial users
+    setUsers(getAdminUsers());
+    
+    // Listen for updates across tabs
+    const handleUpdate = () => setUsers(getAdminUsers());
+    window.addEventListener('adminDataUpdate', handleUpdate);
+    return () => window.removeEventListener('adminDataUpdate', handleUpdate);
+  }, []);
 
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -24,17 +27,21 @@ export default function AdminUsers() {
   );
 
   const handleToggleStatus = (id: string) => {
-    setUsers(prev => prev.map(u => {
+    const updatedUsers = users.map(u => {
       if (u.id === id) {
         return { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' };
       }
       return u;
-    }));
+    });
+    setUsers(updatedUsers);
+    saveAdminUsers(updatedUsers);
     setIsActionModalOpen(false);
   };
 
   const handleDeleteUser = (id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
+    const updatedUsers = users.filter(u => u.id !== id);
+    setUsers(updatedUsers);
+    saveAdminUsers(updatedUsers);
     setIsActionModalOpen(false);
   };
 
@@ -50,7 +57,9 @@ export default function AdminUsers() {
       joinDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
       location: formData.get('location') as string,
     };
-    setUsers([newUser, ...users]);
+    const updatedUsers = [newUser, ...users];
+    setUsers(updatedUsers);
+    saveAdminUsers(updatedUsers);
     setIsAddModalOpen(false);
   };
 

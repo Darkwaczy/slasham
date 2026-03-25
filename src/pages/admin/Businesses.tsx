@@ -5,13 +5,7 @@ import AdminModal from "../../components/AdminModal";
 import { getCampaignRequests, saveCampaignRequest, updateRequestStatus } from "../../utils/merchantPersistence";
 import { addPersistentDeal } from "../../utils/mockPersistence";
 import { getLocationNames } from "../../utils/locations";
-
-const INITIAL_BUSINESSES = [
-  { id: "B-882", name: "Zaza Lounge", owner: "Kunle A.", category: "Dining", rating: 4.8, status: "Verified", deals: 12, city: "Lagos", email: "ops@zaza.com", address: "14, Victoria Island, Lagos" },
-  { id: "B-883", name: "Oasis Spa", owner: "Sarah O.", category: "Wellness", rating: 4.9, status: "Verified", deals: 5, city: "Abuja", email: "hello@oasis.com", address: "Plot 12, Wuse 2, Abuja" },
-  { id: "B-884", name: "Lagos Grill", owner: "James K.", category: "Food", rating: 4.2, status: "Pending", deals: 0, city: "Lagos", email: "admin@lagosgrill.com", address: "55, Isaac John, Ikeja" },
-  { id: "B-885", name: "Skyline Cinema", owner: "Rita W.", category: "Movies", rating: 4.5, status: "Verified", deals: 8, city: "Port Harcourt", email: "support@skyline.com", address: "Ph Mall, Port Harcourt" },
-];
+import { getAdminBusinesses, saveAdminBusinesses } from "../../utils/adminPersistence";
 
 export default function AdminBusinesses() {
   const [businesses, setBusinesses] = useState<any[]>([]);
@@ -19,7 +13,7 @@ export default function AdminBusinesses() {
 
   useEffect(() => {
     const loadData = () => {
-        const staticBiz = INITIAL_BUSINESSES;
+        const staticBiz = getAdminBusinesses();
         const requests = getCampaignRequests();
         const requestBiz = requests.map(r => ({
           id: r.merchantId,
@@ -67,12 +61,17 @@ export default function AdminBusinesses() {
   });
 
   const handleToggleVerify = (id: string) => {
-    setBusinesses(prev => prev.map(b => {
+    const updated = businesses.map(b => {
       if (b.id === id) {
         return { ...b, status: b.status === 'Verified' ? 'Pending' : 'Verified' };
       }
       return b;
-    }));
+    });
+    setBusinesses(updated);
+    
+    // We only save to adminBusinesses, filtering out the dynamic mapped campaign requests to avoid bloat.
+    const persistentBusinesses = updated.filter(b => b.id.startsWith('B-'));
+    saveAdminBusinesses(persistentBusinesses);
     setIsActionModalOpen(false);
   };
 
@@ -84,7 +83,11 @@ export default function AdminBusinesses() {
   };
 
   const handleDeleteBiz = (id: string) => {
-    setBusinesses(prev => prev.filter(b => b.id !== id));
+    const updated = businesses.filter(b => b.id !== id);
+    setBusinesses(updated);
+    
+    const persistentBusinesses = updated.filter(b => b.id.startsWith('B-'));
+    saveAdminBusinesses(persistentBusinesses);
     setIsActionModalOpen(false);
   };
 

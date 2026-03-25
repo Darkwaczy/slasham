@@ -1,8 +1,10 @@
 import { Users, Store, Tag, BarChart3, ArrowUpRight, Wallet, ShieldCheck, Download, FileText, PieChart, RefreshCw, CheckCircle2, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import AdminModal from "../components/AdminModal";
+import { getAdminUsers, getAdminBusinesses } from "../utils/adminPersistence";
+import { getPersistentDeals } from "../utils/mockPersistence";
 
 const data = [
   { name: 'Jan', revenue: 4000, users: 2400 },
@@ -18,12 +20,34 @@ export default function AdminDashboard() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<null | 'clean' | 'threat'>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [liveStats, setLiveStats] = useState({ users: 0, businesses: 0, campaigns: 0, revenue: 0 });
+
+  useEffect(() => {
+    const updateStats = () => {
+        const campaigns = getPersistentDeals().length;
+        setLiveStats({
+            users: getAdminUsers().length,
+            businesses: getAdminBusinesses().length,
+            campaigns: campaigns,
+            revenue: campaigns * 1.2
+        });
+    };
+    updateStats();
+    
+    window.addEventListener('adminDataUpdate', updateStats);
+    window.addEventListener('persistentDealsUpdate', updateStats);
+    
+    return () => {
+        window.removeEventListener('adminDataUpdate', updateStats);
+        window.removeEventListener('persistentDealsUpdate', updateStats);
+    };
+  }, []);
 
   const stats = [
-    { title: "Total Users", count: "1,200", icon: <Users size={24} />, trend: "+12%", color: "indigo" },
-    { title: "Businesses", count: "150", icon: <Store size={24} />, trend: "+5%", color: "emerald" },
-    { title: "Active Campaigns", count: "450", icon: <Tag size={24} />, trend: "+8%", color: "amber" },
-    { title: "Monthly Revenue", count: "₦5.2M", icon: <Wallet size={24} />, trend: "+15%", color: "rose" },
+    { title: "Total Users", count: liveStats.users.toLocaleString(), icon: <Users size={24} />, trend: "+12%", color: "indigo" },
+    { title: "Businesses", count: liveStats.businesses.toLocaleString(), icon: <Store size={24} />, trend: "+5%", color: "emerald" },
+    { title: "Active Campaigns", count: liveStats.campaigns.toLocaleString(), icon: <Tag size={24} />, trend: "+8%", color: "amber" },
+    { title: "Monthly Revenue", count: `₦${liveStats.revenue.toFixed(1)}M`, icon: <Wallet size={24} />, trend: "+15%", color: "rose" },
   ];
 
   const recentEvents = [

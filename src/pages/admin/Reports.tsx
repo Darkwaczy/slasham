@@ -1,21 +1,22 @@
 import { Search, Clock, ShieldAlert, MessageCircle, AlertTriangle, CheckCircle2, MoreHorizontal, Ban, RefreshCcw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_DISPUTES = [
-  { id: "DIS-120", user: "John Doe", merchant: "Pizza Hut", reason: "Coupon Not Accepted", date: "2 hours ago", priority: "High", status: "Open" },
-  { id: "DIS-121", user: "Sarah S.", merchant: "Oasis Spa", reason: "Double Charge", date: "5 hours ago", priority: "Critical", status: "In-Progress" },
-  { id: "DIS-122", user: "Mike J.", merchant: "Lagos Grill", reason: "Misleading Deal", date: "Yesterday", priority: "Medium", status: "Resolved" },
-  { id: "DIS-123", user: "Emily B.", merchant: "Skyline", reason: "Facility Closed", date: "Yesterday", priority: "High", status: "In-Progress" },
-];
+import { getAdminDisputes, saveAdminDisputes } from "../../utils/adminPersistence";
 
 export default function AdminReports() {
-  const [disputes, setDisputes] = useState(INITIAL_DISPUTES);
+  const [disputes, setDisputes] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDispute, setSelectedDispute] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+
+  useEffect(() => {
+    setDisputes(getAdminDisputes());
+    const handleUpdate = () => setDisputes(getAdminDisputes());
+    window.addEventListener('adminDataUpdate', handleUpdate);
+    return () => window.removeEventListener('adminDataUpdate', handleUpdate);
+  }, []);
 
   const filteredDisputes = disputes.filter(d => {
     const matchesSearch = d.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -26,7 +27,14 @@ export default function AdminReports() {
   });
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
-    setDisputes(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d));
+    const updated = disputes.map(d => d.id === id ? { ...d, status: newStatus } : d);
+    setDisputes(updated);
+    saveAdminDisputes(updated);
+    setIsActionModalOpen(false);
+  };
+
+  const handleAdvancedAction = (actionName: string) => {
+    alert(`Deploying automated protocol: ${actionName} \n\nCommand accepted and pushed to queue sequence.`);
     setIsActionModalOpen(false);
   };
 
@@ -207,13 +215,13 @@ export default function AdminReports() {
                             <CheckCircle2 size={20} /> Close & Mark Resolved
                         </button>
                     )}
-                    <button className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl font-bold hover:bg-indigo-100 transition-all">
+                    <button onClick={() => handleAdvancedAction('Initialize Encrypted Chat Protocol')} className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl font-bold hover:bg-indigo-100 transition-all">
                         <MessageCircle size={20} /> Open Mediator Chat
                     </button>
-                    <button className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-100 transition-all">
+                    <button onClick={() => handleAdvancedAction('Trigger Financial Reversal Pipeline')} className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-100 transition-all">
                         <RefreshCcw size={20} /> Processing Refund
                     </button>
-                    <button className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+                    <button onClick={() => handleAdvancedAction('Dispatch Trust & Safety Audit')} className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">
                         <Ban size={20} /> Penalize Merchant
                     </button>
                  </div>
