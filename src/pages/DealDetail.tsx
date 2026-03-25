@@ -21,6 +21,30 @@ export default function DealDetail() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [deal, setDeal] = useState<any>(null);
 
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: deal.title,
+          text: `Check out this amazing deal: ${deal.title}`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Deal link copied to clipboard!");
+    }
+  };
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    // Visual feedback logic can be extended to localStorage if needed
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     const allDeals = getPersistentDeals();
@@ -99,7 +123,8 @@ export default function DealDetail() {
             <img 
               src={deal.image} 
               alt={deal.title} 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80" }}
             />
             <div className="absolute top-6 left-6 flex flex-col gap-2">
                 <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
@@ -138,8 +163,8 @@ export default function DealDetail() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <button className="p-3 rounded-full hover:bg-white transition-all text-slate-300 hover:text-rose-500 shadow-sm"><Heart size={20} /></button>
-                <button className="p-3 rounded-full hover:bg-white transition-all text-slate-300 hover:text-indigo-600 shadow-sm"><Share2 size={20} /></button>
+                <button onClick={handleSave} className={`p-3 rounded-full hover:bg-white transition-all shadow-sm ${isSaved ? 'text-rose-500' : 'text-slate-300 hover:text-rose-500'}`}><Heart size={20} className={isSaved ? "fill-current" : ""} /></button>
+                <button onClick={handleShare} className="p-3 rounded-full hover:bg-white transition-all text-slate-300 hover:text-indigo-600 shadow-sm"><Share2 size={20} /></button>
               </div>
             </div>
 
@@ -209,8 +234,8 @@ export default function DealDetail() {
             </div>
             
             <div>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">{discountPercent}% Off</h2>
-              <p className="text-teal-600 text-[10px] font-black tracking-[0.2em] uppercase">
+              <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">{discountPercent}% Off</h2>
+              <p className="text-teal-600 text-base font-black tracking-wider uppercase leading-snug">
                 {deal.unlockNote || "Pay small amount to unlock this exclusive discount."}
               </p>
             </div>
