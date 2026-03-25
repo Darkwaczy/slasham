@@ -198,7 +198,7 @@ export default function MerchantLayout() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Intelligence Brief</span>
                         <button onClick={handleMarkRead} className="text-[10px] font-black text-indigo-600 hover:underline">Clear All</button>
                       </div>
-                      <div className="max-h-[400px] overflow-y-auto">
+                      <div className={`max-h-[400px] overflow-y-auto`}>
                         {notifications.length === 0 ? (
                           <div className="p-10 text-center text-slate-400 italic text-sm">No new intelligence data...</div>
                         ) : (

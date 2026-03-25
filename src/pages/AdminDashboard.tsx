@@ -176,7 +176,7 @@ export default function AdminDashboard() {
           <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex-1">
             <h2 className="text-xl font-black text-slate-900 tracking-tight mb-8">System Telemetry</h2>
             <div className="space-y-8">
-               <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+               <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Edge Server Load</span>
                     <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-widest">Normal</span>
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                         event.status === 'Complete' ? 'bg-emerald-500' : 'bg-amber-500'
                       }`} />
                       <div className="flex-1">
-                        <p className="text-sm font-black text-slate-900 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{event.title}</p>
+                        <p className="text-sm font-black text-slate-900 leading-none mb-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{event.title}</p>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{event.user} • {event.time}</p>
                       </div>
                     </div>
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
                 </button>
             </div>
             
-            <div className="p-6 bg-indigo-50 rounded-[2rem] border border-indigo-100">
+            <div className="p-6 bg-indigo-50 rounded-4xl border border-indigo-100">
                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-2">Notice</p>
                 <p className="text-sm font-medium text-slate-600 leading-relaxed">
                     Intelligence reports are generated in real-time. Extremely large datasets (L1Y+) may take up to 2 minutes to compile.
