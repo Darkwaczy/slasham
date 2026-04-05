@@ -444,32 +444,41 @@ export default function Home() {
 
       {/* 5. BUSINESS CTA */}
 
-      {/* 5. BUSINESS CTA */}
-      <section className="py-32 px-6 max-w-7xl mx-auto overflow-hidden">
-        <div className="bg-slate-900 rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl shadow-emerald-500/40">
-          <div className="grid lg:grid-cols-2 items-center relative z-10">
-            <div className="p-12 md:p-20">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-bold mb-8 uppercase tracking-widest">
-                Official Business Partners
-              </div>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-8 text-white leading-tight uppercase">
-                Register Your <br/>Business with Us.
-              </h2>
-              <p className="text-slate-400 text-lg mb-12 leading-relaxed max-w-lg">
-                Activate your business on Slasham and reach thousands of verified customers looking for great deals.
-              </p>
-              
-              <Link to="/business" className="inline-flex items-center justify-center px-10 py-5 bg-white text-slate-900 rounded-full font-black uppercase text-xs tracking-widest hover:bg-teal-400 transition-all shadow-xl group">
-                Join as Partner <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
+      <section className="mt-12 mb-0 py-0 w-full relative overflow-hidden bg-emerald-50/50 border-y border-emerald-100 flex flex-col lg:block">
+        
+        {/* Absolute Image for Desktop Full Bleed (Right Half) */}
+        <div className="relative lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-[50vw] min-h-[300px] sm:min-h-[400px] order-last lg:order-0">
+          <img 
+            src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=80" 
+            alt="Slasham Merchant Success" 
+            className="absolute inset-0 w-full h-full object-cover lg:object-left"
+            onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1200&q=80" }}
+          />
+          {/* Grand gradient overlay to blend into the text area smoothly */}
+          <div className="absolute inset-0 bg-linear-to-t lg:bg-linear-to-r from-emerald-50/50 via-emerald-50/20 to-transparent"></div>
+        </div>
+
+        {/* Constrained Text Content Aligned to the Global Layout Grid */}
+        <div className="max-w-7xl mx-auto px-6 w-full flex relative z-10 order-first lg:order-0">
+          <div className="w-full lg:w-1/2 py-16 md:py-24 lg:py-32 lg:pr-12 flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-emerald-200 text-emerald-600 text-[10px] font-black mb-8 uppercase tracking-[0.2em] shadow-sm">
+              Official Business Partners
             </div>
             
-            <div className="relative h-full min-h-[400px] lg:min-h-[600px] hidden lg:block">
-              <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200" alt="" className="absolute inset-0 w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 transition-all duration-1000" />
-              <div className="absolute inset-0 bg-linear-to-r from-slate-900 via-transparent to-transparent"></div>
-            </div>
+            <h2 className="text-4xl md:text-5xl xl:text-6xl font-black tracking-tight mb-6 text-slate-900 leading-[1.05] uppercase">
+              Grow Your <br className="hidden xl:block" />Business<span className="text-emerald-500">.</span>
+            </h2>
+            
+            <p className="text-slate-500 font-medium text-base md:text-lg mb-10 leading-relaxed max-w-md mx-auto lg:mx-0">
+              Activate your business on Slasham and reach thousands of verified customers looking for great deals tonight.
+            </p>
+            
+            <Link to="/business" className="inline-flex items-center justify-center px-8 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 group/btn">
+              Join as Partner <ArrowRight size={18} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
+
       </section>
 
     </div>
