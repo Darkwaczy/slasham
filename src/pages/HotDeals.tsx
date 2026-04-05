@@ -5,59 +5,33 @@ import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 import FavoriteButton from "../components/FavoriteButton";
 import { deals as staticDeals } from "../data/mockData";
-import { getPersistentDeals } from "../utils/mockPersistence";
+import { getPersistentAds, getPersistentDeals } from "../utils/mockPersistence";
 
 export default function HotDeals() {
   const { city } = useOutletContext<{ city: string }>();
   const [allDeals, setAllDeals] = useState<any[]>([]);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  const [ads, setAds] = useState<any[]>([]);
+
+  const loadAds = () => {
+    setAds(getPersistentAds());
+  };
 
   useEffect(() => {
     setAllDeals([...getPersistentDeals(), ...staticDeals]);
+    loadAds();
+    window.addEventListener('persistentAdsUpdate', loadAds);
+    return () => window.removeEventListener('persistentAdsUpdate', loadAds);
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentAdIndex((prev) => (prev + 1) % 3);
+      if (ads.length > 0) {
+        setCurrentAdIndex((prev) => (prev + 1) % ads.length);
+      }
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  const AD_BANNERS = [
-    {
-      bg: "bg-rose-50",
-      pattern: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=1200&q=80",
-      title: "Hot Coupons.",
-      subtitle: "Verified Deals.",
-      desc: "Fast-selling, deep discounts on exclusive experiences.",
-      code: "HOTSLASH",
-      codeBg: "bg-rose-600 shadow-rose-600/20",
-      img1: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=400&q=80",
-      img2: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=400&q=80"
-    },
-    {
-       bg: "bg-amber-50",
-       pattern: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
-       title: "Exclusive",
-       subtitle: "Partnership.",
-       desc: "Limited-time offers from our top verified merchants.",
-       code: "PARTNER10",
-       codeBg: "bg-amber-600 shadow-amber-600/20",
-       img1: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=400&q=80",
-       img2: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&q=80"
-     },
-     {
-       bg: "bg-sky-50",
-       pattern: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
-       title: "Weekend",
-       subtitle: "Flash Sales.",
-       desc: "Catch them before they expire this Sunday night.",
-       code: "WKDDEAL",
-       codeBg: "bg-sky-600 shadow-sky-600/20",
-       img1: "https://images.unsplash.com/photo-1414235077428-33898bd1e150?auto=format&fit=crop&w=400&q=80",
-       img2: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80"
-     }
-  ];
+  }, [ads]);
 
   useEffect(() => {
     gsap.fromTo(
@@ -89,9 +63,9 @@ export default function HotDeals() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.6 }}
-              className={`absolute inset-0 w-full h-full ${AD_BANNERS[currentAdIndex].bg} flex items-center`}
+              className={`absolute inset-0 w-full h-full ${ads[currentAdIndex]?.bg || 'bg-rose-50'} flex items-center`}
             >
-              <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-cover bg-center" style={{ backgroundImage: `url(${AD_BANNERS[currentAdIndex].pattern})` }}></div>
+              <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-cover bg-center" style={{ backgroundImage: `url(${ads[currentAdIndex]?.pattern})` }}></div>
               <div className="relative z-10 p-8 lg:p-14 flex flex-col lg:flex-row items-center justify-between w-full gap-8">
                 <div className="flex-1 text-center lg:text-left">
                     <div className="flex items-center gap-2 text-rose-600 font-black mb-4 justify-center lg:justify-start">
@@ -99,25 +73,25 @@ export default function HotDeals() {
                         <span className="uppercase tracking-[0.2em] text-[10px]">Exclusive Verified Hot Offer</span>
                     </div>
                    <h2 className="text-4xl lg:text-6xl font-black text-slate-900 leading-[0.9] tracking-tighter uppercase mb-4">
-                     {AD_BANNERS[currentAdIndex].title}<br/>
-                     {AD_BANNERS[currentAdIndex].subtitle}
+                     {ads[currentAdIndex]?.title}<br/>
+                     {ads[currentAdIndex]?.subtitle}
                    </h2>
                    <p className="text-slate-500 text-sm lg:text-lg font-bold mb-8 max-w-sm leading-tight mx-auto lg:mx-0">
-                     {AD_BANNERS[currentAdIndex].desc}
+                     {ads[currentAdIndex]?.desc}
                    </p>
                    <div className="flex items-center gap-4 justify-center lg:justify-start">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Use Code:</span>
-                      <div className={`px-10 py-3 ${AD_BANNERS[currentAdIndex].codeBg} text-white rounded-2xl font-black text-sm shadow-2xl active:scale-95 cursor-pointer uppercase tracking-widest transition-all hover:brightness-105`}>
-                        {AD_BANNERS[currentAdIndex].code}
+                      <div className={`px-10 py-3 ${ads[currentAdIndex]?.codeBg} text-white rounded-2xl font-black text-sm shadow-2xl active:scale-95 cursor-pointer uppercase tracking-widest transition-all hover:brightness-105`}>
+                        {ads[currentAdIndex]?.code}
                       </div>
                    </div>
                 </div>
                 <div className="hidden lg:flex flex-1 justify-end gap-6 relative h-[200px] items-center">
                    <div className="w-40 lg:w-48 aspect-square bg-white p-2 shadow-2xl transform -rotate-6 z-0 border border-slate-100 flex items-center justify-center overflow-hidden rounded-2xl">
-                      <img src={AD_BANNERS[currentAdIndex].img1} className="w-full h-full object-cover rounded-xl" alt="" />
+                      <img src={ads[currentAdIndex]?.img1} className="w-full h-full object-cover rounded-xl" alt="" />
                    </div>
                    <div className="w-40 lg:w-48 aspect-square bg-white p-2 shadow-2xl transform rotate-3 z-10 border border-slate-100 -ml-20 lg:-ml-24 flex items-center justify-center overflow-hidden rounded-2xl">
-                      <img src={AD_BANNERS[currentAdIndex].img2} className="w-full h-full object-cover rounded-xl" alt="" />
+                      <img src={ads[currentAdIndex]?.img2} className="w-full h-full object-cover rounded-xl" alt="" />
                    </div>
                 </div>
               </div>
@@ -126,7 +100,7 @@ export default function HotDeals() {
 
           {/* Progress Indicators */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
-             {AD_BANNERS.map((_, i) => (
+             {ads.map((_, i) => (
                <button 
                  key={i} 
                  onClick={() => setCurrentAdIndex(i)} 
