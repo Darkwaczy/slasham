@@ -11,6 +11,7 @@ export default function Home() {
   const { city, setCity } = useOutletContext<{ city: string; setCity: (c: string) => void }>();
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [allDeals, setAllDeals] = useState<any[]>([]);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
 
   useEffect(() => {
     const pDeals = getPersistentDeals();
@@ -25,8 +26,38 @@ export default function Home() {
 
   // Filtered Deals
   const filteredDeals = allDeals.filter(d => d.location.toLowerCase().includes(city.toLowerCase()));
-  const hotDeals = filteredDeals.filter(d => d.isHotCoupon || d.tag?.toLowerCase().includes('hot'));
   const trendingDeals = filteredDeals.slice(0, 36);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const AD_BANNERS = [
+    {
+      image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80",
+      title: "50% OFF OASIS WELLNESS SPA",
+      subtitle: "Weekend Pamper Special",
+      code: "RELAX50",
+      color: "from-emerald-900/95 via-emerald-900/80 to-transparent",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1600&q=80",
+      title: "2-FOR-1 FINE DINING",
+      subtitle: "At Ikeja's Top Restaurants",
+      code: "GOURMETLAGOS",
+      color: "from-rose-950/95 via-rose-900/80 to-transparent",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=80",
+      title: "LUXURY GETAWAY FLASH SALE",
+      subtitle: "Private Cabanas at Tarkwa Bay",
+      code: "ESCAPE20",
+      color: "from-sky-950/95 via-blue-900/80 to-transparent",
+    }
+  ];
 
   const formatPrice = (p: string) => {
     const digits = p.replace(/\D/g, '');
@@ -36,126 +67,91 @@ export default function Home() {
   return (
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
       
-      {/* 1. HOT COUPONS MARQUEE */}
-      <section className="pt-8 pb-4 bg-emerald-950 overflow-hidden relative border-b border-emerald-900/50">
-        <div className="max-w-7xl mx-auto px-6 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-amber-500 font-black">
-            <Zap size={16} className="fill-amber-500 animate-pulse" />
-            <span className="uppercase tracking-[0.2em] text-[10px]">Hot Coupons</span>
-          </div>
-          <Link to="/deals/hot" className="text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors">View All →</Link>
-        </div>
+      {/* 1. PREMIUM AD BILLBOARD (Auto-rotating Hero) */}
+      <section className="bg-slate-950 relative overflow-hidden h-[400px] md:h-[500px]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentAdIndex}
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0"
+          >
+            <img src={AD_BANNERS[currentAdIndex].image} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+            <div className={`absolute inset-0 bg-linear-to-r md:w-3/4 ${AD_BANNERS[currentAdIndex].color}`}></div>
+            <div className={`absolute inset-0 bg-slate-950/40 md:hidden`}></div>
+            
+            <div className="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-6 lg:px-12">
+               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="inline-flex py-1.5 px-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] mb-6 w-max shadow-xl">
+                 🔥 {AD_BANNERS[currentAdIndex].subtitle}
+               </motion.div>
+               <motion.h2 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="text-4xl md:text-5xl lg:text-7xl font-black text-white w-full max-w-3xl leading-[1.05] tracking-tight mb-8 drop-shadow-2xl">
+                 {AD_BANNERS[currentAdIndex].title}
+               </motion.h2>
+               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap items-center gap-4">
+                 <div className="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl flex items-center gap-4">
+                   Use Promo Code
+                   <span className="text-white bg-slate-900 px-3 py-1.5 rounded-lg text-sm tracking-widest">{AD_BANNERS[currentAdIndex].code}</span>
+                 </div>
+               </motion.div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
-        <div className="w-full overflow-hidden relative">
-          <div className="flex animate-marquee-rtl gap-6 py-4">
-            {(hotDeals.length > 0 ? hotDeals : filteredDeals).slice(0, 15).map((deal, index) => (
-              <Link 
-                to={`/deal/${deal.id}`} 
-                key={`hot-${deal.id}-${index}`} 
-                className="w-[200px] bg-white/5 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 hover:border-amber-500/50 hover:bg-white/10 transition-all group shrink-0 flex flex-col relative"
-              >
-                <div className="aspect-square relative overflow-hidden bg-white flex items-center justify-center">
-                  <div className="absolute top-2 left-2 z-10 bg-amber-500 text-slate-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-xl">
-                    HOT
-                  </div>
-                  <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-2 right-2 z-20" />
-                  <img 
-                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
-                    alt={deal.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    loading="lazy"
-                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
-                </div>
-                <div className="p-4">
-                  <div className="mb-1">
-                    <p className="text-[8px] font-black text-amber-500/60 uppercase tracking-widest truncate">{deal.companyName || "Exclusive Partner"}</p>
-                    <h3 className="text-[11px] font-black text-white line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
-                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-between">
-                     <span className="text-amber-500 font-black text-sm">{formatPrice(deal.price)}</span>
-                     <span className="text-[9px] text-slate-500 line-through font-bold">{formatPrice(deal.original)}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            {/* Seamless loop duplication */}
-            {(hotDeals.length > 0 ? hotDeals : filteredDeals).slice(0, 15).map((deal, index) => (
-              <Link 
-                to={`/deal/${deal.id}`} 
-                key={`hot-dup-${deal.id}-${index}`} 
-                className="w-[200px] bg-white/5 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 hover:border-amber-500/50 hover:bg-white/10 transition-all group shrink-0 flex flex-col relative"
-              >
-                <div className="aspect-square relative overflow-hidden bg-white flex items-center justify-center">
-                   <div className="absolute top-2 left-2 z-10 bg-amber-500 text-slate-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-xl">
-                    HOT
-                  </div>
-                  <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-2 right-2 z-20" />
-                  <img 
-                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
-                    alt={deal.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    loading="lazy"
-                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
-                </div>
-                <div className="p-4">
-                  <div className="mb-1">
-                    <p className="text-[8px] font-black text-amber-500/60 uppercase tracking-widest truncate">{deal.companyName || "Exclusive Partner"}</p>
-                    <h3 className="text-[11px] font-black text-white line-clamp-1 group-hover:text-amber-400 transition-colors uppercase tracking-tight">
-                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-between">
-                     <span className="text-amber-500 font-black text-sm">{formatPrice(deal.price)}</span>
-                     <span className="text-[9px] text-slate-500 line-through font-bold">{formatPrice(deal.original)}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
+           {AD_BANNERS.map((_, i) => (
+             <button 
+               key={i} 
+               onClick={() => setCurrentAdIndex(i)} 
+               className={`h-1.5 rounded-full transition-all duration-500 ${i === currentAdIndex ? 'w-12 bg-white' : 'w-4 bg-white/30 hover:bg-white/50'}`} 
+             />
+           ))}
         </div>
       </section>
 
-      {/* 2. FLASH SALES */}
-      <section className="pt-8 pb-4 bg-red-50/30 border-b border-red-100/50 overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6 mb-4">
+      {/* 2. TRENDING DEALS TICKER (Compact Horizontal Cards) */}
+      <section className="pt-6 pb-6 bg-slate-50 border-b border-slate-200/60 overflow-hidden relative shadow-inner">
+        <div className="max-w-7xl mx-auto px-6 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-red-600 font-black">
-            <Timer size={16} className="animate-pulse" />
-            <span className="uppercase tracking-[0.2em] text-[10px]">Flash Sales</span>
+            <Timer size={14} className="animate-pulse" />
+            <span className="uppercase tracking-[0.2em] text-[9px]">Flash Sales Wrapping Up</span>
           </div>
+          <Link to="/deals" className="text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors flex items-center gap-1 group">
+            View All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
         <div className="w-full overflow-hidden relative">
-          <div className="flex animate-marquee-ltr gap-6 py-4">
+          {/* Fading Edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
+          
+          <div className="flex animate-marquee-ltr gap-4 px-6 w-max">
             {filteredDeals.slice(0, 15).map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`flash-${deal.id}-${index}`} 
-                className="w-[160px] sm:w-[190px] bg-white rounded-2xl overflow-hidden border border-red-100 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex flex-col relative"
+                className="w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex items-center p-2.5 gap-4 shadow-sm"
               >
-                <div className="aspect-4/3 relative overflow-hidden bg-white flex items-center justify-center">
-                  <div className="absolute top-2 left-2 z-10 bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-sm">
-                    LIMITED
-                  </div>
+                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-slate-100 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
                   <img 
-                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
+                    src={deal.image.replace('w=600&q=70', 'w=200&q=50')} 
                     alt={deal.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     loading="lazy"
-                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=200&q=50"; e.currentTarget.className += " bg-slate-200" }} />
                 </div>
-                <div className="p-4">
-                   <div className="mb-1 text-center">
-                    <p className="text-[7px] font-black text-red-500/60 uppercase tracking-widest">{deal.category}</p>
-                    <h3 className="text-[10px] font-black text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors uppercase tracking-tight">
-                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-center gap-3">
-                     <span className="text-red-600 font-black text-sm">{formatPrice(deal.price)}</span>
-                     <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
-                  </div>
+                <div className="min-w-0 pr-2 pb-1">
+                   <p className="text-[7px] font-black text-red-500 uppercase tracking-widest mb-1">{deal.category}</p>
+                   <h3 className="text-[10px] font-black text-slate-900 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight">
+                       {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                   </h3>
+                   <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-red-600 font-black text-xs">{formatPrice(deal.price)}</span>
+                      <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
+                   </div>
                 </div>
               </Link>
             ))}
@@ -164,30 +160,25 @@ export default function Home() {
               <Link 
                 to={`/deal/${deal.id}`} 
                 key={`flash-dup-${deal.id}-${index}`} 
-                className="w-[160px] sm:w-[190px] bg-white rounded-2xl overflow-hidden border border-red-100 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex flex-col relative"
+                className="w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex items-center p-2.5 gap-4 shadow-sm"
               >
-                <div className="aspect-4/3 relative overflow-hidden bg-white flex items-center justify-center">
-                  <div className="absolute top-2 left-2 z-10 bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider shadow-sm">
-                    LIMITED
-                  </div>
+                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-slate-100 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
                   <img 
-                    src={deal.image.replace('w=600&q=70', 'w=400&q=50')} 
+                    src={deal.image.replace('w=600&q=70', 'w=200&q=50')} 
                     alt={deal.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     loading="lazy"
-                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=200&q=50"; e.currentTarget.className += " bg-slate-200" }} />
                 </div>
-                <div className="p-4">
-                   <div className="mb-1 text-center">
-                    <p className="text-[7px] font-black text-red-500/60 uppercase tracking-widest">{deal.category}</p>
-                    <h3 className="text-[10px] font-black text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors uppercase tracking-tight">
-                        {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-center gap-3">
-                     <span className="text-red-600 font-black text-sm">{formatPrice(deal.price)}</span>
-                     <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
-                  </div>
+                <div className="min-w-0 pr-2 pb-1">
+                   <p className="text-[7px] font-black text-red-500 uppercase tracking-widest mb-1">{deal.category}</p>
+                   <h3 className="text-[10px] font-black text-slate-900 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight">
+                       {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
+                   </h3>
+                   <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-red-600 font-black text-xs">{formatPrice(deal.price)}</span>
+                      <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
+                   </div>
                 </div>
               </Link>
             ))}

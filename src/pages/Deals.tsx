@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Truck } from "lucide-react";
 import gsap from "gsap";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import FavoriteButton from "../components/FavoriteButton";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
@@ -10,10 +10,54 @@ import { getPersistentDeals } from "../utils/mockPersistence";
 export default function Deals() {
   const { city } = useOutletContext<{ city: string }>();
   const [allDeals, setAllDeals] = useState<any[]>([]);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
 
   useEffect(() => {
     setAllDeals([...getPersistentDeals(), ...staticDeals]);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const AD_BANNERS = [
+    {
+      bg: "bg-sky-200/50",
+      pattern: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=1200&q=80",
+      title: "Best Offers.",
+      subtitle: "Lowest Prices.",
+      desc: "Save on dining, beauty, services, and more.",
+      code: "SLASHAM",
+      codeBg: "bg-rose-600 shadow-rose-600/20",
+      img1: "https://images.unsplash.com/photo-1492106087820-71f110052c51?auto=format&fit=crop&w=400&q=80",
+      img2: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+      bg: "bg-emerald-100",
+      pattern: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+      title: "Weekend",
+      subtitle: "Pamper Special.",
+      desc: "Up to 50% off top rated Spas in Lagos.",
+      code: "RELAX50",
+      codeBg: "bg-emerald-600 shadow-emerald-600/20",
+      img1: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=400&q=80",
+      img2: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+      bg: "bg-indigo-100",
+      pattern: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
+      title: "2-For-1",
+      subtitle: "Fine Dining.",
+      desc: "Exclusive dinner reservations at half price.",
+      code: "GOURMET",
+      codeBg: "bg-indigo-600 shadow-indigo-600/20",
+      img1: "https://images.unsplash.com/photo-1414235077428-33898bd1e150?auto=format&fit=crop&w=400&q=80",
+      img2: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80"
+    }
+  ];
 
   useEffect(() => {
     gsap.fromTo(
@@ -33,32 +77,54 @@ export default function Deals() {
   return (
     <div className="bg-slate-50 min-h-screen pt-0">
       <section className="px-4 lg:px-6 mb-6 -mt-12 relative z-10">
-        <div className="w-full relative rounded-3xl overflow-hidden bg-sky-200/50 min-h-[180px] lg:min-h-[200px] flex items-center border border-sky-100 shadow-sm">
-          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=1200')] bg-cover bg-center"></div>
-          <div className="relative z-10 p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between w-full gap-8">
-            <div className="flex-1 text-center lg:text-left">
-               <h2 className="text-3xl lg:text-5xl font-black text-slate-900 leading-[0.9] tracking-tighter uppercase mb-2">
-                 Best Offers.<br/>
-                 Lowest Prices.
-               </h2>
-               <p className="text-slate-600 text-sm lg:text-lg font-bold mb-6 max-w-sm leading-tight">
-                 Save on dining, beauty, services, and more.
-               </p>
-               <div className="flex items-center gap-4 justify-center lg:justify-start">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code:</span>
-                  <div className="px-8 py-2.5 bg-rose-600 text-white rounded-full font-black text-sm shadow-xl shadow-rose-600/20 active:scale-95 cursor-pointer uppercase tracking-widest">
-                    SLASHAM
-                  </div>
-               </div>
-            </div>
-            <div className="flex-1 flex justify-center lg:justify-end gap-6 relative h-[140px] items-center">
-               <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform -rotate-6 z-0 border border-slate-100 flex items-center justify-center">
-                  <img src="https://images.unsplash.com/photo-1492106087820-71f110052c51?w=400" className="w-full h-full object-contain" alt="" />
-               </div>
-               <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform rotate-3 z-10 border border-slate-100 -ml-16 lg:-ml-20 flex items-center justify-center">
-                  <img src="https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400" className="w-full h-full object-contain" alt="" />
-               </div>
-            </div>
+        <div className="w-full relative rounded-3xl overflow-hidden bg-slate-100 min-h-[220px] lg:min-h-[200px] flex items-center border border-slate-200 shadow-sm">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentAdIndex}
+              initial={{ opacity: 0, filter: "blur(5px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(5px)" }}
+              transition={{ duration: 0.6 }}
+              className={`absolute inset-0 w-full h-full ${AD_BANNERS[currentAdIndex].bg} flex items-center`}
+            >
+              <div className="absolute inset-0 opacity-[0.07] pointer-events-none bg-cover bg-center" style={{ backgroundImage: `url(${AD_BANNERS[currentAdIndex].pattern})` }}></div>
+              <div className="relative z-10 p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between w-full gap-8">
+                <div className="flex-1 text-center lg:text-left">
+                   <h2 className="text-3xl lg:text-5xl border-slate-900 font-black text-slate-900 leading-[0.9] tracking-tighter uppercase mb-2">
+                     {AD_BANNERS[currentAdIndex].title}<br/>
+                     {AD_BANNERS[currentAdIndex].subtitle}
+                   </h2>
+                   <p className="text-slate-600 text-sm lg:text-lg font-bold mb-6 max-w-sm leading-tight mx-auto lg:mx-0">
+                     {AD_BANNERS[currentAdIndex].desc}
+                   </p>
+                   <div className="flex items-center gap-4 justify-center lg:justify-start">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code:</span>
+                      <div className={`px-8 py-2.5 ${AD_BANNERS[currentAdIndex].codeBg} text-white rounded-full font-black text-sm shadow-xl active:scale-95 cursor-pointer uppercase tracking-widest transition-colors`}>
+                        {AD_BANNERS[currentAdIndex].code}
+                      </div>
+                   </div>
+                </div>
+                <div className="flex-1 flex justify-center lg:justify-end gap-6 relative h-[140px] items-center">
+                   <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform -rotate-6 z-0 border border-slate-100 flex items-center justify-center overflow-hidden rounded-md">
+                      <img src={AD_BANNERS[currentAdIndex].img1} className="w-full h-full object-cover rounded-sm" alt="" />
+                   </div>
+                   <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform rotate-3 z-10 border border-slate-100 -ml-16 lg:-ml-20 flex items-center justify-center overflow-hidden rounded-md">
+                      <img src={AD_BANNERS[currentAdIndex].img2} className="w-full h-full object-cover rounded-sm" alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Modern Progress Indicators */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+             {AD_BANNERS.map((_, i) => (
+               <button 
+                 key={i} 
+                 onClick={() => setCurrentAdIndex(i)} 
+                 className={`h-1.5 rounded-full transition-all duration-300 ${i === currentAdIndex ? `w-8 bg-slate-900` : 'w-2 bg-slate-400/30'}`} 
+               />
+             ))}
           </div>
         </div>
       </section>
