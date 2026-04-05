@@ -107,7 +107,7 @@ export default function MerchantScanner() {
                   className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-sm shadow-2xl transition-all flex items-center justify-center gap-3 active:scale-95 ${
                     isValidating 
                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                      : 'bg-slate-900 text-white hover:bg-black shadow-slate-900/20'
+                      : 'bg-emerald-500 text-white hover:bg-black shadow-emerald-500/20'
                   }`}
                 >
                   {isValidating ? (

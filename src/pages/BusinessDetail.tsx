@@ -261,7 +261,7 @@ export default function BusinessDetail() {
               </div>
 
               <div className="mt-10 pt-10 border-t border-slate-200">
-                <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                <button className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
                   <MapPin size={18} /> Get Directions
                 </button>
               </div>

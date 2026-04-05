@@ -32,7 +32,7 @@ export default function MerchantReviews() {
              </div>
              
              <div className="flex items-center gap-3 mb-6 relative z-10">
-                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xs">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-xs">
                    {r.user.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div>

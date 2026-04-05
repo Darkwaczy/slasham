@@ -38,7 +38,7 @@ export default function AdminCoupons() {
           <p className="text-slate-500 font-medium">Track and audit every generated discount code</p>
         </div>
         <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-105 transition-all">
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-xl shadow-emerald-500/10 hover:scale-105 transition-all">
                 Audit History
             </button>
         </div>

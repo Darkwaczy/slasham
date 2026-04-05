@@ -5,6 +5,7 @@ import {
   LogOut, Bell, Search, Menu, X, User, ChevronRight, HelpCircle, Gift
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Logo } from "./Logo";
 
 export default function UserLayout() {
   const navigate = useNavigate();
@@ -51,12 +52,8 @@ export default function UserLayout() {
         }`}
       >
         <div className="p-8 flex items-center justify-between">
-          <NavLink to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform">
-              <Star size={24} fill="currentColor" />
-            </div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">Slasham</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mb-4 ml-0.5 animate-pulse"></span>
+          <NavLink to="/" className="flex items-center gap-2 group hover:opacity-80 transition-opacity">
+            <Logo size="md" />
           </NavLink>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
             <X size={20} />
@@ -72,7 +69,7 @@ export default function UserLayout() {
               className={({ isActive }) =>
                 `flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all relative group ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
+                    ? "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
                     : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 }`
               }
@@ -162,7 +159,7 @@ export default function UserLayout() {
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
               </button>
               
-              <div className="h-8 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
+              <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
               
               <div className="relative">
                 <button 
@@ -180,7 +177,7 @@ export default function UserLayout() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-4 w-56 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-[60]"
+                      className="absolute right-0 mt-4 w-56 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-60"
                     >
                       <div className="px-4 py-3 border-b border-slate-50 mb-2">
                         <p className="text-sm font-black text-slate-900">John Doe</p>

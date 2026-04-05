@@ -121,7 +121,7 @@ export default function RewardsReferrals() {
             <section className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm h-full">
                <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center">
+                     <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center">
                         <History size={18} />
                      </div>
                      <h3 className="text-xl font-black text-slate-900 tracking-tight">Points Activity</h3>

@@ -113,7 +113,7 @@ export default function UnlockMore() {
                 <p className="text-xs text-slate-500">Earn 500 pts for every friend you invite.</p>
               </div>
               <div className="ml-auto">
-                <button className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl">Invite</button>
+                <button className="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl">Invite</button>
               </div>
             </div>
           </motion.div>

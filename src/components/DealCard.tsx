@@ -41,7 +41,13 @@ export default function DealCard({ id, title, price, original, image }: DealCard
         </button>
       </div>
       <div className="aspect-4/3 overflow-hidden">
-        <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+        <img 
+          src={image} 
+          alt={title} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-100" 
+          referrerPolicy="no-referrer" 
+          onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70" }}
+        />
       </div>
       <div className="p-6 flex flex-col grow">
         <h3 className="text-xl font-bold mb-2 text-slate-900 line-clamp-2">{title}</h3>

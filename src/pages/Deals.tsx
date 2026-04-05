@@ -136,7 +136,7 @@ export default function Deals() {
                             <span className="text-[10px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
                           </div>
                         </div>
-                        <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center group-hover:bg-teal-600 transition-all shadow-xl active:scale-95">
+                        <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center group-hover:bg-teal-600 transition-all shadow-xl active:scale-95">
                            <ArrowRight size={18} />
                         </div>
                       </div>

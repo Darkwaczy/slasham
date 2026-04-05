@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 import { getAdminSettings, AdminSettings } from "../utils/adminState";
+import { Logo } from "./Logo";
 
 
 export default function Layout() {
@@ -153,11 +154,11 @@ export default function Layout() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-[#0f172a] text-white py-2.5 px-4 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] z-60 relative overflow-hidden"
+            className="bg-emerald-950 text-emerald-50 py-2.5 px-4 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] z-60 relative overflow-hidden"
           >
             <span className="opacity-80">{adminSettings.promoBanner.text}</span>
             <span className="mx-4 text-white/20 hidden sm:inline">|</span>
-            <Link to="/deals" className="underline underline-offset-4 hover:text-teal-400 transition-all">Shop Now</Link>
+            <Link to="/deals" className="underline underline-offset-4 hover:text-emerald-400 transition-all">Shop Now</Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -166,8 +167,8 @@ export default function Layout() {
       <header className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-1 shrink-0">
-            SLASHAM<span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+          <Link to="/" className="hover:opacity-80 transition-opacity shrink-0">
+            <Logo size="md" />
           </Link>
 
           {/* Search Bar - Groupon Focused */}
@@ -214,7 +215,7 @@ export default function Layout() {
                    </div>
                  </div>
                ) : (
-                 <Link to="/login" className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95">
+                 <Link to="/login" className="px-6 py-2.5 bg-emerald-500 text-white rounded-full text-xs font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
                    SIGN IN
                  </Link>
                )}
@@ -290,8 +291,8 @@ export default function Layout() {
                     <ArrowLeft size={18} /> Back
                   </button>
                 ) : (
-                  <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-xl font-bold flex items-center gap-2">
-                    Slasham<span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <Link to="/" onClick={() => setIsMenuOpen(false)} className="hover:opacity-80 transition-opacity">
+                    <Logo size="sm" />
                   </Link>
                 )}
                 <button 
@@ -397,7 +398,7 @@ export default function Layout() {
                   <Link 
                     to="/login" 
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center justify-center gap-3 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-[0.98] shadow-lg shadow-slate-200"
+                    className="flex items-center justify-center gap-3 w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/20"
                   >
                     <User size={18} /> Member Login
                   </Link>
@@ -413,11 +414,11 @@ export default function Layout() {
       </main>
 
       {/* Premium Footer */}
-      <footer className="bg-[#0A0A0A] text-white pt-24 pb-12 mt-24 border-t border-slate-800 relative overflow-hidden">
+      <footer className="bg-emerald-950 text-white pt-24 pb-12 mt-24 border-t border-emerald-900 relative overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-teal-900/20 rounded-full blur-[120px]"></div>
-          <div className="absolute -bottom-[400px] -left-[200px] w-[800px] h-[800px] bg-emerald-900/20 rounded-full blur-[120px]"></div>
+          <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
+          <div className="absolute -bottom-[400px] -left-[200px] w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[120px]"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -425,8 +426,8 @@ export default function Layout() {
             
             {/* Brand & Newsletter */}
             <div className="md:col-span-12 lg:col-span-5 pr-0 lg:pr-12">
-              <Link to="/" className="text-3xl font-bold text-white tracking-tight mb-6 flex items-center gap-2">
-                Slasham<span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+              <Link to="/" className="hover:opacity-80 transition-opacity mb-6 inline-block">
+                <Logo size="md" variant="light" />
               </Link>
               <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
                 Experience the best of your city for less. Curated premium deals for dining, wellness, and entertainment.

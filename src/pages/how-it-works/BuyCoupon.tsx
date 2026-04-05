@@ -75,7 +75,7 @@ export default function BuyCoupon() {
              <button 
                 onClick={simulatePurchase}
                 disabled={isBuying}
-                className="group relative px-10 py-5 bg-slate-900 text-white rounded-4xl font-black uppercase tracking-[0.3em] overflow-hidden transition-all hover:bg-black shadow-2xl flex items-center gap-4 disabled:opacity-50"
+                className="group relative px-10 py-5 bg-emerald-500 text-white rounded-4xl font-black uppercase tracking-[0.3em] overflow-hidden transition-all hover:bg-black shadow-2xl flex items-center gap-4 disabled:opacity-50"
              >
                 <div className="absolute inset-0 bg-linear-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-10 transition-opacity" />
                 {isBuying ? "Executing Transaction..." : "Simulate Purchase"} 
@@ -175,7 +175,7 @@ export default function BuyCoupon() {
         </div>
       </div>
 
-      <div className="p-10 bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-900/5 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+      <div className="p-10 bg-white rounded-4xl border border-slate-100 shadow-xl shadow-emerald-500/5 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 bg-emerald-600 text-white rounded-bl-3xl font-black text-[9px] uppercase tracking-widest">Merchant Alert</div>
         <div className="w-20 h-20 bg-emerald-50 rounded-4xl flex items-center justify-center text-emerald-600 shrink-0">
            <Zap size={40} className="animate-pulse" />

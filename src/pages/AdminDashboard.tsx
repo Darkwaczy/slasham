@@ -135,7 +135,7 @@ export default function AdminDashboard() {
           <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/10">
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-500/10">
                   <BarChart3 size={24} />
                 </div>
                 <div>
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
                 >
                     Cancel
                 </button>
-                <button className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-slate-900/20 transition-all">
+                <button className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-emerald-500/20 transition-all">
                     Compile Artifacts
                 </button>
             </div>

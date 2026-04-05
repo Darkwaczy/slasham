@@ -114,7 +114,7 @@ export default function MerchantCampaigns() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-              filter === f ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'
+              filter === f ? 'bg-emerald-500 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'
             }`}
           >
             {f} Deals
@@ -126,7 +126,7 @@ export default function MerchantCampaigns() {
         {requests.filter(r => filter === "All" || r.status === filter).map((req) => (
           <div key={req.id} className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm group hover:shadow-xl transition-all duration-500 overflow-hidden relative">
             <div className="flex flex-col lg:flex-row gap-8 items-center">
-              <div className="w-full lg:w-48 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/10 shrink-0 bg-slate-50 flex items-center justify-center">
+              <div className="w-full lg:w-48 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/10 shrink-0 bg-slate-50 flex items-center justify-center">
                 <img src={req.productImage} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" alt="" />
               </div>
               

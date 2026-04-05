@@ -49,7 +49,7 @@ export default function ListBusiness() {
             <Store className="text-emerald-500 mx-auto mb-8" size={64} />
             <h2 className="text-4xl font-bold mb-6 text-slate-900">Ready to list?</h2>
             <p className="text-slate-500 mb-10 text-lg">Start your journey with Slasham and unlock new opportunities for your business.</p>
-            <Link to="/business/register" className="inline-flex items-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+            <Link to="/business/register" className="inline-flex items-center gap-2 px-10 py-5 bg-emerald-500 text-white rounded-full font-bold text-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/10">
               Get Started <ArrowRight size={20} />
             </Link>
           </motion.div>

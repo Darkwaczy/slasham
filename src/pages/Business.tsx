@@ -9,7 +9,6 @@ import {
   Smartphone,
   MessageSquare,
   Award,
-  ArrowRight,
   PlayCircle,
   ChevronDown,
   ChevronUp,
@@ -20,6 +19,7 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, AnimatePresence } from "motion/react";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,7 +97,7 @@ export default function Business() {
       name: "Mrs. Adebayo",
       role: "Owner",
       business: "The Gourmet Kitchen, VI",
-      image: "https://images.unsplash.com/photo-1556740734-7f95834d0ff9?auto=format&fit=crop&w=600&q=80",
+      image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=600&q=80",
       quote: "Slasham helped us fill our tables during weekday lunch hours. We've seen a 40% increase in new customers since joining. The quality of customers is excellent.",
       stats: "1,200+ Vouchers Redeemed",
       revenue: "₦4.2M+ in Sales"
@@ -106,7 +106,7 @@ export default function Business() {
       name: "Tunde Williams",
       role: "Manager",
       business: "FitLife Gym, Abuja",
-      image: "https://images.unsplash.com/photo-1581291417006-03e4514f7348?auto=format&fit=crop&w=600&q=80",
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80",
       quote: "The analytics dashboard is a game-changer. I can see exactly who my customers are and when they prefer to visit. It's helped us optimize our staffing.",
       stats: "25% Higher Retention",
       revenue: "300+ New Members"
@@ -148,13 +148,14 @@ export default function Business() {
         <div className="absolute inset-0 bg-slate-50 -z-10"></div>
         <div className="absolute top-0 right-0 w-full md:w-1/2 h-full hidden md:block">
           <img 
-            src="https://images.unsplash.com/photo-1556740734-756a82b906b0?auto=format&fit=crop&w=1200&q=80" 
+            src="https://images.unsplash.com/photo-1556741533-6e6a62bd8b49?auto=format&fit=crop&w=1200&q=80" 
             alt="Business Owner Success" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover bg-slate-100"
             loading="lazy"
             referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=80" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-50/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-slate-50 via-slate-50/20 to-transparent"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 w-full grid md:grid-cols-2 items-center business-hero-content relative z-10">
@@ -347,14 +348,15 @@ export default function Business() {
                 whileHover={{ y: -10 }}
                 className="bg-slate-50 border border-slate-100 rounded-[40px] overflow-hidden group shadow-sm hover:shadow-xl transition-all"
               >
-                <div className="aspect-[4/5] relative overflow-hidden">
+                <div className="aspect-4/5 relative overflow-hidden">
                   <img 
                     src={story.image} 
                     alt={story.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 bg-slate-100"
                     loading="lazy"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=80" }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
                   <div className="absolute bottom-8 left-8 right-8">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded-full uppercase tracking-widest">

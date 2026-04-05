@@ -45,7 +45,7 @@ export default function Careers() {
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-6">Open Positions</h2>
         <p className="text-slate-500 mb-8">We don't have any open positions right now, but we are always looking for talented people.</p>
-        <button className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold hover:bg-slate-800 transition-colors">
+        <button className="bg-emerald-500 text-white px-8 py-4 rounded-full font-bold hover:bg-emerald-600 transition-colors">
           Send us your CV
         </button>
       </div>

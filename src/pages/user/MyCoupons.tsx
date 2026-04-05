@@ -101,7 +101,7 @@ export default function MyCoupons() {
                                 navigator.clipboard.writeText(coupon.code);
                                 // Optional: toast or feedback
                             }}
-                            className="p-2.5 bg-slate-900 text-white rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg" title="Copy Code">
+                            className="p-2.5 bg-emerald-500 text-white rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg" title="Copy Code">
                              <Copy size={14} />
                           </button>
                        </div>

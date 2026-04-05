@@ -107,7 +107,7 @@ export default function AdminReviews() {
                   >
                     <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold">
+                            <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">
                                 {r.user.charAt(0)}
                             </div>
                             <span className="text-sm font-bold text-slate-900">{r.user}</span>

@@ -73,7 +73,7 @@ export default function AdminUsers() {
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-105 transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold text-sm shadow-xl shadow-emerald-500/10 hover:scale-105 transition-all"
         >
           <UserPlus size={18} /> Add New User
         </button>
@@ -142,7 +142,7 @@ export default function AdminUsers() {
                   >
                     <td className="px-8 py-5 text-nowrap">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm">
                           {user.name.charAt(0)}
                         </div>
                         <div>
@@ -273,7 +273,7 @@ export default function AdminUsers() {
             </button>
             <button 
               type="submit"
-              className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-slate-900/20 transition-all"
+              className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-emerald-500/20 transition-all"
             >
               Create Account
             </button>
@@ -290,7 +290,7 @@ export default function AdminUsers() {
       >
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-             <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
+             <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl font-bold">
                {selectedUser?.name.charAt(0)}
              </div>
              <div>

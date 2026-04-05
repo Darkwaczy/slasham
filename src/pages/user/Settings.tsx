@@ -72,7 +72,7 @@ export default function UserSettings() {
                       <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
                         <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=200" alt="Avatar" className="w-full h-full object-cover" />
                       </div>
-                      <button className="absolute -bottom-2 -right-2 p-2.5 bg-slate-900 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
+                      <button className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
                         <Camera size={16} />
                       </button>
                    </div>
@@ -208,7 +208,7 @@ export default function UserSettings() {
                          <input type="password" placeholder="Confirm New Password" className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none" />
                       </div>
                       <div className="flex justify-end mt-4">
-                         <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Update Credentials</button>
+                         <button className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Update Credentials</button>
                       </div>
                    </div>
                 </div>

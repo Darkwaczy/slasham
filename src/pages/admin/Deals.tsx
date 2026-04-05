@@ -269,11 +269,11 @@ export default function AdminDeals() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all group relative overflow-hidden"
+                    className="bg-white rounded-4xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all group relative overflow-hidden"
                   >
                     <div className="flex justify-between items-start mb-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-slate-900/5">
+                        <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-emerald-500/5">
                           <img src={req.productImage} className="w-full h-full object-cover" alt="" />
                         </div>
                         <div>
@@ -353,7 +353,7 @@ export default function AdminDeals() {
       >
         <div className="space-y-8 pt-6">
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-slate-100 rounded-4xl overflow-hidden shadow-xl shadow-slate-900/10">
+            <div className="w-24 h-24 bg-slate-100 rounded-4xl overflow-hidden shadow-xl shadow-emerald-500/10">
               <img src={selectedRequest?.productImage} className="w-full h-full object-cover" alt="" />
             </div>
             <div>
@@ -471,7 +471,7 @@ export default function AdminDeals() {
             </button>
             <button 
               onClick={() => handleApprove(selectedRequest!)}
-              className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-black shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-black shadow-xl shadow-emerald-500/10 transition-all flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={18} /> Authorize Launch
             </button>

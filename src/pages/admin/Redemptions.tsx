@@ -37,7 +37,7 @@ export default function AdminRedemptions() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Redemption Logs</h1>
           <p className="text-slate-500 font-medium">Coordinate and verify all merchant-to-customer transactions</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-slate-900/10">
+        <button className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-emerald-500/10">
            <ArrowDownToLine size={18} /> Export Full Audit
         </button>
       </div>

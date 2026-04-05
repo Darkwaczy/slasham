@@ -128,7 +128,7 @@ export default function HowItWorks() {
       </section>
 
       {/* Trust & FAQ Preview */}
-      <section className="py-24 px-6 bg-slate-900 text-white">
+      <section className="py-24 px-6 bg-emerald-500 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-12">
             <div className="text-center">

@@ -78,13 +78,13 @@ export default function SavedDeals() {
            <div className="flex p-1 bg-white border border-slate-200 rounded-2xl shadow-sm">
              <button 
               onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
              >
                 <LayoutGrid size={18} />
              </button>
              <button 
               onClick={() => setViewMode("list")}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
              >
                 <List size={18} />
              </button>
@@ -93,7 +93,7 @@ export default function SavedDeals() {
            <button className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-slate-900 shadow-sm transition-all">
               <ArrowUpDown size={20} />
            </button>
-           <button className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all">
+           <button className="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:scale-105 active:scale-95 transition-all">
               Share All
            </button>
         </div>
@@ -104,7 +104,7 @@ export default function SavedDeals() {
             <div className="py-20 text-center relative z-10 w-full flex flex-col items-center">
                 <Heart size={80} className="text-rose-100 mb-6" />
                 <p className="text-slate-400 text-lg font-black uppercase tracking-[0.2em] mb-10">Your wishlist is empty.</p>
-                <Link to="/deals" className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-emerald-500 transition-all shadow-xl active:scale-95">
+                <Link to="/deals" className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-500 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-emerald-500 transition-all shadow-xl active:scale-95">
                     <Ticket size={20} /> Explore Market Deals
                 </Link>
             </div>
@@ -197,7 +197,7 @@ export default function SavedDeals() {
                       <button onClick={() => removeDeal(deal.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-rose-500 rounded-xl transition-all">
                          <Trash2 size={18} />
                       </button>
-                      <Link to={`/deal/${deal.id}`} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors hidden sm:block">
+                      <Link to={`/deal/${deal.id}`} className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors hidden sm:block">
                          View Details
                       </Link>
                    </div>

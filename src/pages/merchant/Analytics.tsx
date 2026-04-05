@@ -21,7 +21,7 @@ export default function MerchantAnalytics() {
           <p className="text-slate-500 font-medium">Detailed data on your campaign velocity and reach</p>
         </div>
         <div className="flex bg-white p-1 rounded-2xl border border-slate-200">
-           <button className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/10">Weekly</button>
+           <button className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10">Weekly</button>
            <button className="px-5 py-2.5 bg-transparent text-slate-400 rounded-xl font-black text-xs uppercase tracking-widest hover:text-slate-900 transition-colors">Monthly</button>
         </div>
       </div>

@@ -93,7 +93,7 @@ export default function MerchantDashboard() {
           <div className="flex gap-3">
              <button 
                onClick={() => alert("Report generation started. Security token: SLSH-DASH-REPORTS")}
-               className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all"
+               className="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:scale-105 active:scale-95 transition-all"
              >
                 Download Reports
              </button>
@@ -187,7 +187,7 @@ export default function MerchantDashboard() {
 
         {/* Quick Validation Tool */}
         <div className="space-y-6">
-          <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-slate-900/20">
+          <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-emerald-500/20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10 space-y-8">
               <div>

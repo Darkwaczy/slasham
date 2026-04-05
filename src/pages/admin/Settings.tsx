@@ -102,7 +102,7 @@ export default function AdminSettings() {
             <button 
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-3 px-8 py-4 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/10 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isSaving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
                 {isSaving ? 'Compiling...' : 'Save Configuration'}

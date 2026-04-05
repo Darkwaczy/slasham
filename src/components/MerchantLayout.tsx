@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { getNotifications, markNotifsRead, Notification } from "../utils/merchantPersistence";
+import { Logo } from "./Logo";
 
 export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -82,12 +83,9 @@ export default function MerchantLayout() {
         <div className="flex flex-col h-full">
           {/* Logo Section */}
           <div className="p-8">
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 shadow-lg shadow-emerald-600/20">
-                <span className="text-white font-black text-xl">S</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight text-slate-900 leading-none">Slasham</span>
+            <Link to="/" className="inline-block group hover:opacity-80 transition-opacity">
+              <Logo size="md" className="mb-1" />
+              <div className="flex flex-col ml-[42px]">
                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Merchant Console</span>
               </div>
             </Link>

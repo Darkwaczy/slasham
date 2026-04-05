@@ -119,24 +119,24 @@ export default function DealDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24 deal-content-animate">
         {/* Left: Media & Details */}
         <div className="space-y-12">
-          <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-slate-900/5 ring-1 ring-slate-200 bg-white flex items-center justify-center">
+          <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-emerald-500/5 ring-1 ring-slate-200 bg-white flex items-center justify-center">
             <img 
               src={deal.image} 
               alt={deal.title} 
               className="w-full h-full object-cover"
               onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80" }}
             />
-            <div className="absolute top-6 left-6 flex flex-col gap-2">
-                <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] shadow-sm">
+            <div className="absolute top-6 left-6 flex flex-col items-start gap-2 max-w-[80%]">
+                <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg text-[9px] font-black text-slate-900 uppercase tracking-widest shadow-sm">
                    {deal.category}
                 </div>
                 {deal.shippingInfo?.enabled && (
-                    <div className="flex flex-col gap-2">
-                        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2 border border-slate-700">
-                            <Truck size={14} className="text-emerald-500" /> Delivery within Lagos FREE
+                    <div className="flex flex-col items-start gap-2">
+                        <div className="bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
+                            <Truck size={12} className="text-white" /> Free local delivery
                         </div>
                         {deal.shippingInfo.fee && (
-                            <div className="bg-indigo-600/90 backdrop-blur-md text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2">
+                            <div className="bg-emerald-600/95 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5">
                                 <MapPin size={12} className="text-white" /> Outside Lagos: ₦{deal.shippingInfo.fee}
                             </div>
                         )}
@@ -259,7 +259,7 @@ export default function DealDetail() {
               onClick={handleBuyInitiate}
               disabled={isBuying}
               className={`w-full py-6 rounded-3xl font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] uppercase tracking-widest ${
-                isBuying ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white hover:bg-black shadow-slate-900/20'
+                isBuying ? 'bg-slate-100 text-slate-400' : 'bg-emerald-500 text-white hover:bg-black shadow-emerald-500/20'
               }`}
             >
               {isBuying ? <Loader2 size={24} className="animate-spin" /> : "Buy Coupon"}
@@ -376,7 +376,7 @@ export default function DealDetail() {
                 </div>
               </div>
 
-              <button className="flex items-center gap-3 bg-slate-900 text-white px-8 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 active:scale-95">
+              <button className="flex items-center gap-3 bg-emerald-500 text-white px-8 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-emerald-500/10 active:scale-95">
                 <MessageSquare size={16} /> Write a Review
               </button>
             </div>

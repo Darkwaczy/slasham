@@ -63,7 +63,7 @@ export default function UserDashboard() {
           <div className="flex items-center gap-3">
              <button 
                onClick={() => setShowUpgradeModal(true)}
-               className="bg-slate-900 text-white px-6 py-2.5 rounded-2xl flex items-center gap-2 font-bold hover:bg-emerald-600 transition-all shadow-lg hover:shadow-emerald-500/20"
+               className="bg-emerald-500 text-white px-6 py-2.5 rounded-2xl flex items-center gap-2 font-bold hover:bg-emerald-600 transition-all shadow-lg hover:shadow-emerald-500/20"
              >
                <Crown size={18} className="text-amber-400" /> 
                Upgrade to Plus
@@ -221,7 +221,7 @@ export default function UserDashboard() {
                              <h5 className="font-black text-slate-900 mb-2 truncate">{item.title}</h5>
                              <div className="flex items-center justify-between">
                                 <span className="text-lg font-black text-slate-900">{item.price}</span>
-                                <button className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-emerald-500 transition-colors">
+                                <button className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center hover:bg-emerald-500 transition-colors">
                                   <Plus size={18} />
                                 </button>
                              </div>
@@ -249,7 +249,7 @@ export default function UserDashboard() {
                              <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400'}`}><Grid size={18} /></button>
                              <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400'}`}><ListIcon size={18} /></button>
                           </div>
-                          <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-2xl text-sm font-bold shadow-lg hover:shadow-slate-500/20">
+                          <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg hover:shadow-slate-500/20">
                              <Filter size={16} /> Filter
                           </button>
                        </div>
@@ -278,11 +278,11 @@ export default function UserDashboard() {
                                {viewMode === 'list' ? (
                                  <div className="flex items-center gap-3">
                                     <button className="p-3 bg-slate-50 text-slate-400 hover:text-rose-500 rounded-xl transition-colors"><Trash2 size={20} /></button>
-                                    <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-emerald-500 transition-colors shadow-lg">Buy Now</button>
+                                    <button className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-500 transition-colors shadow-lg">Buy Now</button>
                                  </div>
                                ) : (
                                  <div className="grid grid-cols-1 gap-2 mt-6">
-                                    <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-emerald-500 transition-all shadow-lg hover:shadow-emerald-500/20">
+                                    <button className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-sm hover:bg-emerald-500 transition-all shadow-lg hover:shadow-emerald-500/20">
                                       Unlock Coupon
                                     </button>
                                  </div>

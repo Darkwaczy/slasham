@@ -37,7 +37,7 @@ export default function Home() {
     <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
       
       {/* 1. HOT COUPONS MARQUEE */}
-      <section className="pt-8 pb-4 bg-slate-900 overflow-hidden relative border-b border-white/5">
+      <section className="pt-8 pb-4 bg-emerald-950 overflow-hidden relative border-b border-emerald-900/50">
         <div className="max-w-7xl mx-auto px-6 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-amber-500 font-black">
             <Zap size={16} className="fill-amber-500 animate-pulse" />
@@ -64,7 +64,7 @@ export default function Home() {
                     alt={deal.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     loading="lazy"
-                  />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                 </div>
                 <div className="p-4">
                   <div className="mb-1">
@@ -97,7 +97,7 @@ export default function Home() {
                     alt={deal.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     loading="lazy"
-                  />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                 </div>
                 <div className="p-4">
                   <div className="mb-1">
@@ -143,7 +143,7 @@ export default function Home() {
                     alt={deal.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                     loading="lazy"
-                  />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                 </div>
                 <div className="p-4">
                    <div className="mb-1 text-center">
@@ -175,7 +175,7 @@ export default function Home() {
                     alt={deal.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                     loading="lazy"
-                  />
+                   onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                 </div>
                 <div className="p-4">
                    <div className="mb-1 text-center">
@@ -260,7 +260,7 @@ export default function Home() {
                            {deal.tag || "DEAL"}
                          </div>
                          <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
-                         <img src={deal.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
+                         <img src={deal.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"  onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                       </div>
                       <div className="space-y-3 px-1">
                          <h4 className="text-base font-black text-slate-900 leading-none uppercase tracking-tight truncate group-hover:text-teal-600 transition-colors">{deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}</h4>
@@ -428,7 +428,7 @@ export default function Home() {
                                {formatPrice(p.price)}
                             </div>
                             <FavoriteButton dealId={p.id} deal={p} className="absolute top-4 right-4 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
-                            <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={p.title} />
+                            <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={p.title}  onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
                          </div>
                          <div className="space-y-2 px-1">
                             <h4 className="text-base font-black text-slate-900 uppercase tracking-tighter mb-1 line-clamp-1 group-hover:text-rose-600 transition-colors">{p.title.includes(' - ') ? p.title.split(' - ')[1] : p.title}</h4>
@@ -446,7 +446,7 @@ export default function Home() {
 
       {/* 5. BUSINESS CTA */}
       <section className="py-32 px-6 max-w-7xl mx-auto overflow-hidden">
-        <div className="bg-slate-900 rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl shadow-slate-900/40">
+        <div className="bg-slate-900 rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl shadow-emerald-500/40">
           <div className="grid lg:grid-cols-2 items-center relative z-10">
             <div className="p-12 md:p-20">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-bold mb-8 uppercase tracking-widest">
