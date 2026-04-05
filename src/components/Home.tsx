@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, Zap, ArrowRight, TrendingUp, Timer, ChevronDown, Star, Truck } from "lucide-react";
+import { MapPin, Zap, ArrowRight, TrendingUp, Timer, ChevronDown, Star, Utensils, Moon, Plane, ShoppingBag, Dumbbell, Briefcase } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { deals as staticDeals } from "../data/mockData";
@@ -390,19 +390,19 @@ export default function Home() {
                  <div className="bg-teal-50 px-3 py-2 rounded-xl border border-teal-100 text-[11px] font-black text-teal-600 uppercase tracking-widest mb-8 text-center shadow-sm">
                     Categories
                  </div>
-                 <div className="flex flex-col gap-3">
+                 <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
                     {[
-                        { name: "Dining", icon: <TrendingUp size={20}/>, count: "120+" },
-                        { name: "Nightlife", icon: <Zap size={20}/>, count: "45+" },
-                        { name: "Travel", icon: <MapPin size={20}/>, count: "60+" },
-                        { name: "Shopping", icon: <ArrowRight size={20}/>, count: "200+" },
-                        { name: "Fitness", icon: <TrendingUp size={20}/>, count: "40+" },
-                        { name: "Services", icon: <Truck size={20}/>, count: "25+" },
+                        { name: "Dining", icon: <Utensils size={18}/>, count: "120+", color: "text-rose-500", bg: "bg-rose-50/50", border: "border-rose-100" },
+                        { name: "Nightlife", icon: <Moon size={18}/>, count: "45+", color: "text-indigo-500", bg: "bg-indigo-50/50", border: "border-indigo-100" },
+                        { name: "Travel", icon: <Plane size={18}/>, count: "60+", color: "text-sky-500", bg: "bg-sky-50/50", border: "border-sky-100" },
+                        { name: "Shopping", icon: <ShoppingBag size={18}/>, count: "200+", color: "text-amber-500", bg: "bg-amber-50/50", border: "border-amber-100" },
+                        { name: "Fitness", icon: <Dumbbell size={18}/>, count: "40+", color: "text-emerald-500", bg: "bg-emerald-50/50", border: "border-emerald-100" },
+                        { name: "Services", icon: <Briefcase size={18}/>, count: "25+", color: "text-purple-500", bg: "bg-purple-50/50", border: "border-purple-100" },
                     ].map((cat, i) => (
-                        <button key={i} className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-900 hover:text-white transition-all group shadow-sm">
-                           <div className="w-10 h-10 bg-white text-slate-900 rounded-xl flex items-center justify-center mb-2 group-hover:bg-teal-500 group-hover:text-white transition-all shadow-sm">{cat.icon}</div>
-                           <span className="text-[10px] font-black uppercase tracking-tight">{cat.name}</span>
-                           <span className="text-[8px] font-bold text-slate-400 group-hover:text-teal-400 mt-0.5">{cat.count}</span>
+                        <button key={i} className={`flex flex-col items-center justify-center p-2.5 lg:p-4 ${cat.bg} border ${cat.border} rounded-2xl lg:rounded-3xl hover:bg-white hover:shadow-lg transition-all group shadow-sm active:scale-95`}>
+                           <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-white ${cat.color} rounded-lg lg:rounded-xl flex items-center justify-center mb-1.5 lg:mb-2 group-hover:scale-110 transition-transform shadow-[0_4px_10px_rgba(0,0,0,0.04)]`}>{cat.icon}</div>
+                           <span className="text-[9px] lg:text-[10px] font-black text-slate-800 uppercase tracking-tight">{cat.name}</span>
+                           <span className="text-[7px] lg:text-[8px] font-bold text-slate-400 mt-0.5">{cat.count} Deals</span>
                         </button>
                     ))}
                  </div>

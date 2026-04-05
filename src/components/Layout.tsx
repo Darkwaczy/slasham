@@ -3,7 +3,7 @@ import {
   Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, Search, 
   User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
   Store, Zap, MapPin, TrendingUp, Plus, Info,
-  ChevronRight, LogOut, ArrowLeft, AlertTriangle, ShieldCheck
+  ChevronRight, ChevronDown, LogOut, ArrowLeft, AlertTriangle, ShieldCheck
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -16,6 +16,7 @@ export default function Layout() {
   const [city, setCity] = useState("Lagos");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
+  const [footerExpandedSection, setFooterExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>(getAdminSettings());
   const location = useLocation();
@@ -413,8 +414,33 @@ export default function Layout() {
         <Outlet context={{ city, setCity }} />
       </main>
 
+      {/* Floating VIP Newsletter Card */}
+      <div className="max-w-5xl mx-auto px-6 relative z-20 -mb-24 translate-y-12">
+        <div className="bg-white rounded-4xl p-8 md:p-12 shadow-2xl shadow-emerald-900/10 border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8 backdrop-blur-xl relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+           <div className="text-center md:text-left relative z-10 w-full md:w-auto">
+             <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-2">Join the VIP list</h3>
+             <p className="text-slate-500 font-medium">Get exclusive deals and local experiences sent straight to your inbox.</p>
+           </div>
+           <form className="flex w-full md:w-auto gap-3 flex-col sm:flex-row relative z-10" onSubmit={(e) => e.preventDefault()}>
+             <div className="relative grow sm:w-[320px]">
+               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+               <input 
+                 type="email" 
+                 placeholder="Enter your email" 
+                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                 required
+               />
+             </div>
+             <button type="submit" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 shrink-0">
+               Subscribe
+             </button>
+           </form>
+        </div>
+      </div>
+
       {/* Premium Footer */}
-      <footer className="bg-emerald-950 text-white pt-24 pb-12 mt-24 border-t border-emerald-900 relative overflow-hidden">
+      <footer className="bg-emerald-950 text-white pt-36 pb-12 mt-24 border-t border-emerald-900 relative overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
@@ -422,64 +448,72 @@ export default function Layout() {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 mb-20">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 mb-20">
             
-            {/* Brand & Newsletter */}
-            <div className="md:col-span-12 lg:col-span-5 pr-0 lg:pr-12">
-              <Link to="/" className="hover:opacity-80 transition-opacity mb-6 inline-block">
+            {/* Brand Area */}
+            <div className="lg:w-1/3">
+              <Link to="/" className="hover:opacity-80 transition-opacity mb-8 inline-block">
                 <Logo size="md" variant="light" />
               </Link>
-              <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
+              <p className="text-emerald-50/60 text-lg leading-relaxed max-w-sm">
                 Experience the best of your city for less. Curated premium deals for dining, wellness, and entertainment.
               </p>
-              
-              <div className="mb-8">
-                <p className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Subscribe to our newsletter</p>
-                <form className="flex gap-2 max-w-md" onSubmit={(e) => e.preventDefault()}>
-                  <div className="relative grow">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                    <input 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all"
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="bg-teal-500 hover:bg-teal-400 text-slate-900 px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center shrink-0">
-                    Subscribe
-                  </button>
-                </form>
+            </div>
+
+            {/* Accordion Links Columns */}
+            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-12">
+              <div className="border-b border-emerald-900/50 md:border-none pb-4 md:pb-0 mb-4 md:mb-0">
+                <h4 
+                  className="font-black text-sm mb-0 md:mb-6 text-white uppercase tracking-[0.2em] flex justify-between items-center cursor-pointer md:cursor-auto"
+                  onClick={() => setFooterExpandedSection(prev => prev === 'explore' ? null : 'explore')}
+                >
+                  Explore
+                  <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'explore' ? '-rotate-180' : ''}`} />
+                </h4>
+                <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'explore' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
+                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
+                    <li><Link to="/deals?category=dining" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Dining</Link></li>
+                    <li><Link to="/deals?category=wellness" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Wellness & Spa</Link></li>
+                    <li><Link to="/deals?category=events" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Events & Tickets</Link></li>
+                    <li><Link to="/deals?category=getaways" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Getaways</Link></li>
+                  </ul>
+                </div>
               </div>
-            </div>
 
-            {/* Links Columns */}
-            <div className="md:col-span-4 lg:col-span-2">
-              <h4 className="font-semibold text-sm mb-6 text-white uppercase tracking-wider">Explore</h4>
-              <ul className="space-y-4 text-slate-400">
-                <li><Link to="/deals?category=dining" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Dining</Link></li>
-                <li><Link to="/deals?category=wellness" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Wellness & Spa</Link></li>
-                <li><Link to="/deals?category=events" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Events & Tickets</Link></li>
-                <li><Link to="/deals?category=getaways" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Getaways</Link></li>
-              </ul>
-            </div>
+              <div className="border-b border-emerald-900/50 md:border-none pb-4 md:pb-0 mb-4 md:mb-0">
+                <h4 
+                  className="font-black text-sm mb-0 md:mb-6 text-white uppercase tracking-[0.2em] flex justify-between items-center cursor-pointer md:cursor-auto"
+                  onClick={() => setFooterExpandedSection(prev => prev === 'company' ? null : 'company')}
+                >
+                  Company
+                  <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'company' ? '-rotate-180' : ''}`} />
+                </h4>
+                <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'company' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
+                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
+                    <li><Link to="/about" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> About Us</Link></li>
+                    <li><Link to="/careers" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Careers</Link></li>
+                    <li><Link to="/press" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Press</Link></li>
+                    <li><Link to="/contact" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Contact</Link></li>
+                  </ul>
+                </div>
+              </div>
 
-            <div className="md:col-span-4 lg:col-span-2">
-              <h4 className="font-semibold text-sm mb-6 text-white uppercase tracking-wider">Company</h4>
-              <ul className="space-y-4 text-slate-400">
-                <li><Link to="/about" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> About Us</Link></li>
-                <li><Link to="/careers" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Careers</Link></li>
-                <li><Link to="/press" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Press</Link></li>
-                <li><Link to="/contact" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Contact</Link></li>
-              </ul>
-            </div>
-
-            <div className="md:col-span-4 lg:col-span-3">
-              <h4 className="font-semibold text-sm mb-6 text-white uppercase tracking-wider">For Business</h4>
-              <ul className="space-y-4 text-slate-400">
-                <li><Link to="/merchant/dashboard" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> My Business</Link></li>
-                <li><Link to="/business/campaign" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> Run a Campaign</Link></li>
-                <li><Link to="/business/list" className="hover:text-teal-400 transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-teal-400 transition-colors"></span> List Your Business</Link></li>
-              </ul>
+              <div className="border-b border-emerald-900/50 md:border-none pb-4 md:pb-0">
+                <h4 
+                  className="font-black text-sm mb-0 md:mb-6 text-white uppercase tracking-[0.2em] flex justify-between items-center cursor-pointer md:cursor-auto"
+                  onClick={() => setFooterExpandedSection(prev => prev === 'business' ? null : 'business')}
+                >
+                  For Business
+                  <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'business' ? '-rotate-180' : ''}`} />
+                </h4>
+                <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'business' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
+                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
+                    <li><Link to="/merchant/dashboard" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> My Business</Link></li>
+                    <li><Link to="/business/campaign" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Run a Campaign</Link></li>
+                    <li><Link to="/business/list" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> List Your Business</Link></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
 
