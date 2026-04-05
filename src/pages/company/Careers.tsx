@@ -1,4 +1,4 @@
-import { Briefcase, Zap, Heart, Globe, ArrowRight, Shield, TrendingUp, Star } from "lucide-react";
+import { Briefcase, Zap, Heart, Globe, ArrowRight, Shield, TrendingUp, Star, Rocket, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function Careers() {
@@ -84,23 +84,68 @@ export default function Careers() {
             </motion.div>
 
             <motion.div 
-                initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1, delay: 0.3 }}
-                className="flex-1 hidden lg:block relative"
+                className="max-w-xl flex-1 hidden lg:flex justify-center relative py-20"
             >
-                <motion.div
-                    animate={{ y: [0, -30, 0] }}
-                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative z-10"
-                >
-                    <img 
-                        src="/C:/Users/DELL/.gemini/antigravity/brain/54298c44-8217-4b17-a52b-3e80fce7f319/careers_hero_visual_1775385721765.png" 
-                        alt="Careers Visual" 
-                        className="w-full h-auto drop-shadow-[0_45px_45px_rgba(16,185,129,0.15)] rounded-[4rem]"
+                {/* Central Rocket Composition */}
+                <div className="relative">
+                    {/* Background Glow */}
+                    <motion.div 
+                        animate={{ 
+                            scale: [1, 1.2, 1],
+                            opacity: [0.1, 0.2, 0.1]
+                        }}
+                        transition={{ duration: 4, repeat: Infinity }}
+                        className="absolute inset-0 bg-emerald-500 rounded-full blur-[100px] -z-10" 
                     />
-                </motion.div>
-                <div className="absolute inset-0 bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
+
+                    {/* Main Rocket Icon */}
+                    <motion.div
+                        animate={{ 
+                            y: [0, -30, 0],
+                            rotate: [-1, 1, -1]
+                        }}
+                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                        className="relative z-10 p-12 bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/10 shadow-2xl"
+                    >
+                        <div className="relative">
+                            <Rocket size={120} className="text-slate-900 drop-shadow-[0_15px_15px_rgba(16,185,129,0.2)]" strokeWidth={1.5} />
+                            
+                            {/* Engine Pulse */}
+                            <motion.div 
+                                animate={{ opacity: [0, 1, 0], y: [0, 20, 0] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                                className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-4 h-12 bg-linear-to-b from-orange-400 to-transparent blur-md rounded-full"
+                            />
+                        </div>
+                    </motion.div>
+
+                    {/* Orbital Elements */}
+                    <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 -m-20 pointer-events-none"
+                    >
+                        <motion.div 
+                            animate={{ scale: [1, 1.3, 1] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute top-0 right-0 p-4 bg-white shadow-xl rounded-2xl"
+                        >
+                            <Sparkles size={24} className="text-amber-500" />
+                        </motion.div>
+                        <motion.div 
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+                            className="absolute bottom-10 left-0 p-4 bg-white shadow-xl rounded-2xl"
+                        >
+                            <Shield size={24} className="text-emerald-500" />
+                        </motion.div>
+                    </motion.div>
+                </div>
+                
+                <div className="absolute inset-0 bg-emerald-500/5 blur-[120px] rounded-full -z-20" />
             </motion.div>
         </div>
       </section>
