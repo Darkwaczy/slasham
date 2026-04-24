@@ -1,4 +1,4 @@
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus } from "lucide-react";
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -82,14 +82,43 @@ export default function AdminUsers() {
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Users", count: users.length * 240, color: "indigo" }, // Simulated total
-          { label: "Active Now", count: Math.floor(users.length * 96.4), color: "emerald" },
-          { label: "New Today", count: "+24", color: "blue" },
-          { label: "Suspended", count: users.filter(u => u.status === 'Suspended').length, color: "rose" },
+          { 
+            label: "Total Users", count: users.length * 240, 
+            icon: Users,
+            bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
+            textClass: "text-indigo-700", labelClass: "text-indigo-500",
+            iconBg: "bg-white/60", iconColor: "text-indigo-600"
+          },
+          { 
+            label: "Active Now", count: Math.floor(users.length * 96.4), 
+            icon: ShieldCheck,
+            bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
+            textClass: "text-emerald-700", labelClass: "text-emerald-500",
+            iconBg: "bg-white/60", iconColor: "text-emerald-600"
+          },
+          { 
+            label: "New Today", count: "+24", 
+            icon: UserPlus,
+            bgClass: "bg-sky-50", borderClass: "border-sky-100", 
+            textClass: "text-sky-700", labelClass: "text-sky-500",
+            iconBg: "bg-white/60", iconColor: "text-sky-600"
+          },
+          { 
+            label: "Suspended", count: users.filter(u => u.status === 'Suspended').length, 
+            icon: UserMinus,
+            bgClass: "bg-rose-50", borderClass: "border-rose-100", 
+            textClass: "text-rose-700", labelClass: "text-rose-500",
+            iconBg: "bg-white/60", iconColor: "text-rose-600"
+          },
         ].map((stat, i) => (
-          <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
-            <p className="text-2xl font-black text-slate-900">{stat.count}</p>
+          <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
+            <div className="flex justify-between items-start mb-4">
+              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
+              <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
+                <stat.icon size={20} />
+              </div>
+            </div>
+            <p className={`text-4xl font-black ${stat.textClass} tracking-tight`}>{stat.count}</p>
           </div>
         ))}
       </div>

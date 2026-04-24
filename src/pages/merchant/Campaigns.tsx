@@ -71,7 +71,9 @@ export default function MerchantCampaigns() {
           note: formData.get('shippingNote') as string || ""
       },
       isHotCoupon,
-      redeemAddress: formData.get('redeemAddress') as string
+      redeemAddress: formData.get('redeemAddress') as string,
+      totalQuantity: parseInt(formData.get('totalQuantity') as string) || 100,
+      soldQuantity: editingRequest ? editingRequest.soldQuantity : 0
     };
 
     if (editingRequest) {
@@ -269,7 +271,7 @@ export default function MerchantCampaigns() {
                 )}
              </div>
 
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Regular Market Price</label>
                     <div className="relative">
@@ -282,6 +284,13 @@ export default function MerchantCampaigns() {
                     <div className="relative">
                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                        <input type="date" name="expiryDate" defaultValue={editingRequest?.expiryDate} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Total Quantity Available</label>
+                    <div className="relative">
+                       <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                       <input type="number" name="totalQuantity" min="1" defaultValue={editingRequest?.totalQuantity || 100} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
                     </div>
                 </div>
              </div>

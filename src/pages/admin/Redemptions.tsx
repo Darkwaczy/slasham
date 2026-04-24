@@ -44,17 +44,38 @@ export default function AdminRedemptions() {
 
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { label: "Today's Volume", count: "₦142,500", color: "emerald", trend: "Optimal" },
-          { label: "Pending Verification", count: redemptions.filter(r => r.status === 'Pending').length, color: "amber", trend: "High Attention" },
-          { label: "Flagged Transactions", count: redemptions.filter(r => r.status === 'Flagged').length, color: "rose", trend: "Review Required" },
+          { 
+            label: "Today's Volume", count: "₦142,500", trend: "Optimal",
+            icon: CheckCircle,
+            bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
+            textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
+            iconBg: "bg-white/60", iconColor: "text-emerald-600"
+          },
+          { 
+            label: "Pending Verification", count: redemptions.filter(r => r.status === 'Pending').length, trend: "High Attention",
+            icon: Clock,
+            bgClass: "bg-amber-50", borderClass: "border-amber-100", 
+            textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
+            iconBg: "bg-white/60", iconColor: "text-amber-600"
+          },
+          { 
+            label: "Flagged Transactions", count: redemptions.filter(r => r.status === 'Flagged').length, trend: "Review Required",
+            icon: ShieldAlert,
+            bgClass: "bg-rose-50", borderClass: "border-rose-100", 
+            textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
+            iconBg: "bg-white/60", iconColor: "text-rose-600"
+          },
         ].map((stat, i) => (
-          <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
+          <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
+            <div className="flex justify-between items-start mb-4">
+              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
+              <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
+                <stat.icon size={20} />
+              </div>
+            </div>
             <div className="flex items-end gap-2">
-                <p className="text-2xl font-black text-slate-900 mb-1">{stat.count}</p>
-                <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${
-                    stat.color === 'rose' ? 'text-rose-600' : stat.color === 'emerald' ? 'text-emerald-600' : 'text-amber-600'
-                }`}>{stat.trend}</p>
+                <p className={`text-4xl font-black ${stat.textClass} tracking-tight mb-0`}>{stat.count}</p>
+                <p className={`text-[10px] font-black uppercase tracking-widest ${stat.subClass} mb-1.5`}>{stat.trend}</p>
             </div>
           </div>
         ))}

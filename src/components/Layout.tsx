@@ -234,27 +234,27 @@ export default function Layout() {
         {/* Category Navigation - Strip Bar below Search */}
         <div className="border-t border-slate-100 bg-white hidden lg:block overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 h-12 flex items-center justify-between lg:justify-center gap-6 md:gap-8 overflow-x-auto scrollbar-hide text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <Link to="/deals" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <TrendingUp size={14} className="text-teal-500" /> TOP TRENDING
+            <Link to="/deals" className="flex items-center gap-2 text-fuchsia-600 hover:text-fuchsia-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <TrendingUp size={14} className="text-fuchsia-600 transition-colors" /> TOP TRENDING
             </Link>
-            <Link to="/deals/food" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <Utensils size={14} /> FOOD & DRINK
+            <Link to="/deals/food" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Utensils size={14} className="text-orange-500 transition-colors" /> FOOD & DRINK
             </Link>
-            <Link to="/deals/beauty" className="flex items-center gap-2 hover:text-teal-700 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <Heart size={14} /> BEAUTY & SPAS
+            <Link to="/deals/beauty" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Heart size={14} className="text-rose-500 transition-colors" /> BEAUTY & SPAS
             </Link>
-            <Link to="/deals/experiences" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <Sparkles size={14} /> THINGS TO DO
+            <Link to="/deals/experiences" className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Sparkles size={14} className="text-purple-600 transition-colors" /> THINGS TO DO
             </Link>
-            <Link to="/deals/products" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <Package size={14} /> GOODS
+            <Link to="/deals/products" className="flex items-center gap-2 text-sky-500 hover:text-sky-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <ShoppingBag size={14} className="text-sky-500 transition-colors" /> GOODS
             </Link>
-            <Link to="/deals/services" className="flex items-center gap-2 hover:text-teal-600 transition-colors decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0">
-              <Settings size={14} /> LOCAL SERVICES
+            <Link to="/deals/services" className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Settings size={14} className="text-blue-600 transition-colors" /> LOCAL SERVICES
             </Link>
             <div className="h-4 w-px bg-slate-200 mx-2 shrink-0"></div>
-            <Link to="/deals/hot" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors whitespace-nowrap shrink-0">
-              <Zap size={14} className="fill-rose-500" /> HOT COUPONS
+            <Link to="/deals/hot" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group">
+              <Zap size={14} className="fill-rose-500 group-hover:scale-110 transition-transform" /> HOT COUPONS
             </Link>
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function Layout() {
         )}
       </AnimatePresence>
 
-      <main className={`grow ${location.pathname === '/' ? '' : 'pt-24'}`}>
+      <main className={`grow ${location.pathname === '/' ? '' : 'pt-16'}`}>
         <Outlet context={{ city, setCity }} />
       </main>
 
@@ -440,11 +440,13 @@ export default function Layout() {
       </div>
 
       {/* Premium Footer */}
-      <footer className="bg-emerald-950 text-white pt-36 pb-12 mt-24 border-t border-emerald-900 relative overflow-hidden">
+      <footer className="bg-emerald-500 text-white pt-36 pb-12 mt-24 border-t border-emerald-400 relative overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
-          <div className="absolute -bottom-[400px] -left-[200px] w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[120px]"></div>
+          <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-white/10 rounded-full blur-[120px]"></div>
+          <div className="absolute -bottom-[400px] -left-[200px] w-[800px] h-[800px] bg-white/8 rounded-full blur-[120px]"></div>
+          {/* Top white accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-white/60 via-white/30 to-white/60" />
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -455,27 +457,27 @@ export default function Layout() {
               <Link to="/" className="hover:opacity-80 transition-opacity mb-8 inline-block">
                 <Logo size="md" variant="light" />
               </Link>
-              <p className="text-emerald-50/60 text-lg leading-relaxed max-w-sm">
+              <p className="text-white/70 text-lg leading-relaxed max-w-sm">
                 Experience the best of your city for less. Curated premium deals for dining, wellness, and entertainment.
               </p>
             </div>
 
             {/* Accordion Links Columns */}
             <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-12">
-              <div className="border-b border-emerald-900/50 md:border-none pb-4 md:pb-0 mb-4 md:mb-0">
+              <div className="border-b border-white/20 md:border-none pb-4 md:pb-0 mb-4 md:mb-0">
                 <h4 
                   className="font-black text-sm mb-0 md:mb-6 text-white uppercase tracking-[0.2em] flex justify-between items-center cursor-pointer md:cursor-auto"
                   onClick={() => setFooterExpandedSection(prev => prev === 'explore' ? null : 'explore')}
                 >
                   Explore
-                  <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'explore' ? '-rotate-180' : ''}`} />
+                  <ChevronDown size={18} className={`md:hidden text-white/70 transition-transform duration-300 ${footerExpandedSection === 'explore' ? '-rotate-180' : ''}`} />
                 </h4>
                 <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'explore' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
-                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
-                    <li><Link to="/deals?category=dining" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Dining</Link></li>
-                    <li><Link to="/deals?category=wellness" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Wellness & Spa</Link></li>
-                    <li><Link to="/deals?category=events" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Events & Tickets</Link></li>
-                    <li><Link to="/deals?category=getaways" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Getaways</Link></li>
+                <ul className="space-y-4 text-white/70 font-medium font-sans">
+                    <li><Link to="/deals?category=dining" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Dining</Link></li>
+                    <li><Link to="/deals?category=wellness" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Wellness &amp; Spa</Link></li>
+                    <li><Link to="/deals?category=events" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Events &amp; Tickets</Link></li>
+                    <li><Link to="/deals?category=getaways" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Getaways</Link></li>
                   </ul>
                 </div>
               </div>
@@ -489,11 +491,11 @@ export default function Layout() {
                   <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'company' ? '-rotate-180' : ''}`} />
                 </h4>
                 <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'company' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
-                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
-                    <li><Link to="/about" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> About Us</Link></li>
-                    <li><Link to="/careers" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Careers</Link></li>
-                    <li><Link to="/press" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Press</Link></li>
-                    <li><Link to="/contact" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Contact</Link></li>
+                  <ul className="space-y-4 text-white/70 font-medium font-sans">
+                    <li><Link to="/about" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> About Us</Link></li>
+                    <li><Link to="/careers" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Careers</Link></li>
+                    <li><Link to="/press" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Press</Link></li>
+                    <li><Link to="/contact" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Contact</Link></li>
                   </ul>
                 </div>
               </div>
@@ -507,10 +509,10 @@ export default function Layout() {
                   <ChevronDown size={18} className={`md:hidden text-emerald-500 transition-transform duration-300 ${footerExpandedSection === 'business' ? '-rotate-180' : ''}`} />
                 </h4>
                 <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'business' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
-                  <ul className="space-y-4 text-emerald-50/60 font-medium font-sans">
-                    <li><Link to="/merchant/dashboard" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> My Business</Link></li>
-                    <li><Link to="/business/campaign" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> Run a Campaign</Link></li>
-                    <li><Link to="/business/list" className="hover:text-emerald-400 transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span> List Your Business</Link></li>
+                  <ul className="space-y-4 text-white/70 font-medium font-sans">
+                    <li><Link to="/merchant/dashboard" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> My Business</Link></li>
+                    <li><Link to="/business/campaign" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Run a Campaign</Link></li>
+                    <li><Link to="/business/list" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> List Your Business</Link></li>
                   </ul>
                 </div>
               </div>
@@ -520,28 +522,28 @@ export default function Layout() {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-6">
-              <Link to="/privacy" className="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="text-sm text-slate-500 hover:text-white transition-colors">Terms of Service</Link>
-              <Link to="/cookies" className="text-sm text-slate-500 hover:text-white transition-colors">Cookie Policy</Link>
+              <Link to="/privacy" className="text-sm text-white/60 hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="text-sm text-white/60 hover:text-white transition-colors">Terms of Service</Link>
+              <Link to="/cookies" className="text-sm text-white/60 hover:text-white transition-colors">Cookie Policy</Link>
             </div>
             
             <div className="flex items-center gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-teal-500 hover:text-slate-900 hover:border-teal-500 transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all">
                 <Twitter size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-teal-500 hover:text-slate-900 hover:border-teal-500 transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-teal-500 hover:text-slate-900 hover:border-teal-500 transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-teal-500 hover:text-slate-900 hover:border-teal-500 transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all">
                 <Linkedin size={18} />
               </a>
             </div>
           </div>
           
-          <div className="mt-8 text-center md:text-left text-sm text-slate-600">
+          <div className="mt-8 text-center md:text-left text-sm text-white/50">
             <p>© {new Date().getFullYear()} Slasham. All rights reserved.</p>
           </div>
         </div>

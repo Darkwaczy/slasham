@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Truck } from "lucide-react";
+import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Truck, Clock } from "lucide-react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 import FavoriteButton from "../components/FavoriteButton";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals, getPersistentAds } from "../utils/mockPersistence";
+
+function getExpiryLabel(expiryDate?: string): string | null {
+  if (!expiryDate) return null;
+  const diff = new Date(expiryDate).getTime() - Date.now();
+  if (diff <= 0) return "Expired";
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  if (hours < 24) return `${hours}hr${hours !== 1 ? 's' : ''} left`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? 's' : ''} left`;
+}
 
 export default function Deals() {
   const { city } = useOutletContext<{ city: string }>();
@@ -150,6 +160,17 @@ export default function Deals() {
                             </div>
                         )}
                     </div>
+                    {/* Expiry badge */}
+                    {getExpiryLabel(deal.expiryDate) && (
+                      <div className={`absolute bottom-3 left-3 z-10 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow ${
+                        getExpiryLabel(deal.expiryDate)!.includes('hr') || getExpiryLabel(deal.expiryDate) === 'Expired'
+                          ? 'bg-rose-500 text-white animate-pulse'
+                          : 'bg-amber-400 text-slate-900'
+                      }`}>
+                        <Clock size={8} />
+                        {getExpiryLabel(deal.expiryDate)}
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-4 flex flex-col grow">
@@ -167,6 +188,23 @@ export default function Deals() {
                             {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
                         </h3>
                     </div>
+
+                    {deal.totalQuantity && (
+                        <div className="mt-2 mb-2">
+                           <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1.5">
+                              <span className="text-emerald-600">{deal.soldQuantity || 0} Bought</span>
+                              <span className="text-rose-500">{Math.max(0, deal.totalQuantity - (deal.soldQuantity || 0))} Left</span>
+                           </div>
+                           <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                 className={`h-full rounded-full transition-all duration-1000 ${
+                                    (deal.totalQuantity - (deal.soldQuantity || 0)) < 10 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'
+                                 }`}
+                                 style={{ width: `${Math.min(100, ((deal.soldQuantity || 0) / deal.totalQuantity) * 100)}%` }}
+                              />
+                           </div>
+                        </div>
+                    )}
                     
                     <div className="mt-auto pt-3 border-t border-slate-50">
                       <div className="flex items-end justify-between">

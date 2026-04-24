@@ -1,4 +1,4 @@
-import { Search, Clock, CheckCircle2, XCircle, FileText, ChevronRight, MapPin, Tag, Mail, Phone, Trash2, RefreshCw, TrendingUp, Image as ImageIcon, Edit3, Save } from "lucide-react";
+import { Search, Clock, CheckCircle2, FileText, ChevronRight, Tag, Trash2, RefreshCw, TrendingUp, Image as ImageIcon, Edit3, Save, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -14,7 +14,7 @@ export default function AdminDeals() {
   const [selectedRequest, setSelectedRequest] = useState<CampaignRequest | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
-  const [rejectNote, setRejectNote] = useState("");
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Placement States for Approval
@@ -166,15 +166,44 @@ export default function AdminDeals() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { label: "Active Deals", count: deals.length, sub: "Live on Storefront" },
-              { label: "Pending Review", count: pendingRequests.length, sub: "Merchant Inquiries" },
-              { label: "Trending Now", count: deals.filter(d => d.isTrending).length, sub: "Platform Velocity" },
-              { label: "Hot Coupons", count: deals.filter(d => d.isHotCoupon).length, sub: "High Value Claims" },
+              { 
+                label: "Active Deals", count: deals.length, sub: "Live on Storefront",
+                icon: Tag,
+                bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
+                textClass: "text-indigo-700", labelClass: "text-indigo-500", subClass: "text-indigo-600/70",
+                iconBg: "bg-white/60", iconColor: "text-indigo-600"
+              },
+              { 
+                label: "Pending Review", count: pendingRequests.length, sub: "Merchant Inquiries",
+                icon: Clock,
+                bgClass: "bg-amber-50", borderClass: "border-amber-100", 
+                textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
+                iconBg: "bg-white/60", iconColor: "text-amber-600"
+              },
+              { 
+                label: "Trending Now", count: deals.filter(d => d.isTrending).length, sub: "Platform Velocity",
+                icon: TrendingUp,
+                bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
+                textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
+                iconBg: "bg-white/60", iconColor: "text-emerald-600"
+              },
+              { 
+                label: "Hot Coupons", count: deals.filter(d => d.isHotCoupon).length, sub: "High Value Claims",
+                icon: Zap,
+                bgClass: "bg-rose-50", borderClass: "border-rose-100", 
+                textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
+                iconBg: "bg-white/60", iconColor: "text-rose-600"
+              },
             ].map((stat, i) => (
-              <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
-                <p className="text-2xl font-black text-slate-900 mb-1">{stat.count}</p>
-                <p className="text-[11px] text-slate-500 font-medium">{stat.sub}</p>
+              <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
+                <div className="flex justify-between items-start mb-4">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
+                  <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
+                    <stat.icon size={20} />
+                  </div>
+                </div>
+                <p className={`text-4xl font-black ${stat.textClass} tracking-tight mb-2`}>{stat.count}</p>
+                <p className={`text-[11px] font-bold ${stat.subClass}`}>{stat.sub}</p>
               </div>
             ))}
           </div>

@@ -130,10 +130,10 @@ export default function Auth() {
       <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] border border-slate-100">
         
         {/* Left: Visual/Marketing Side */}
-        <div className="hidden lg:block relative bg-slate-900 p-16 overflow-hidden">
-          <div className="absolute inset-0 bg-emerald-500/10 mix-blend-overlay"></div>
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px]"></div>
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
+        <div className="hidden lg:block relative bg-emerald-500 p-16 overflow-hidden">
+          <div className="absolute inset-0 bg-white/5 mix-blend-overlay"></div>
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-[100px]"></div>
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-700/40 rounded-full blur-[100px]"></div>
           
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
@@ -142,9 +142,9 @@ export default function Auth() {
               </div>
               <h2 className="text-5xl font-bold text-white leading-[1.1] tracking-tight mb-6">
                 Join the elite <br />
-                <span className="text-emerald-400 italic">savers club.</span>
+                <span className="text-white/80 italic font-black">savers club.</span>
               </h2>
-              <p className="text-slate-400 text-xl leading-relaxed max-w-md">
+              <p className="text-white/80 text-xl leading-relaxed max-w-md">
                 Experience the best of Lagos and Abuja for less. Premium deals, seamless redemption, zero friction.
               </p>
             </div>

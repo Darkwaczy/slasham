@@ -24,8 +24,8 @@ export default function MerchantDashboard() {
 
   const stats = [
     { label: "Total Revenue", value: "₦1,240,000", change: "+12.5%", icon: <DollarSign size={20} />, color: "emerald" },
-    { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "blue" },
-    { label: "New Customers", value: "142", change: "+18%", icon: <Users size={20} />, color: "purple" },
+    { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "indigo" },
+    { label: "New Customers", value: "142", change: "+18%", icon: <Users size={20} />, color: "rose" },
     { label: "Conversion Rate", value: "24.8%", change: "+2.4%", icon: <TrendingUp size={20} />, color: "amber" },
   ];
 
@@ -108,22 +108,38 @@ export default function MerchantDashboard() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all group"
+            className={`p-7 rounded-[2.5rem] border shadow-sm transition-all group relative overflow-hidden hover:-translate-y-1 duration-300 ${
+                stat.color === 'emerald' ? 'bg-emerald-50 border-emerald-100' :
+                stat.color === 'indigo' ? 'bg-indigo-50 border-indigo-100' :
+                stat.color === 'rose' ? 'bg-rose-50 border-rose-100' : 'bg-amber-50 border-amber-100'
+            }`}
           >
             <div className="flex items-center justify-between mb-6">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 ${
-                  stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
-                  stat.color === 'blue' ? 'bg-blue-50 text-blue-600' :
-                  stat.color === 'purple' ? 'bg-purple-50 text-purple-600' : 'bg-amber-50 text-amber-600'
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 backdrop-blur-sm shadow-sm ${
+                  stat.color === 'emerald' ? 'bg-white/60 text-emerald-600' :
+                  stat.color === 'indigo' ? 'bg-white/60 text-indigo-600' :
+                  stat.color === 'rose' ? 'bg-white/60 text-rose-600' : 'bg-white/60 text-amber-600'
               }`}>
                 {stat.icon}
               </div>
-              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${stat.change.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                {stat.change}
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
+                  stat.change.startsWith('+') ? 
+                  (stat.color === 'emerald' ? 'text-emerald-700 bg-emerald-100/50' : 'text-emerald-600 bg-emerald-50') : 
+                  'text-slate-500 bg-slate-50'
+              }`}>
+                {stat.change} <ArrowUpRight size={12} className="inline-block" />
               </span>
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-            <p className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+            <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${
+                stat.color === 'emerald' ? 'text-emerald-500' :
+                stat.color === 'indigo' ? 'text-indigo-500' :
+                stat.color === 'rose' ? 'text-rose-500' : 'text-amber-500'
+            }`}>{stat.label}</p>
+            <p className={`text-4xl font-black tracking-tighter ${
+                stat.color === 'emerald' ? 'text-emerald-700' :
+                stat.color === 'indigo' ? 'text-indigo-700' :
+                stat.color === 'rose' ? 'text-rose-700' : 'text-amber-700'
+            }`}>{stat.value}</p>
           </motion.div>
         ))}
       </div>

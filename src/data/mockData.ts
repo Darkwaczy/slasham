@@ -1,9 +1,15 @@
 const now = new Date();
-const in3Days = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
-const in10Days = new Date(now.getTime() + (10 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in4hrs = new Date(now.getTime() + (4 * 60 * 60 * 1000)).toISOString();
 const in1Day = new Date(now.getTime() + (1 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in3Days = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in7Days = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in10Days = new Date(now.getTime() + (10 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in14Days = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+const in30Days = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
-export const deals = [
+const expiryPool = [in4hrs, in1Day, in3Days, in7Days, in10Days, in14Days, in30Days];
+
+const rawDeals = [
   { 
     id: 1, 
     title: "Iya Basira's Kitchen", 
@@ -15,6 +21,11 @@ export const deals = [
     tag: "Selling Fast",
     isHotCoupon: true,
     description: "Experience the best local delicacies in Abuja. Perfect for a weekend hangout.",
+    whatYouGet: [
+      { title: "Full Amala & Ewedu Platter", description: "Standard serving with assorted meat." },
+      { title: "Complimentary Soft Drink", description: "Your choice of Coke, Fanta or Sprite." },
+      { title: "Reserved Seating", description: "Priority seating for Slasham voucher holders." }
+    ],
     validity: "Expires 14 days after purchase.",
     expiryDate: in3Days
   },
@@ -29,6 +40,11 @@ export const deals = [
     tag: "50% Off",
     isHotCoupon: true,
     description: "Full body massage + facial. Unwind with professional therapists.",
+    whatYouGet: [
+      { title: "60-Minute Deep Tissue Massage", description: "Focused on stress relief and muscle tension." },
+      { title: "Organic Glow Facial", description: "Using premium natural ingredients." },
+      { title: "Complimentary Herbal Tea", description: "Served in our relaxation lounge." }
+    ],
     validity: "Valid on weekdays only.",
     expiryDate: in1Day
   },
@@ -43,6 +59,11 @@ export const deals = [
     tag: "BOGO",
     isHotCoupon: true,
     description: "Buy 1 cocktail pitcher, get 1 free shisha pot. Stunning views.",
+    whatYouGet: [
+      { title: "1L Cocktail Pitcher", description: "Choose from our signature mixology menu." },
+      { title: "Premium Shisha Pot", description: "Complimentary with your cocktail purchase." },
+      { title: "Rooftop Access", description: "Enjoy the best sunset views in Maitama." }
+    ],
     validity: "Valid on Fridays.",
     expiryDate: in10Days
   },
@@ -154,3 +175,35 @@ export const deals = [
   { id: 47, title: "Wuse Spa Hub", location: "Wuse 2, Abuja", price: "₦7,500", original: "₦20,000", image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=70", category: "Spa", tag: "HOT", isHotCoupon: true, description: "Signature stress relief" },
   { id: 48, title: "Lekki Food Tours", location: "Lekki, Lagos", price: "₦6,000", original: "₦18,000", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=70", category: "Food", tag: "HOT", isHotCoupon: true, description: "Curated street food experience" },
 ];
+
+export const deals = rawDeals.map((deal, index) => {
+  const totalQuantity = 50 + (index % 10) * 10;
+  const soldQuantity = Math.floor(totalQuantity * (0.3 + (index % 5) * 0.15));
+  return {
+    ...deal,
+    totalQuantity,
+    soldQuantity,
+    expiryDate: expiryPool[index % expiryPool.length],
+    // Coupon mechanics fields
+    couponFaceValue: deal.original, // the discount value applied at the merchant
+    minimumSpend: (() => {
+      // minimum spend = original price × 1.4 (merchant threshold to unlock the coupon)
+      const faceVal = parseInt((deal.original || '0').replace(/\D/g, '')) || 0;
+      const minSpend = Math.round(faceVal * 1.4 / 1000) * 1000; // round to nearest ₦1000
+      return `₦${minSpend.toLocaleString()}`;
+    })(),
+    dealExplanation: (() => {
+      const faceVal = deal.original;
+      const minSpendAmt = Math.round((parseInt((deal.original || '0').replace(/\D/g, '')) || 0) * 1.4 / 1000) * 1000;
+      const fmtMin = `₦${minSpendAmt.toLocaleString()}`;
+      const categories: {[key: string]: string} = {
+        'Food & Drink': `Coupon for 1 meal at ${deal.price}. Must purchase a 2nd meal at full price on redemption.`,
+        'Beauty & Spas': `Valid for 1 full session. Compulsory product purchase of min ${fmtMin} at venue.`,
+        'Goods': `Coupon redeems 1 item. Add a second item at full price for the same trip.`,
+        'Local Services': `Discount applies to labor only. Parts must be purchased separately from merchant.`,
+        'Things To Do': `Includes entry for 1 person. Drinks/Extras ordered separately at menu price (min ${fmtMin}).`
+      };
+      return categories[deal.category] || `Coupon worth ${faceVal} on spend of ${fmtMin}. Terms and conditions apply.`;
+    })(),
+  };
+});

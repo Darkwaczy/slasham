@@ -6,6 +6,8 @@ import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
 import { SUPPORTED_LOCATIONS } from "../utils/locations";
 import FavoriteButton from "./FavoriteButton";
+import DealCard from "./DealCard";
+
 
 export default function Home() {
   const { city, setCity } = useOutletContext<{ city: string; setCity: (c: string) => void }>();
@@ -41,21 +43,21 @@ export default function Home() {
       title: "50% OFF OASIS WELLNESS SPA",
       subtitle: "Weekend Pamper Special",
       code: "RELAX50",
-      color: "from-emerald-900/95 via-emerald-900/80 to-transparent",
+      badge: "💆 Spa & Wellness",
     },
     {
       image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1600&q=80",
       title: "2-FOR-1 FINE DINING",
       subtitle: "At Ikeja's Top Restaurants",
       code: "GOURMETLAGOS",
-      color: "from-rose-950/95 via-rose-900/80 to-transparent",
+      badge: "🍽️ Dining & Food",
     },
     {
       image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=80",
       title: "LUXURY GETAWAY FLASH SALE",
       subtitle: "Private Cabanas at Tarkwa Bay",
       code: "ESCAPE20",
-      color: "from-sky-950/95 via-blue-900/80 to-transparent",
+      badge: "🏖️ Travel & Escape",
     }
   ];
 
@@ -65,50 +67,86 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#FAFAFA] text-slate-900 font-sans overflow-x-hidden">
+    <div className="bg-white text-slate-900 font-sans overflow-x-hidden">
       
       {/* 1. PREMIUM AD BILLBOARD (Auto-rotating Hero) */}
-      <section className="bg-slate-950 relative overflow-hidden h-[400px] md:h-[500px]">
+      <section className="relative overflow-hidden h-[480px] md:h-[560px]" style={{ background: '#0d2e24' }}>
+        {/* Grain texture overlay for depth */}
+        <div className="absolute inset-0 opacity-[0.04] z-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`, backgroundSize: '200px' }} />
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentAdIndex}
-            initial={{ opacity: 0, scale: 1.02 }}
+            initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1 }}
             className="absolute inset-0"
           >
-            <img src={AD_BANNERS[currentAdIndex].image} className="absolute inset-0 w-full h-full object-cover opacity-60" />
-            <div className={`absolute inset-0 bg-linear-to-r md:w-3/4 ${AD_BANNERS[currentAdIndex].color}`}></div>
-            <div className={`absolute inset-0 bg-slate-950/40 md:hidden`}></div>
-            
-            <div className="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-6 lg:px-12">
-               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="inline-flex py-1.5 px-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] mb-6 w-max shadow-xl">
-                 🔥 {AD_BANNERS[currentAdIndex].subtitle}
-               </motion.div>
-               <motion.h2 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="text-4xl md:text-5xl lg:text-7xl font-black text-white w-full max-w-3xl leading-[1.05] tracking-tight mb-8 drop-shadow-2xl">
-                 {AD_BANNERS[currentAdIndex].title}
-               </motion.h2>
-               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap items-center gap-4">
-                 <div className="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl flex items-center gap-4">
-                   Use Promo Code
-                   <span className="text-white bg-slate-900 px-3 py-1.5 rounded-lg text-sm tracking-widest">{AD_BANNERS[currentAdIndex].code}</span>
-                 </div>
-               </motion.div>
+            {/* Photo — full bleed, slightly dimmed */}
+            <img src={AD_BANNERS[currentAdIndex].image} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+
+            {/* Brand-green fadeout — left to transparent, using #3EB28F as reference */}
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, #0d2e24 0%, #1a5c3a 30%, #3EB28F44 65%, transparent 100%)' }} />
+            {/* Mobile: full dark overlay */}
+            <div className="absolute inset-0 md:hidden" style={{ background: 'linear-gradient(to bottom, #0d2e2488 0%, #0d2e24cc 100%)' }} />
+
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col justify-center max-w-7xl mx-auto px-6 lg:px-12 z-20">
+              {/* Category badge */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                className="inline-flex py-1.5 px-4 rounded-full border border-[#3EB28F]/40 text-[#3EB28F] text-[10px] font-black uppercase tracking-[0.2em] mb-4 w-max"
+                style={{ background: 'rgba(62,178,143,0.12)', backdropFilter: 'blur(8px)' }}
+              >
+                {AD_BANNERS[currentAdIndex].badge}
+              </motion.div>
+
+              {/* Subtitle */}
+              <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-[#3EB28F] font-black text-xs uppercase tracking-[0.3em] mb-3">
+                🔥 {AD_BANNERS[currentAdIndex].subtitle}
+              </motion.p>
+
+              {/* Title */}
+              <motion.h2
+                initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
+                className="text-4xl md:text-5xl lg:text-7xl font-black text-white w-full max-w-3xl leading-none tracking-tight mb-8 drop-shadow-2xl"
+              >
+                {AD_BANNERS[currentAdIndex].title}
+              </motion.h2>
+
+              {/* CTA row */}
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap items-center gap-4">
+                <div className="bg-white text-slate-900 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl flex items-center gap-4">
+                  Use Promo Code
+                  <span className="text-white px-3 py-1.5 rounded-lg text-sm tracking-widest font-black" style={{ background: '#3EB28F' }}>
+                    {AD_BANNERS[currentAdIndex].code}
+                  </span>
+                </div>
+                {/* Live urgency stat */}
+                <div className="hidden md:flex items-center gap-2 px-4 py-3 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest" style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
+                  <span className="w-2 h-2 rounded-full bg-[#3EB28F] animate-pulse shadow-[0_0_8px_#3EB28F]" />
+                  1,240+ people browsing now
+                </div>
+              </motion.div>
             </div>
           </motion.div>
         </AnimatePresence>
 
         {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
            {AD_BANNERS.map((_, i) => (
-             <button 
-               key={i} 
-               onClick={() => setCurrentAdIndex(i)} 
-               className={`h-1.5 rounded-full transition-all duration-500 ${i === currentAdIndex ? 'w-12 bg-white' : 'w-4 bg-white/30 hover:bg-white/50'}`} 
+             <button
+               key={i}
+               onClick={() => setCurrentAdIndex(i)}
+               className={`h-1.5 rounded-full transition-all duration-500 ${i === currentAdIndex ? 'w-12' : 'w-4 opacity-30 hover:opacity-60'}`}
+               style={{ background: i === currentAdIndex ? '#3EB28F' : '#ffffff' }}
              />
            ))}
         </div>
+
+        {/* Bottom brand-green glow edge */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 z-20" style={{ background: 'linear-gradient(to right, #3EB28F, #1a5c3a, #3EB28F)' }} />
       </section>
 
       {/* 2. TRENDING DEALS TICKER (Compact Horizontal Cards) */}
@@ -187,21 +225,23 @@ export default function Home() {
       </section>
 
       {/* 3. TRENDING DEALS (Expanded High Fidelity Container) */}
-      <section className="pt-2 pb-12 px-4 md:px-10 bg-slate-50/50 -mt-2">
+      <section className="pt-2 pb-12 px-4 md:px-10 bg-white -mt-2">
         <div className="max-w-[1550px] mx-auto bg-white rounded-[3.5rem] shadow-[0_10px_60px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          <div className="p-12 md:p-16 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div>
-              <div className="flex items-center gap-3 text-slate-900 font-black mb-2">
-                <TrendingUp size={24} className="text-emerald-500" />
-                <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">Trending Deals</h2>
-              </div>
-              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.3em] pl-1">Over 60 fresh experiences added today</p>
-            </div>
+          <div className="p-12 md:p-16 border-b border-emerald-100/70 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #D946EF 0%, #7C3AED 100%)' }}>
+                    <TrendingUp size={20} />
+                  </div>
+                  <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">Trending Deals</h2>
+                </div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] pl-1" style={{ color: '#3EB28F' }}>Over 60 fresh experiences added today</p>
+               </div>
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div 
                   onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-                  className="flex items-center gap-3 bg-slate-50 px-6 py-3.5 rounded-2xl border border-slate-200/60 cursor-pointer hover:bg-slate-100 transition-colors z-20"
+                  className="flex items-center gap-3 bg-white/70 px-6 py-3.5 rounded-2xl border border-emerald-200/60 cursor-pointer hover:bg-white transition-colors z-20"
                 >
                   <MapPin size={18} className="text-teal-600" />
                   <span className="text-xs font-black uppercase tracking-widest text-slate-700">{city}</span>
@@ -240,47 +280,43 @@ export default function Home() {
               </Link>
             </div>
           </div>
-
           <div className="p-12 md:p-16">
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-10 gap-y-16">
-               {trendingDeals.map((deal, i) => (
-                 <motion.div key={i} whileHover={{ y: -8 }} className="group">
-                    <Link to={`/deal/${deal.id}`}>
-                      <div className="aspect-4/3 rounded-4xl overflow-hidden relative mb-6 border border-slate-100 shadow-sm bg-white">
-                         <div className="absolute top-3 left-3 z-10 px-3 py-1.5 bg-[#4A7266]/90 text-white text-[9px] font-black rounded-lg uppercase tracking-widest shadow-xl">
-                           {deal.tag || "DEAL"}
-                         </div>
-                         <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
-                         <img src={deal.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"  onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
-                      </div>
-                      <div className="space-y-3 px-1">
-                         <h4 className="text-base font-black text-slate-900 leading-none uppercase tracking-tight truncate group-hover:text-teal-600 transition-colors">{deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}</h4>
-                         <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">
-                           <MapPin size={12} className="text-teal-500" /> {deal.location}
-                         </div>
-                         <div className="flex items-center gap-0.5 text-amber-400 mb-3">
-                            {[1,2,3,4,5].map(star => <Star key={star} size={12} className="fill-amber-400" />)}
-                            <span className="text-[10px] font-black text-slate-400 ml-1.5">(421)</span>
-                         </div>
-                         <div className="flex items-baseline gap-2.5">
-                            <span className="text-2xl font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
-                            <span className="text-sm font-bold text-slate-300 line-through">{formatPrice(deal.original)}</span>
-                         </div>
-                         <div className="flex items-center gap-3 pt-1">
-                            <span className="text-[#3EB28F] text-[11px] font-black uppercase tracking-widest">
-                                {Math.round((1 - (parseInt(deal.price.replace(/\D/g,'')) / parseInt(deal.original.replace(/\D/g,'')))) * 100)}% OFF
-                            </span>
-                            <span className="text-slate-300 text-[11px] font-black uppercase tracking-widest">Limited Time</span>
-                         </div>
-                      </div>
-                    </Link>
-                 </motion.div>
+            <motion.div 
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              variants={{
+                hidden: { opacity: 0 },
+                show: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"
+            >
+               {trendingDeals.map((deal) => (
+                 <DealCard 
+                   key={deal.id}
+                   id={deal.id}
+                   title={deal.title}
+                   price={deal.price}
+                   original={deal.original}
+                   image={deal.image}
+                   category={deal.category}
+                   location={deal.location}
+                   expiryDate={deal.expiryDate}
+                   totalQuantity={deal.totalQuantity}
+                   soldQuantity={deal.soldQuantity}
+                   dealExplanation={deal.dealExplanation}
+                 />
                ))}
-            </div>
+            </motion.div>
           </div>
           
-          <div className="p-8 md:p-12 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
-             <Link to="/deals" className="px-12 py-4 bg-white border border-slate-200 rounded-full font-black text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95 uppercase tracking-widest text-[10px]">
+          <div className="p-8 md:p-12 bg-emerald-100/20 border-t border-emerald-100/50 flex items-center justify-center">
+             <Link to="/deals" className="px-12 py-4 bg-white border border-emerald-200/60 rounded-full font-black text-emerald-700 hover:bg-emerald-500 hover:text-white transition-all shadow-sm active:scale-95 uppercase tracking-widest text-[10px]">
                View All Deals
              </Link>
           </div>
@@ -423,7 +459,25 @@ export default function Home() {
                          </div>
                          <div className="space-y-2 px-1">
                             <h4 className="text-base font-black text-slate-900 uppercase tracking-tighter mb-1 line-clamp-1 group-hover:text-rose-600 transition-colors">{p.title.includes(' - ') ? p.title.split(' - ')[1] : p.title}</h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.category}</p>
+                            <div className="flex items-center justify-between">
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.category}</p>
+                            </div>
+                            {p.totalQuantity && (
+                               <div className="pt-1">
+                                  <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1.5">
+                                     <span className="text-emerald-600">{p.soldQuantity || 0} Bought</span>
+                                     <span className="text-rose-500">{Math.max(0, p.totalQuantity - (p.soldQuantity || 0))} Left</span>
+                                  </div>
+                                  <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                                     <div 
+                                        className={`h-full rounded-full transition-all duration-1000 ${
+                                           (p.totalQuantity - (p.soldQuantity || 0)) < 10 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'
+                                        }`}
+                                        style={{ width: `${Math.min(100, ((p.soldQuantity || 0) / p.totalQuantity) * 100)}%` }}
+                                     />
+                                  </div>
+                               </div>
+                            )}
                          </div>
                        </Link>
                     </motion.div>

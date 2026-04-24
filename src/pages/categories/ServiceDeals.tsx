@@ -1,12 +1,16 @@
-import React from "react";
 import { Settings } from "lucide-react";
 import DealCard from "../../components/DealCard";
 
+const now = new Date();
+const in8hrs   = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
+const in6Days  = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
 export default function ServiceDeals() {
   const deals = [
-    { id: 13, title: "Professional Car Detailing", price: "₦15,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=400&q=60" },
-    { id: 14, title: "Home Deep Cleaning Service", price: "₦20,000", original: "₦35,000", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?auto=format&fit=crop&w=400&q=60" },
-    { id: 15, title: "1-on-1 Personal Training Session", price: "₦10,000", original: "₦18,000", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=400&q=60" },
+    { id: 13, title: "Professional Car Detailing",     price: "₦15,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=400&q=60", totalQuantity: 80,  soldQuantity: 62, expiryDate: in8hrs   },
+    { id: 14, title: "Home Deep Cleaning Service",     price: "₦20,000", original: "₦35,000", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?auto=format&fit=crop&w=400&q=60", totalQuantity: 50,  soldQuantity: 47, expiryDate: in6Days  },
+    { id: 15, title: "1-on-1 Personal Training Session", price: "₦10,000", original: "₦18,000", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=400&q=60", totalQuantity: 100, soldQuantity: 34, expiryDate: in30Days },
   ];
 
   return (
@@ -23,13 +27,16 @@ export default function ServiceDeals() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {deals.map((deal) => (
-          <DealCard 
-            key={deal.id} 
-            id={deal.id} 
-            title={deal.title} 
-            price={deal.price} 
-            original={deal.original} 
-            image={deal.image} 
+          <DealCard
+            key={deal.id}
+            id={deal.id}
+            title={deal.title}
+            price={deal.price}
+            original={deal.original}
+            image={deal.image}
+            totalQuantity={deal.totalQuantity}
+            soldQuantity={deal.soldQuantity}
+            expiryDate={deal.expiryDate}
           />
         ))}
       </div>

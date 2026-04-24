@@ -103,28 +103,38 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="p-7 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all group relative overflow-hidden"
+            className={`p-7 rounded-[2.5rem] border shadow-sm transition-all group relative overflow-hidden hover:-translate-y-1 duration-300 ${
+                stat.color === 'indigo' ? 'bg-indigo-50 border-indigo-100' :
+                stat.color === 'emerald' ? 'bg-emerald-50 border-emerald-100' :
+                stat.color === 'amber' ? 'bg-amber-50 border-amber-100' : 'bg-rose-50 border-rose-100'
+            }`}
           >
             <div className="relative z-10 flex justify-between items-start mb-6">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 shadow-lg ${
-                stat.color === 'indigo' ? 'bg-indigo-600 text-white shadow-indigo-200' :
-                stat.color === 'emerald' ? 'bg-emerald-500 text-white shadow-emerald-200' :
-                stat.color === 'amber' ? 'bg-amber-500 text-white shadow-amber-200' : 'bg-rose-500 text-white shadow-rose-200'
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center backdrop-blur-sm transition-all group-hover:scale-110 shadow-sm ${
+                stat.color === 'indigo' ? 'bg-white/60 text-indigo-600' :
+                stat.color === 'emerald' ? 'bg-white/60 text-emerald-600' :
+                stat.color === 'amber' ? 'bg-white/60 text-amber-600' : 'bg-white/60 text-rose-600'
               }`}>
                 {stat.icon}
               </div>
-              <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg ${stat.trend.startsWith('+') ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
+              <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg ${
+                  stat.trend.startsWith('+') ? 
+                  (stat.color === 'emerald' ? 'text-emerald-700 bg-emerald-100/50' : 'text-emerald-600 bg-emerald-50') : 
+                  'text-rose-600 bg-rose-50'
+              }`}>
                 {stat.trend} <ArrowUpRight size={12} />
               </div>
             </div>
-            <h3 className="relative z-10 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-2">{stat.title}</h3>
-            <p className="relative z-10 text-3xl font-black text-slate-900 tracking-tighter">{stat.count}</p>
-            
-            <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity ${
-                stat.color === 'indigo' ? 'bg-indigo-600' :
-                stat.color === 'emerald' ? 'bg-emerald-500' :
-                stat.color === 'amber' ? 'bg-amber-500' : 'bg-rose-500'
-            }`} />
+            <h3 className={`relative z-10 text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${
+                stat.color === 'indigo' ? 'text-indigo-500' :
+                stat.color === 'emerald' ? 'text-emerald-500' :
+                stat.color === 'amber' ? 'text-amber-500' : 'text-rose-500'
+            }`}>{stat.title}</h3>
+            <p className={`relative z-10 text-4xl font-black tracking-tighter ${
+                stat.color === 'indigo' ? 'text-indigo-700' :
+                stat.color === 'emerald' ? 'text-emerald-700' :
+                stat.color === 'amber' ? 'text-amber-700' : 'text-rose-700'
+            }`}>{stat.count}</p>
           </motion.div>
         ))}
       </div>

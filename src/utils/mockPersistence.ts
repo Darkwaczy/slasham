@@ -14,6 +14,8 @@ export interface Deal {
   description: string;
   validity: string;
   expiryDate?: string;
+  totalQuantity?: number;
+  soldQuantity?: number;
   shippingInfo?: { enabled: boolean; fee: string; note: string };
   isHotCoupon?: boolean;
   isTrending?: boolean;
@@ -23,6 +25,9 @@ export interface Deal {
   unlockNote?: string;
   redeemAddress?: string;
   requestId?: string;
+  minimumSpend?: string;    // min amount customer must spend at merchant to redeem
+  couponFaceValue?: string; // face value of the coupon discount applied at merchant
+  dealExplanation?: string; // detailed deal mechanic (e.g. "Buy 1 get 2nd at 50%")
 }
 
 const STATIC_ADS = [
@@ -90,7 +95,14 @@ export const getPersistentDeals = (): Deal[] => {
     return STATIC_DEALS as Deal[];
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    // Migration: if stored deals are missing inventory fields, re-seed from static
+    const needsMigration = parsed.length > 0 && parsed[0].totalQuantity === undefined;
+    if (needsMigration) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATIC_DEALS));
+      return STATIC_DEALS as Deal[];
+    }
+    return parsed;
   } catch {
     return STATIC_DEALS as Deal[];
   }
