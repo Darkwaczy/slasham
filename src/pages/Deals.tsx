@@ -1,21 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { MapPin, Zap, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, ArrowRight, Star, Truck, Clock } from "lucide-react";
+import { MapPin, Utensils, Store, Sparkles, Ticket, ShoppingBag, TrendingUp, Briefcase, Zap } from "lucide-react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
-import FavoriteButton from "../components/FavoriteButton";
+import DealCard from "../components/DealCard";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals, getPersistentAds } from "../utils/mockPersistence";
 
-function getExpiryLabel(expiryDate?: string): string | null {
-  if (!expiryDate) return null;
-  const diff = new Date(expiryDate).getTime() - Date.now();
-  if (diff <= 0) return "Expired";
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  if (hours < 24) return `${hours}hr${hours !== 1 ? 's' : ''} left`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days !== 1 ? 's' : ''} left`;
-}
+
 
 export default function Deals() {
   const { city } = useOutletContext<{ city: string }>();
@@ -45,69 +37,81 @@ export default function Deals() {
 
   const filteredDeals = allDeals.filter(d => d.location.toLowerCase().includes(city.toLowerCase()));
 
-  const formatPrice = (p: string) => {
-    const digits = p.replace(/\D/g, '');
-    return `₦${Number(digits).toLocaleString()}`;
-  };
+
 
   return (
     <div className="bg-slate-50 min-h-screen pt-0">
-      <section className="px-4 lg:px-6 mb-6 -mt-12 relative z-10">
-        <div className="w-full relative rounded-3xl overflow-hidden bg-slate-100 min-h-[220px] lg:min-h-[200px] flex items-center border border-slate-200 shadow-sm">
+      <section className="px-4 lg:px-6 mb-8 -mt-12 relative z-10">
+        <div className="w-full relative rounded-4xl overflow-hidden bg-yellow-400 min-h-[200px] md:min-h-[260px] flex items-center border-4 border-white shadow-2xl">
+          {/* Brand Yellow Fade Out to Dark */}
+          <div className="absolute inset-0 bg-linear-to-r from-yellow-400 via-yellow-400 to-slate-950 opacity-95 lg:opacity-100" />
+          
+          {/* Patterns */}
+          <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] bg-size-[15px_15px]" />
+
           <AnimatePresence mode="wait">
             <motion.div 
               key={currentAdIndex}
-              initial={{ opacity: 0, filter: "blur(5px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(5px)" }}
-              transition={{ duration: 0.6 }}
-              className={`absolute inset-0 w-full h-full ${ads[currentAdIndex]?.bg || 'bg-slate-100'} flex items-center`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="relative z-10 p-5 md:p-8 flex items-center justify-between w-full gap-8"
             >
-              <div className="absolute inset-0 opacity-[0.07] pointer-events-none bg-cover bg-center" style={{ backgroundImage: `url(${ads[currentAdIndex]?.pattern})` }}></div>
-              <div className="relative z-10 p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between w-full gap-8">
-                <div className="flex-1 text-center lg:text-left pt-6">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 mb-4 border border-white backdrop-blur-md">Featured Promotion</span>
-                    <h2 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-[0.9] mb-4 uppercase italic">
-                      {ads[currentAdIndex]?.title}<br/>
-                      <span className="text-indigo-600 drop-shadow-sm">{ads[currentAdIndex]?.subtitle}</span>
+                <div className="flex-1 text-center lg:text-left space-y-2.5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 text-[7px] font-black uppercase tracking-[0.25em] text-yellow-400">
+                       <Zap size={8} className="fill-yellow-400" /> Flash Promo
+                    </span>
+                    <h2 className="text-2xl lg:text-5xl font-black text-slate-950 tracking-tighter leading-[0.85] uppercase italic drop-shadow-sm">
+                      {ads[currentAdIndex]?.title} <span className="text-white">{ads[currentAdIndex]?.subtitle}</span>
                     </h2>
-                    <p className="text-slate-500 font-medium text-lg lg:text-xl max-w-lg mb-8 leading-relaxed">
+                    <p className="text-slate-800 font-bold text-xs lg:text-base max-w-md leading-tight opacity-90">
                       {ads[currentAdIndex]?.desc}
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                    
+                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-0.5">
                        <Link 
                          to="/deals" 
-                         className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-black transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+                         className="px-6 py-3 bg-slate-950 text-white rounded-xl font-black uppercase tracking-widest text-[8px] hover:scale-105 transition-all shadow-xl active:scale-95"
                        >
-                         Unlock Deals
+                         Unlock
                        </Link>
-                       <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROMO</span>
-                          <div className={`px-6 py-2.5 rounded-xl text-white text-xs font-black uppercase tracking-widest shadow-lg ${ads[currentAdIndex]?.codeBg}`}>
+                       <div className="flex items-center gap-2.5 bg-white/30 backdrop-blur-md p-1 rounded-lg border border-white/40">
+                          <span className="text-[7px] font-black text-slate-900 uppercase tracking-widest pl-2">PROMO</span>
+                          <div className={`px-4 py-2 rounded-md text-white text-[9px] font-black uppercase tracking-widest shadow-lg ${ads[currentAdIndex]?.codeBg}`}>
                             {ads[currentAdIndex]?.code}
                           </div>
                        </div>
                     </div>
                 </div>
-                <div className="flex-1 flex justify-center lg:justify-end gap-6 relative h-[140px] items-center">
-                   <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform -rotate-6 z-0 border border-slate-100 flex items-center justify-center overflow-hidden rounded-md">
-                      <img src={ads[currentAdIndex]?.img1} className="w-full h-full object-cover rounded-sm" alt="" />
-                   </div>
-                   <div className="w-32 lg:w-40 aspect-square bg-white p-1.5 shadow-xl transform rotate-3 z-10 border border-slate-100 -ml-16 lg:-ml-20 flex items-center justify-center overflow-hidden rounded-md">
-                      <img src={ads[currentAdIndex]?.img2} className="w-full h-full object-cover rounded-sm" alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                   </div>
+
+                {/* COMPACT HUMAN ELEMENT */}
+                <div className="relative hidden lg:flex justify-end items-center h-[200px] shrink-0 -translate-y-2">
+                   <motion.div 
+                     initial={{ scale: 0.9, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     className="relative w-[320px] h-[200px]"
+                   >
+                      <img 
+                        src="/assets/32923.jpg" 
+                        className="w-full h-full object-cover rounded-3xl drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] border-2 border-white/20" 
+                        alt="Shopping" 
+                      />
+                      <div className="absolute -top-2 -right-2 bg-emerald-500 text-white p-2.5 rounded-xl shadow-xl border-2 border-white rotate-12 z-20">
+                         <ShoppingBag size={16} />
+                      </div>
+                   </motion.div>
                 </div>
-              </div>
             </motion.div>
           </AnimatePresence>
 
           {/* Modern Progress Indicators */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+          <div className="absolute bottom-5 left-1/2 lg:left-12 -translate-x-1/2 lg:translate-x-0 flex items-center gap-2 z-20">
              {ads.map((_, i) => (
                <button 
                  key={i} 
                  onClick={() => setCurrentAdIndex(i)} 
-                 className={`h-1.5 rounded-full transition-all duration-300 ${i === currentAdIndex ? `w-8 bg-slate-900` : 'w-2 bg-slate-400/30'}`} 
+                 className={`h-1 rounded-full transition-all duration-500 ${i === currentAdIndex ? `w-10 bg-slate-950` : 'w-2 bg-slate-950/20 hover:bg-slate-950/40'}`} 
                />
              ))}
           </div>
@@ -138,91 +142,29 @@ export default function Deals() {
           </div>
         </aside>
 
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-8">
+        {/* Main Content Area */}
+        <div className="flex-1 px-8 lg:px-24 py-12 max-w-[1600px] mx-auto">
+          <div className="flex items-center justify-between mb-10">
             <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em]">Showing {filteredDeals.length} Active Deals</h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-14">
             {filteredDeals.map((deal, i) => (
-              <motion.div key={`${deal.id}-${i}`} whileHover={{ y: -4 }} className="deal-card group">
-                <Link to={`/deal/${deal.id}`} className="relative bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all h-full flex flex-col">
-                  <div className="aspect-4/3 overflow-hidden relative bg-white flex items-center justify-center">
-                    <FavoriteButton dealId={deal.id} deal={deal} className="absolute top-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
-                    <img src={deal.image} alt={deal.title} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-                        <div className="bg-white/95 backdrop-blur-md px-2 py-1 rounded-full text-[8px] font-black text-teal-600 border border-white shadow-xl flex items-center gap-1 uppercase tracking-widest">
-                          <Zap size={10} className="fill-amber-500 text-amber-500" /> {deal.tag || "Hot"}
-                        </div>
-                        {deal.shippingInfo?.enabled && (
-                            <div className="bg-indigo-600 text-white px-2 py-1 rounded-full text-[8px] font-black shadow-xl flex items-center gap-1 uppercase tracking-widest">
-                                <Truck size={10} /> Delivery
-                            </div>
-                        )}
-                    </div>
-                    {/* Expiry badge */}
-                    {getExpiryLabel(deal.expiryDate) && (
-                      <div className={`absolute bottom-3 left-3 z-10 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow ${
-                        getExpiryLabel(deal.expiryDate)!.includes('hr') || getExpiryLabel(deal.expiryDate) === 'Expired'
-                          ? 'bg-rose-500 text-white animate-pulse'
-                          : 'bg-amber-400 text-slate-900'
-                      }`}>
-                        <Clock size={8} />
-                        {getExpiryLabel(deal.expiryDate)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4 flex flex-col grow">
-                    <div className="flex items-center justify-between mb-2">
-                       <p className="text-[8px] font-black text-teal-600/60 uppercase tracking-[0.2em]">{deal.category || "Deals"}</p>
-                       <div className="flex items-center gap-0.5 text-amber-400">
-                          <Star size={10} className="fill-amber-400" />
-                          <span className="text-[8px] font-black text-slate-900">4.9</span>
-                       </div>
-                    </div>
-                    
-                    <div className="mb-2">
-                        <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate mb-0.5">{deal.companyName || "Exclusive Partner"}</p>
-                        <h3 className="text-sm font-black text-slate-900 leading-tight uppercase tracking-tight group-hover:text-teal-600 transition-colors line-clamp-2">
-                            {deal.title.includes(' - ') ? deal.title.split(' - ')[1] : deal.title}
-                        </h3>
-                    </div>
-
-                    {deal.totalQuantity && (
-                        <div className="mt-2 mb-2">
-                           <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1.5">
-                              <span className="text-emerald-600">{deal.soldQuantity || 0} Bought</span>
-                              <span className="text-rose-500">{Math.max(0, deal.totalQuantity - (deal.soldQuantity || 0))} Left</span>
-                           </div>
-                           <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                 className={`h-full rounded-full transition-all duration-1000 ${
-                                    (deal.totalQuantity - (deal.soldQuantity || 0)) < 10 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'
-                                 }`}
-                                 style={{ width: `${Math.min(100, ((deal.soldQuantity || 0) / deal.totalQuantity) * 100)}%` }}
-                              />
-                           </div>
-                        </div>
-                    )}
-                    
-                    <div className="mt-auto pt-3 border-t border-slate-50">
-                      <div className="flex items-end justify-between">
-                        <div>
-                          <p className="text-[8px] text-slate-400 uppercase tracking-widest font-black mb-1">Coupon Price</p>
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</span>
-                            <span className="text-[10px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
-                          </div>
-                        </div>
-                        <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center group-hover:bg-teal-600 transition-all shadow-xl active:scale-95">
-                           <ArrowRight size={18} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
+              <DealCard 
+                key={`${deal.id}-${i}`}
+                id={deal.id}
+                title={deal.title}
+                price={deal.price}
+                original={deal.original}
+                image={deal.image}
+                category={deal.category}
+                location={deal.location}
+                expiryDate={deal.expiryDate}
+                totalQuantity={deal.totalQuantity}
+                soldQuantity={deal.soldQuantity}
+                dealExplanation={deal.dealExplanation}
+                index={i}
+              />
             ))}
           </div>
 

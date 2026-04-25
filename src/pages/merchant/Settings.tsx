@@ -50,7 +50,7 @@ export default function MerchantSettings() {
 
            <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
               <div className="flex items-center gap-4 mb-10">
-                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                 <div className="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-2xl flex items-center justify-center">
                     <Clock size={24} />
                  </div>
                  <h3 className="font-black text-xl text-slate-900 tracking-tight">Operating Hours</h3>
@@ -74,7 +74,7 @@ export default function MerchantSettings() {
         <div className="lg:col-span-4 space-y-8">
            <div className="bg-slate-900 p-10 rounded-[2.5rem] text-white relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:scale-150 transition-all" />
-              <Shield className="text-indigo-400 mb-6 relative z-10" size={32} />
+              <Shield className="text-yellow-400 mb-6 relative z-10" size={32} />
               <h3 className="text-xl font-black mb-4 tracking-tight relative z-10">Security Center</h3>
               
               <div className="space-y-6 relative z-10">
@@ -85,7 +85,7 @@ export default function MerchantSettings() {
            </div>
 
            <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-              <Bell className="text-amber-500 mb-6" size={32} />
+              <Bell className="text-yellow-500 mb-6" size={32} />
               <h3 className="text-xl font-black mb-4 tracking-tight leading-none">Notifications</h3>
               <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">Manage how you receive alerts about new redemptions and reviews.</p>
               
@@ -93,7 +93,7 @@ export default function MerchantSettings() {
                  {['Email Alerts', 'SMS Gateway', 'Push Notifications'].map((item, i) => (
                     <div key={i} className="flex items-center justify-between pb-4 border-b border-slate-50 last:border-0 last:pb-0">
                        <span className="text-sm font-bold text-slate-500 tracking-tight">{item}</span>
-                       <button className={`w-12 h-6 rounded-full transition-colors relative ${i < 2 ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                       <button className={`w-12 h-6 rounded-full transition-colors relative ${i < 2 ? 'bg-emerald-600' : 'bg-slate-200'}`}>
                           <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${i < 2 ? 'right-1' : 'left-1'}`} />
                        </button>
                     </div>

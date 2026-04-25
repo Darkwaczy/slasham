@@ -35,7 +35,7 @@ const rawDeals = [
     location: "Lekki Phase 1, Lagos", 
     price: "₦3,000", 
     original: "₦15,000", 
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=70", 
+    image: "https://images.unsplash.com/photo-1544161515-436cefb657f8?w=600&q=70", 
     category: "Spa", 
     tag: "50% Off",
     isHotCoupon: true,
@@ -46,7 +46,7 @@ const rawDeals = [
       { title: "Complimentary Herbal Tea", description: "Served in our relaxation lounge." }
     ],
     validity: "Valid on weekdays only.",
-    expiryDate: in1Day
+    expiryDate: in10Days
   },
   { 
     id: 3, 
@@ -100,7 +100,7 @@ const rawDeals = [
     location: "Ikeja, Lagos", 
     price: "₦2,500", 
     original: "₦10,000", 
-    image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&q=70", 
+    image: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=600&q=70", 
     category: "Beauty", 
     tag: "Trending",
     isHotCoupon: true,
@@ -138,15 +138,14 @@ const rawDeals = [
   { id: 11, title: "Eko Atlantic Brunch", location: "VI, Lagos", price: "₦8,000", original: "₦20,000", image: "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=600&q=70", category: "Food", tag: "HOT", isHotCoupon: true, description: "Unlimited mimosas and buffet.", validity: "Sunday 12pm-4pm" },
   { id: 12, title: "Maitama Tennis", location: "Maitama, Abuja", price: "₦2,000", original: "₦5,000", image: "https://images.unsplash.com/photo-1595435063138-085e791244bb?w=600&q=70", category: "Fitness", tag: "70% OFF", isHotCoupon: true, description: "Court hire + racket rental.", validity: "2 hours play" },
   { id: 13, title: "Zuma Rock Tours", location: "Zuba, Abuja", price: "₦12,000", original: "₦35,000", image: "https://images.unsplash.com/photo-1533038590840-1cde6e668a91?w=600&q=70", category: "Travel", tag: "EXPLORE", description: "Guided tour and picnic.", validity: "Booking required" },
-  { id: 14, title: "Ikeja City Grill", location: "Ikeja, Lagos", price: "₦4,500", original: "₦12,000", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=70", category: "Food", tag: "MUST TRY", description: "Full rack of ribs + sides.", validity: "Daily after 6pm" },
+  { id: 14, title: "Ikeja City Grill", location: "Ikeja, Lagos", price: "₦4,500", original: "₦12,000", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=70", category: "Service", tag: "MUST TRY", description: "Full rack of ribs + sides.", validity: "Daily after 6pm" },
   { id: 15, title: "VGC Yoga Hub", location: "Ajah, Lagos", price: "₦2,500", original: "₦7,500", image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=70", category: "Fitness", tag: "ZEN", description: "Sunset yoga session.", validity: "Tuesdays/Thursdays" },
   { id: 16, title: "Wuse Night Market", location: "Wuse 2, Abuja", price: "₦3,000", original: "₦10,000", image: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=600&q=70", category: "Nightlife", tag: "LIVELY", description: "Street food crawl for two.", validity: "Starts 8pm" },
   { id: 17, title: "Tarkwa Bay Camp", location: "Beachfront, Lagos", price: "₦15,000", original: "₦40,000", image: "https://images.unsplash.com/reserve/91miS24XQOWjroP7i2U9_m_G_7313.jpg?w=600&q=70", category: "Travel", tag: "OFF-GRID", description: "Overnight tent + bonfire.", validity: "Weekend only" },
-  { id: 18, title: "Banana Island Spa", location: "Ikoyi, Lagos", price: "₦20,000", original: "₦50,000", image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&q=70", category: "Spa", tag: "PREMIUM", description: "Gold facial + aromatherapy.", validity: "Booking essential" },
   { id: 19, title: "Jabi Lake Kayak", location: "Jabi, Abuja", price: "₦2,500", original: "₦8,000", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=70", category: "Events", tag: "FUN", description: "1 hour single kayak rental.", validity: "Last entry 5pm" },
   { id: 20, title: "Surulere Cinema", location: "Surulere, Lagos", price: "₦1,500", original: "₦4,500", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&q=70", category: "Events", tag: "MOVIE NIGHT", description: "Ticket + Large popcorn.", validity: "Mon-Wed only" },
   { id: 21, title: "Garki Arts Center", location: "Garki, Abuja", price: "₦3,000", original: "₦9,000", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&q=70", category: "Events", tag: "CULTURAL", description: "Painting class + wine.", validity: "Saturdays 2pm" },
-  { id: 22, title: "Badagry Heritage", location: "Badagry, Lagos", price: "₦10,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=600&q=70", category: "Travel", tag: "HISTORY", description: "Full day historical tour.", validity: "Includes lunch" },
+  { id: 22, title: "Badagry Heritage", location: "Badagry, Lagos", price: "₦10,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=600&q=70", category: "Food", tag: "HISTORY", description: "Full day historical tour.", validity: "Includes lunch" },
   { id: 23, title: "Transcorp Pool", location: "Maitama, Abuja", price: "₦5,000", original: "₦15,000", image: "https://images.unsplash.com/photo-1519783166344-933e382d515a?w=600&q=70", category: "Fitness", tag: "CHILL", description: "All day pool access.", validity: "Valid for one" },
   { id: 24, title: "Ikeja Golf Club", location: "Ikeja, Lagos", price: "₦7,500", original: "₦22,000", image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&q=70", category: "Fitness", tag: "PRO", description: "Driving range session.", validity: "100 balls" },
   { id: 25, title: "Lekki Arts Market", location: "Lekki, Lagos", price: "₦2,000", original: "₦6,000", image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&q=70", category: "Events", tag: "LOCAL", description: "Curated souvenir box.", validity: "Available daily" },
@@ -164,7 +163,6 @@ const rawDeals = [
   // --- ADDITIONAL HOT DEALS FOR MARQUEE ---
   { id: 37, title: "Hard Rock Cafe", location: "VI, Lagos", price: "₦10,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1466973535405-117a72ca2a78?w=600&q=70", category: "Nightlife", tag: "HOT", isHotCoupon: true, description: "Dinner + Live music" },
   { id: 38, title: "Nike Concept", location: "Ikeja, Lagos", price: "₦15,000", original: "₦40,000", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=70", category: "Shopping", tag: "HOT", isHotCoupon: true, description: "Concept store exclusive" },
-  { id: 39, title: "Royal Spa", location: "Maitama, Abuja", price: "₦45,000", original: "₦120,000", image: "https://images.unsplash.com/photo-1544161515-436cefb657f8?w=600&q=70", category: "Spa", tag: "HOT", isHotCoupon: true, description: "Couple's luxury treat" },
   { id: 40, title: "Club Quill", location: "Wuse 2, Abuja", price: "₦5,000", original: "₦15,000", image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=70", category: "Nightlife", tag: "HOT", isHotCoupon: true, description: "VIP entry + 1 Bottle" },
   { id: 41, title: "Lekki Cinemas", location: "Lekki, Lagos", price: "₦2,000", original: "₦6,000", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&q=70", category: "Events", tag: "HOT", isHotCoupon: true, description: "3D IMAX ticket" },
   { id: 42, title: "Beach Horseback", location: "Beachfront, Lagos", price: "₦8,000", original: "₦22,000", image: "https://images.unsplash.com/photo-1518331166635-0ee7042a984a?w=600&q=70", category: "Travel", tag: "HOT", isHotCoupon: true, description: "1 hour beach ride" },

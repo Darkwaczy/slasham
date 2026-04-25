@@ -234,27 +234,27 @@ export default function Layout() {
         {/* Category Navigation - Strip Bar below Search */}
         <div className="border-t border-slate-100 bg-white hidden lg:block overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 h-12 flex items-center justify-between lg:justify-center gap-6 md:gap-8 overflow-x-auto scrollbar-hide text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <Link to="/deals" className="flex items-center gap-2 text-fuchsia-600 hover:text-fuchsia-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
-              <TrendingUp size={14} className="text-fuchsia-600 transition-colors" /> TOP TRENDING
+            <Link to="/deals" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <TrendingUp size={14} className="text-emerald-600 transition-colors" /> TOP TRENDING
             </Link>
             <Link to="/deals/food" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
               <Utensils size={14} className="text-orange-500 transition-colors" /> FOOD & DRINK
             </Link>
-            <Link to="/deals/beauty" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
-              <Heart size={14} className="text-rose-500 transition-colors" /> BEAUTY & SPAS
+            <Link to="/deals/beauty" className="flex items-center gap-2 text-slate-900 hover:text-orange-500 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Heart size={14} className="text-slate-900 transition-colors" /> BEAUTY & SPAS
             </Link>
-            <Link to="/deals/experiences" className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
-              <Sparkles size={14} className="text-purple-600 transition-colors" /> THINGS TO DO
+            <Link to="/deals/experiences" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Sparkles size={14} className="text-emerald-600 transition-colors" /> THINGS TO DO
             </Link>
-            <Link to="/deals/products" className="flex items-center gap-2 text-sky-500 hover:text-sky-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
-              <ShoppingBag size={14} className="text-sky-500 transition-colors" /> GOODS
+            <Link to="/deals/products" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <ShoppingBag size={14} className="text-orange-500 transition-colors" /> GOODS
             </Link>
-            <Link to="/deals/services" className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
-              <Settings size={14} className="text-blue-600 transition-colors" /> LOCAL SERVICES
+            <Link to="/deals/services" className="flex items-center gap-2 text-slate-900 hover:text-emerald-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Settings size={14} className="text-slate-900 transition-colors" /> LOCAL SERVICES
             </Link>
             <div className="h-4 w-px bg-slate-200 mx-2 shrink-0"></div>
-            <Link to="/deals/hot" className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group">
-              <Zap size={14} className="fill-rose-500 group-hover:scale-110 transition-transform" /> HOT COUPONS
+            <Link to="/deals/hot" className="flex items-center gap-2 text-orange-600 hover:text-orange-700 transition-all decoration-2 hover:underline underline-offset-14 whitespace-nowrap shrink-0 group font-black">
+              <Zap size={14} className="fill-orange-600 group-hover:scale-110 transition-transform" /> HOT COUPONS
             </Link>
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function Layout() {
       </div>
 
       {/* Premium Footer */}
-      <footer className="bg-emerald-500 text-white pt-36 pb-12 mt-24 border-t border-emerald-400 relative overflow-hidden">
+      <footer className="bg-[#0d2e24] text-white pt-36 pb-12 mt-24 border-t border-emerald-900/50 relative overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-[400px] -right-[200px] w-[800px] h-[800px] bg-white/10 rounded-full blur-[120px]"></div>

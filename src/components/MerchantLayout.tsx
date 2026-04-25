@@ -86,7 +86,7 @@ export default function MerchantLayout() {
             <Link to="/" className="inline-block group hover:opacity-80 transition-opacity">
               <Logo size="md" className="mb-1" />
               <div className="flex flex-col ml-[42px]">
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Merchant Console</span>
+                {/* <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Intelligence Hub</span> */}
               </div>
             </Link>
           </div>
@@ -136,7 +136,7 @@ export default function MerchantLayout() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-black text-slate-900 truncate tracking-tight">Orchid Bistro</span>
-                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Verified Merchant</span>
+                  <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-widest">Verified Partner</span>
                 </div>
                 <button 
                   onClick={handleLogout}
@@ -194,7 +194,7 @@ export default function MerchantLayout() {
                     >
                       <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Intelligence Brief</span>
-                        <button onClick={handleMarkRead} className="text-[10px] font-black text-indigo-600 hover:underline">Clear All</button>
+                        <button onClick={handleMarkRead} className="text-[10px] font-black text-yellow-600 hover:underline">Clear All</button>
                       </div>
                       <div className={`max-h-[400px] overflow-y-auto`}>
                         {notifications.length === 0 ? (
@@ -231,7 +231,7 @@ export default function MerchantLayout() {
                >
                   <Plus size={16} /> New Campaign
                </button>
-               <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm cursor-pointer shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-colors">
+               <div className="w-10 h-10 rounded-2xl bg-[#000000] text-white flex items-center justify-center font-black text-sm cursor-pointer shadow-lg shadow-black/10 hover:bg-slate-800 transition-colors">
                   OB
                </div>
             </div>

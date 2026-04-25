@@ -23,10 +23,10 @@ export default function MerchantDashboard() {
   const [validationResult, setValidationResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const stats = [
-    { label: "Total Revenue", value: "₦1,240,000", change: "+12.5%", icon: <DollarSign size={20} />, color: "emerald" },
-    { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "indigo" },
-    { label: "New Customers", value: "142", change: "+18%", icon: <Users size={20} />, color: "rose" },
-    { label: "Conversion Rate", value: "24.8%", change: "+2.4%", icon: <TrendingUp size={20} />, color: "amber" },
+    { label: "Total Revenue", value: "₦1,240,000", change: "+12.5%", icon: <DollarSign size={20} />, color: "black" },
+    { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "yellow" },
+    { label: "New Customers", value: "142", change: "+18%", icon: <Users size={20} />, color: "emerald" },
+    { label: "Total Claims", value: "842", change: "+2.4%", icon: <TrendingUp size={20} />, color: "yellow" },
   ];
 
   const [redemptions, setRedemptions] = useState([
@@ -110,15 +110,15 @@ export default function MerchantDashboard() {
             transition={{ delay: i * 0.1 }}
             className={`p-7 rounded-[2.5rem] border shadow-sm transition-all group relative overflow-hidden hover:-translate-y-1 duration-300 ${
                 stat.color === 'emerald' ? 'bg-emerald-50 border-emerald-100' :
-                stat.color === 'indigo' ? 'bg-indigo-50 border-indigo-100' :
-                stat.color === 'rose' ? 'bg-rose-50 border-rose-100' : 'bg-amber-50 border-amber-100'
+                stat.color === 'black' ? 'bg-[#000000] border-black text-white' :
+                'bg-yellow-50 border-yellow-200'
             }`}
           >
             <div className="flex items-center justify-between mb-6">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 backdrop-blur-sm shadow-sm ${
                   stat.color === 'emerald' ? 'bg-white/60 text-emerald-600' :
-                  stat.color === 'indigo' ? 'bg-white/60 text-indigo-600' :
-                  stat.color === 'rose' ? 'bg-white/60 text-rose-600' : 'bg-white/60 text-amber-600'
+                  stat.color === 'black' ? 'bg-white/10 text-white' :
+                  'bg-white/60 text-yellow-600'
               }`}>
                 {stat.icon}
               </div>
@@ -132,13 +132,13 @@ export default function MerchantDashboard() {
             </div>
             <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${
                 stat.color === 'emerald' ? 'text-emerald-500' :
-                stat.color === 'indigo' ? 'text-indigo-500' :
-                stat.color === 'rose' ? 'text-rose-500' : 'text-amber-500'
+                stat.color === 'black' ? 'text-slate-400' :
+                'text-yellow-600'
             }`}>{stat.label}</p>
             <p className={`text-4xl font-black tracking-tighter ${
                 stat.color === 'emerald' ? 'text-emerald-700' :
-                stat.color === 'indigo' ? 'text-indigo-700' :
-                stat.color === 'rose' ? 'text-rose-700' : 'text-amber-700'
+                stat.color === 'black' ? 'text-white' :
+                'text-yellow-700'
             }`}>{stat.value}</p>
           </motion.div>
         ))}
@@ -203,7 +203,7 @@ export default function MerchantDashboard() {
 
         {/* Quick Validation Tool */}
         <div className="space-y-6">
-          <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-emerald-500/20">
+          <div className="bg-[#000000] rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-emerald-500/20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10 space-y-8">
               <div>
@@ -254,7 +254,7 @@ export default function MerchantDashboard() {
                    </>
                   ) : (
                     <>
-                      <ShieldCheck size={18} /> Execute Clearance
+                      <ShieldCheck size={18} /> Validate Voucher
                     </>
                   )}
                 </button>

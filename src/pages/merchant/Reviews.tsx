@@ -43,7 +43,7 @@ export default function MerchantReviews() {
 
              <div className="flex gap-1 mb-4 relative z-10">
                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} size={14} className={i < r.rating ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200"} />
+                   <Star key={i} size={14} className={i < r.rating ? "text-yellow-400 fill-yellow-400" : "text-slate-200 fill-slate-200"} />
                 ))}
              </div>
 
@@ -51,7 +51,7 @@ export default function MerchantReviews() {
 
              <div className="flex items-center justify-between relative z-10">
                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                  r.status === 'New' ? 'bg-emerald-50 text-emerald-600 outline outline-1 outline-emerald-500/20 shadow-sm shadow-emerald-500/10' : 
+                  r.status === 'New' ? 'bg-emerald-50 text-emerald-600 outline outline-emerald-500/20 shadow-sm shadow-emerald-500/10' : 
                   r.status === 'Needs Attention' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-400'
                 }`}>
                    {r.status}

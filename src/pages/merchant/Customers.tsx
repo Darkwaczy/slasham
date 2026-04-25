@@ -62,7 +62,7 @@ export default function MerchantCustomers() {
                   <td className="px-8 py-5 text-right">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                       c.status.includes('Platinum') ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 
-                      c.status.includes('Gold') ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100'
+                      c.status.includes('Gold') ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' : 'bg-slate-50 text-slate-500 border border-slate-100'
                     }`}>
                       {c.status}
                     </span>

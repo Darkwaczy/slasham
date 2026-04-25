@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { deals as staticDeals } from "../data/mockData";
 import { getPersistentDeals } from "../utils/mockPersistence";
 import { SUPPORTED_LOCATIONS } from "../utils/locations";
-import FavoriteButton from "./FavoriteButton";
 import DealCard from "./DealCard";
 
 
@@ -70,7 +69,7 @@ export default function Home() {
     <div className="bg-white text-slate-900 font-sans overflow-x-hidden">
       
       {/* 1. PREMIUM AD BILLBOARD (Auto-rotating Hero) */}
-      <section className="relative overflow-hidden h-[480px] md:h-[560px]" style={{ background: '#0d2e24' }}>
+      <section className="relative overflow-hidden h-[520px] md:h-[640px]" style={{ background: '#0d2e24' }}>
         {/* Grain texture overlay for depth */}
         <div className="absolute inset-0 opacity-[0.04] z-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`, backgroundSize: '200px' }} />
 
@@ -103,14 +102,14 @@ export default function Home() {
               </motion.div>
 
               {/* Subtitle */}
-              <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-[#3EB28F] font-black text-xs uppercase tracking-[0.3em] mb-3">
+              <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-[#3EB28F] font-black text-xs uppercase tracking-[0.3em] mb-2">
                 🔥 {AD_BANNERS[currentAdIndex].subtitle}
               </motion.p>
 
               {/* Title */}
               <motion.h2
                 initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
-                className="text-4xl md:text-5xl lg:text-7xl font-black text-white w-full max-w-3xl leading-none tracking-tight mb-8 drop-shadow-2xl"
+                className="text-4xl md:text-5xl lg:text-7xl font-black text-white w-full max-w-3xl leading-none tracking-tight mb-6 drop-shadow-2xl uppercase"
               >
                 {AD_BANNERS[currentAdIndex].title}
               </motion.h2>
@@ -230,7 +229,7 @@ export default function Home() {
           <div className="p-12 md:p-16 border-b border-emerald-100/70 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #D946EF 0%, #7C3AED 100%)' }}>
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #10B981 0%, #000000 100%)' }}>
                     <TrendingUp size={20} />
                   </div>
                   <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">Trending Deals</h2>
@@ -296,7 +295,7 @@ export default function Home() {
               }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"
             >
-               {trendingDeals.map((deal) => (
+               {trendingDeals.map((deal, index) => (
                  <DealCard 
                    key={deal.id}
                    id={deal.id}
@@ -310,6 +309,7 @@ export default function Home() {
                    totalQuantity={deal.totalQuantity}
                    soldQuantity={deal.soldQuantity}
                    dealExplanation={deal.dealExplanation}
+                   index={index}
                  />
                ))}
             </motion.div>
@@ -446,41 +446,23 @@ export default function Home() {
                   <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-slate-900 transition-colors cursor-pointer flex items-center gap-2">Discover all <ArrowRight size={16}/></div>
                </div>
 
-               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-x-8 gap-y-16">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                   {filteredDeals.slice(0, 36).map((p, i) => (
-                    <motion.div key={i} whileHover={{ y: -8 }} className="group">
-                       <Link to={`/deal/${p.id}`}>
-                         <div className="aspect-4/3 rounded-4xl overflow-hidden relative mb-6 border border-slate-100 shadow-sm bg-white">
-                            <div className="absolute top-4 left-4 z-10 bg-slate-900/95 backdrop-blur-md text-white px-4 py-1.5 rounded-xl text-[11px] font-black shadow-2xl border border-white/20">
-                               {formatPrice(p.price)}
-                            </div>
-                            <FavoriteButton dealId={p.id} deal={p} className="absolute top-4 right-4 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100" />
-                            <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={p.title}  onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&q=70"; e.currentTarget.className += " bg-slate-100" }} />
-                         </div>
-                         <div className="space-y-2 px-1">
-                            <h4 className="text-base font-black text-slate-900 uppercase tracking-tighter mb-1 line-clamp-1 group-hover:text-rose-600 transition-colors">{p.title.includes(' - ') ? p.title.split(' - ')[1] : p.title}</h4>
-                            <div className="flex items-center justify-between">
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.category}</p>
-                            </div>
-                            {p.totalQuantity && (
-                               <div className="pt-1">
-                                  <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest mb-1.5">
-                                     <span className="text-emerald-600">{p.soldQuantity || 0} Bought</span>
-                                     <span className="text-rose-500">{Math.max(0, p.totalQuantity - (p.soldQuantity || 0))} Left</span>
-                                  </div>
-                                  <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                                     <div 
-                                        className={`h-full rounded-full transition-all duration-1000 ${
-                                           (p.totalQuantity - (p.soldQuantity || 0)) < 10 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'
-                                        }`}
-                                        style={{ width: `${Math.min(100, ((p.soldQuantity || 0) / p.totalQuantity) * 100)}%` }}
-                                     />
-                                  </div>
-                               </div>
-                            )}
-                         </div>
-                       </Link>
-                    </motion.div>
+                    <DealCard 
+                      key={p.id}
+                      id={p.id}
+                      title={p.title}
+                      price={p.price}
+                      original={p.original}
+                      image={p.image}
+                      category={p.category}
+                      location={p.location}
+                      expiryDate={p.expiryDate}
+                      totalQuantity={p.totalQuantity}
+                      soldQuantity={p.soldQuantity}
+                      dealExplanation={p.dealExplanation}
+                      index={i}
+                    />
                   ))}
                </div>
             </div>

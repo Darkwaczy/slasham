@@ -144,7 +144,7 @@ export default function MerchantCampaigns() {
                  <div className="flex flex-wrap gap-6 text-[11px] font-bold text-slate-400">
                     <span className="flex items-center gap-1.5"><DollarSign size={14}/> Market: {req.originalPrice}</span>
                     <span className="flex items-center gap-1.5 text-indigo-500"><Truck size={14}/> {req.shippingInfo?.enabled ? 'Delivery Offered' : 'Self-Pickup'}</span>
-                    {req.isHotCoupon && <span className="flex items-center gap-1.5 text-amber-500"><Zap size={14} className="fill-amber-500"/> Hot Coupon</span>}
+                    {req.isHotCoupon && <span className="flex items-center gap-1.5 text-yellow-600"><Zap size={14} className="fill-yellow-500"/> Hot Coupon</span>}
                  </div>
               </div>
 
@@ -154,10 +154,10 @@ export default function MerchantCampaigns() {
                     <div className="flex items-center gap-2 justify-end">
                        {req.status === 'Approved' ? <CheckCircle2 className="text-emerald-500" size={18} /> : 
                         req.status === 'Rejected' ? <XCircle className="text-rose-500" size={18} /> : 
-                        <Clock className="text-amber-500" size={18} />}
+                        <Clock className="text-yellow-500" size={18} />}
                        <span className={`text-[11px] font-black uppercase tracking-widest ${
                           req.status === 'Approved' ? 'text-emerald-600' : 
-                          req.status === 'Rejected' ? 'text-rose-600' : 'text-amber-600'
+                          req.status === 'Rejected' ? 'text-rose-600' : 'text-yellow-600'
                        }`}>{req.status}</span>
                     </div>
                  </div>
@@ -298,7 +298,7 @@ export default function MerchantCampaigns() {
              <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 space-y-6">
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-3">
-                      <Zap size={20} className={isHotCoupon ? "text-amber-500 fill-amber-500" : "text-slate-300"} />
+                      <Zap size={20} className={isHotCoupon ? "text-yellow-500 fill-yellow-500" : "text-slate-300"} />
                       <div>
                          <p className="text-xs font-black text-slate-900 tracking-tight leading-none mb-1 uppercase">Hot Deal Status</p>
                          <p className="text-[10px] text-slate-400 font-medium">Request top placement for this offer</p>
@@ -307,7 +307,7 @@ export default function MerchantCampaigns() {
                    <button 
                       type="button"
                       onClick={handleToggleHot}
-                      className={`w-12 h-6 rounded-full relative transition-all duration-300 ${isHotCoupon ? 'bg-amber-500' : 'bg-slate-200'}`}
+                      className={`w-12 h-6 rounded-full relative transition-all duration-300 ${isHotCoupon ? 'bg-yellow-400' : 'bg-slate-200'}`}
                    >
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isHotCoupon ? 'left-7' : 'left-1'}`} />
                    </button>

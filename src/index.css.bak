@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+/* Force refresh */
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Custom Brand Green Palette (derived from #04bd36 logo) */
+  --color-brand-50: #e4fcf0;
+  --color-brand-100: #bff6d4;
+  --color-brand-200: #90edb4;
+  --color-brand-300: #5de091;
+  --color-brand-400: #26d16c;
+  --color-brand-500: #04bd36;
+  --color-brand-600: #049e2d;
+  --color-brand-700: #077e28;
+  --color-brand-800: #0b6323;
+  --color-brand-900: #0d5221;
+  --color-brand-950: #042d0e;
+
+  /* The Single Accent Color Palette (Amber #F59E0B) for contrast/focus */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+  --color-accent-950: #451a03;
+
+  /* Universal Remapping (Forces all components to use the strict 2-color structural theme) */
+  /* Re-mapping previously used greens and blues to Brand Green */
+  --color-emerald-50: var(--color-brand-50);
+  --color-emerald-100: var(--color-brand-100);
+  --color-emerald-200: var(--color-brand-200);
+  --color-emerald-300: var(--color-brand-300);
+  --color-emerald-400: var(--color-brand-400);
+  --color-emerald-500: var(--color-brand-500);
+  --color-emerald-600: var(--color-brand-600);
+  --color-emerald-700: var(--color-brand-700);
+  --color-emerald-800: var(--color-brand-800);
+  --color-emerald-900: var(--color-brand-900);
+  --color-emerald-950: var(--color-brand-950);
+
+  --color-teal-50: var(--color-brand-50);
+  --color-teal-100: var(--color-brand-100);
+  --color-teal-200: var(--color-brand-200);
+  --color-teal-300: var(--color-brand-300);
+  --color-teal-400: var(--color-brand-400);
+  --color-teal-500: var(--color-brand-500);
+  --color-teal-600: var(--color-brand-600);
+  --color-teal-700: var(--color-brand-700);
+  --color-teal-800: var(--color-brand-800);
+  --color-teal-900: var(--color-brand-900);
+  --color-teal-950: var(--color-brand-950);
+
+  --color-indigo-50: var(--color-brand-50);
+  --color-indigo-100: var(--color-brand-100);
+  --color-indigo-200: var(--color-brand-200);
+  --color-indigo-300: var(--color-brand-300);
+  --color-indigo-400: var(--color-brand-400);
+  --color-indigo-500: var(--color-brand-500);
+  --color-indigo-600: var(--color-brand-600);
+  --color-indigo-700: var(--color-brand-700);
+  --color-indigo-800: var(--color-brand-800);
+  --color-indigo-900: var(--color-brand-900);
+  --color-indigo-950: var(--color-brand-950);
+
+  --color-purple-50: var(--color-brand-50);
+  --color-purple-100: var(--color-brand-100);
+  --color-purple-200: var(--color-brand-200);
+  --color-purple-300: var(--color-brand-300);
+  --color-purple-400: var(--color-brand-400);
+  --color-purple-500: var(--color-brand-500);
+  --color-purple-600: var(--color-brand-600);
+  --color-purple-700: var(--color-brand-700);
+  --color-purple-800: var(--color-brand-800);
+  --color-purple-900: var(--color-brand-900);
+  --color-purple-950: var(--color-brand-950);
+
+  /* Re-mapping tertiary colors to the single Secondary Accent (Amber) */
+  --color-orange-50: var(--color-accent-50);
+  --color-orange-100: var(--color-accent-100);
+  --color-orange-200: var(--color-accent-200);
+  --color-orange-300: var(--color-accent-300);
+  --color-orange-400: var(--color-accent-400);
+  --color-orange-500: var(--color-accent-500);
+  --color-orange-600: var(--color-accent-600);
+  --color-orange-700: var(--color-accent-700);
+  --color-orange-800: var(--color-accent-800);
+  --color-orange-900: var(--color-accent-900);
+  --color-orange-950: var(--color-accent-950);
+
+  --color-amber-50: var(--color-accent-50);
+  --color-amber-100: var(--color-accent-100);
+  --color-amber-200: var(--color-accent-200);
+  --color-amber-300: var(--color-accent-300);
+  --color-amber-400: var(--color-accent-400);
+  --color-amber-500: var(--color-accent-500);
+  --color-amber-600: var(--color-accent-600);
+  --color-amber-700: var(--color-accent-700);
+  --color-amber-800: var(--color-accent-800);
+  --color-amber-900: var(--color-accent-900);
+  --color-amber-950: var(--color-accent-950);
+
+  --color-blue-50: var(--color-accent-50);
+  --color-blue-100: var(--color-accent-100);
+  --color-blue-200: var(--color-accent-200);
+  --color-blue-300: var(--color-accent-300);
+  --color-blue-400: var(--color-accent-400);
+  --color-blue-500: var(--color-accent-500);
+  --color-blue-600: var(--color-accent-600);
+  --color-blue-700: var(--color-accent-700);
+  --color-blue-800: var(--color-accent-800);
+  --color-blue-900: var(--color-accent-900);
+  --color-blue-950: var(--color-accent-950);
+}
+
+body {
+  background-color: #FFFFFF;
+  color: #0F172A; /* slate-900 */
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+}
+
+.hide-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Premium subtle utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes marquee-ltr {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee-ltr {
+  animation: marquee-ltr 120s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-marquee-ltr:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-rtl {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-rtl {
+  animation: marquee-rtl 120s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}

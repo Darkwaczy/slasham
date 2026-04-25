@@ -45,6 +45,10 @@ export default function MerchantAnalytics() {
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
+                  <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis 
@@ -68,6 +72,14 @@ export default function MerchantAnalytics() {
                 />
                 <Area 
                   type="monotone" 
+                  dataKey="reach" 
+                  stroke="#eab308" 
+                  strokeWidth={2} 
+                  fillOpacity={1} 
+                  fill="url(#colorReach)" 
+                />
+                <Area 
+                  type="monotone" 
                   dataKey="revenue" 
                   stroke="#10b981" 
                   strokeWidth={4} 
@@ -82,14 +94,14 @@ export default function MerchantAnalytics() {
         <div className="space-y-6">
            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden h-full flex flex-col justify-between">
               <div className="relative z-10">
-                 <Activity className="text-emerald-400 mb-6" size={32} />
+                 <Activity className="text-yellow-400 mb-6" size={32} />
                  <h3 className="text-2xl font-black mb-2 tracking-tight">Real-Time Pulse</h3>
                  <p className="text-slate-400 text-sm font-medium leading-relaxed mb-10">Current campaign reach across all active cities is expanding.</p>
                  
                  <div className="space-y-6">
                     <div className="flex items-center justify-between">
                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Users</span>
-                       <span className="text-lg font-black text-emerald-400">1,240</span>
+                       <span className="text-lg font-black text-yellow-400">1,240</span>
                     </div>
                     <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                        <motion.div 

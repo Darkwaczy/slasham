@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { QrCode, ShieldCheck, History, Search, CheckCircle2, XCircle, Clock, MapPin, Tag, User } from "lucide-react";
+import { QrCode, ShieldCheck, History, Search, CheckCircle2, XCircle, Clock, MapPin, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { validateCoupon, getVerifiedCoupons, Coupon } from "../../utils/couponVerification";
 import { getPersistentDeals } from "../../utils/mockPersistence";
@@ -96,7 +96,7 @@ export default function MerchantScanner() {
                       value={couponHash}
                       onChange={handleInputChange}
                       placeholder="SLSH-XXXX-XXXX"
-                      className="w-full pl-16 pr-8 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-xl font-black tracking-widest text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all uppercase"
+                      className="w-full pl-16 pr-8 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-xl font-black tracking-widest text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-yellow-500/10 focus:border-yellow-400 outline-none transition-all uppercase"
                     />
                   </div>
                 </div>
@@ -107,7 +107,7 @@ export default function MerchantScanner() {
                   className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-sm shadow-2xl transition-all flex items-center justify-center gap-3 active:scale-95 ${
                     isValidating 
                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                      : 'bg-emerald-500 text-white hover:bg-black shadow-emerald-500/20'
+                      : 'bg-yellow-400 text-black hover:bg-black hover:text-white shadow-yellow-400/20'
                   }`}
                 >
                   {isValidating ? (
@@ -116,7 +116,7 @@ export default function MerchantScanner() {
                     </>
                   ) : (
                     <>
-                      <ShieldCheck size={20} /> Authorize Disposal
+                      <ShieldCheck size={20} /> Verify Voucher
                     </>
                   )}
                 </button>
@@ -180,7 +180,7 @@ export default function MerchantScanner() {
                     <History size={18} className="text-slate-400" />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Ledger History</span>
                  </div>
-                 <span className="px-3 py-1 bg-slate-50 text-slate-400 rounded-lg text-[9px] font-black tracking-widest">REALTIME</span>
+                 <span className="px-3 py-1 bg-yellow-400 text-black rounded-lg text-[9px] font-black tracking-widest">REALTIME</span>
               </div>
 
               <div className="space-y-4">
@@ -200,7 +200,7 @@ export default function MerchantScanner() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
+                           <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.4)]" />
                            <p className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors uppercase tracking-widest">Protocol Clear</p>
                         </div>
                         <p className="text-[10px] font-bold text-slate-400 ml-4 font-mono">{red.hash}</p>
@@ -219,14 +219,14 @@ export default function MerchantScanner() {
               </button>
            </div>
 
-           <div className="p-8 bg-indigo-600 rounded-[2.5rem] shadow-2xl shadow-indigo-600/20 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 -mr-20 -mt-20 rounded-full" />
+           <div className="p-8 bg-black rounded-[2.5rem] shadow-2xl shadow-black/20 text-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-400/10 -mr-20 -mt-20 rounded-full group-hover:scale-150 transition-transform duration-700" />
               <div className="relative space-y-4">
-                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                    <User size={20} />
+                 <div className="w-10 h-10 bg-yellow-400/20 text-yellow-400 rounded-xl flex items-center justify-center">
+                    <ShieldCheck size={20} />
                  </div>
-                 <h4 className="text-lg font-black uppercase tracking-widest leading-tight">Fraud Prevention Protocol</h4>
-                 <p className="text-xs text-indigo-100 font-medium leading-relaxed">Each verification is logged and hashed against user biometric tokens. Report discrepancies immediately to platform security.</p>
+                 <h4 className="text-lg font-black uppercase tracking-widest leading-tight text-white">Fraud Prevention Protocol</h4>
+                 <p className="text-xs text-slate-400 font-medium leading-relaxed group-hover:text-white transition-colors">Each verification is logged and hashed against user biometric tokens. Report discrepancies immediately to platform security.</p>
               </div>
            </div>
         </div>
