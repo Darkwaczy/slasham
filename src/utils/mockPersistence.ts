@@ -88,20 +88,20 @@ export const savePersistentAd = (ad: any) => {
 };
 
 
+const APP_VERSION = "2.0.0_curated_explanations"; // Incremented to force update
+
 export const getPersistentDeals = (): Deal[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
+  const storedVersion = localStorage.getItem("slasham_app_version");
+
+  if (!stored || storedVersion !== APP_VERSION) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(STATIC_DEALS));
+    localStorage.setItem("slasham_app_version", APP_VERSION);
     return STATIC_DEALS as Deal[];
   }
+  
   try {
     const parsed = JSON.parse(stored);
-    // Migration: if stored deals are missing inventory fields, re-seed from static
-    const needsMigration = parsed.length > 0 && parsed[0].totalQuantity === undefined;
-    if (needsMigration) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATIC_DEALS));
-      return STATIC_DEALS as Deal[];
-    }
     return parsed;
   } catch {
     return STATIC_DEALS as Deal[];

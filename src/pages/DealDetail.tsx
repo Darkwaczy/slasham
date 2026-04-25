@@ -465,8 +465,8 @@ export default function DealDetail() {
             
             <div className="space-y-2">
               <h2 className="text-6xl font-black text-slate-900 tracking-tighter leading-none">{discountPercent}% Off</h2>
-              <p className="text-emerald-600 text-sm font-black tracking-widest uppercase">
-                {deal.unlockNote || "You must buy two (2) cartons to activate"}
+              <p className="text-black text-sm font-black tracking-widest uppercase">
+                {deal.dealExplanation}
               </p>
             </div>
             

@@ -138,9 +138,9 @@ export default function DealCard({
           </h3>
 
           {/* The 'Yellow Mark' Area - Deal Explanation */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2.5 border border-white/50">
-             <p className="text-[9px] text-slate-500 leading-relaxed font-medium">
-               {dealExplanation || `Valid for a limited time. Terms and conditions apply at redemption venue.`}
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-white/40 shadow-sm">
+             <p className="text-[11px] text-slate-900 leading-tight font-bold">
+               {dealExplanation}
              </p>
           </div>
 
@@ -148,12 +148,12 @@ export default function DealCard({
           <div className="mt-auto pt-1">
              <div className="flex items-end justify-between mb-2">
                 <div className="flex flex-col">
-                   <span className="text-[10px] text-slate-300 line-through font-bold mb-0.5">{original}</span>
+                   <span className="text-[11px] text-slate-500 line-through decoration-[1.5px] font-bold mb-0.5">{original}</span>
                    <span className={`text-xl font-black ${theme.text} tracking-tighter leading-none`}>{price}</span>
                 </div>
                 <div className="text-right">
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                      <span className="text-emerald-600">{soldQuantity}/{totalQuantity}</span> claimed
+                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                      <span className="text-emerald-600 font-black">{soldQuantity}/{totalQuantity}</span> claimed
                    </p>
                    {/* Mini Progress Bar */}
                    <div className="w-20 h-1 bg-slate-100 rounded-full overflow-hidden">
