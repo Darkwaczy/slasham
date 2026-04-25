@@ -81,7 +81,7 @@ export default function DealCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className={`h-full rounded-[2.5rem] border overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group ${forcedTheme.bg} ${forcedTheme.border}`}
+      className={`h-full rounded-xl border overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group ${forcedTheme.bg} ${forcedTheme.border}`}
     >
       <Link to={`/deal/${id}`} className={`group flex flex-col h-full relative`}>
         {/* Top Badges */}

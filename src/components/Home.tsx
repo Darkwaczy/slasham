@@ -225,7 +225,7 @@ export default function Home() {
 
       {/* 3. TRENDING DEALS (Expanded High Fidelity Container) */}
       <section className="pt-2 pb-12 px-4 md:px-10 bg-white -mt-2">
-        <div className="max-w-[1550px] mx-auto bg-white rounded-[3.5rem] shadow-[0_10px_60px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+        <div className="max-w-[1550px] mx-auto bg-white rounded-2xl shadow-[0_10px_60px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
           <div className="p-12 md:p-16 border-b border-emerald-100/70 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -408,7 +408,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW: 4. SLASHAM GIFT COUPONS (6x6 Expanded Categorized Grid) */}
       <section className="py-24 px-4 md:px-10 bg-white border-t border-slate-50">
         <div className="max-w-[1550px] mx-auto flex flex-col lg:flex-row gap-14">
             {/* CATEGORIES SIDEBAR */}

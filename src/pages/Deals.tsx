@@ -42,7 +42,7 @@ export default function Deals() {
   return (
     <div className="bg-slate-50 min-h-screen pt-0">
       <section className="px-4 lg:px-6 mb-8 -mt-12 relative z-10">
-        <div className="w-full relative rounded-4xl overflow-hidden bg-yellow-400 min-h-[200px] md:min-h-[260px] flex items-center border-4 border-white shadow-2xl">
+        <div className="w-full relative rounded-2xl overflow-hidden bg-yellow-400 min-h-[200px] md:min-h-[260px] flex items-center border-4 border-white shadow-2xl">
           {/* Brand Yellow Fade Out to Dark */}
           <div className="absolute inset-0 bg-linear-to-r from-yellow-400 via-yellow-400 to-slate-950 opacity-95 lg:opacity-100" />
           
