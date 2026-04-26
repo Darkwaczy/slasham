@@ -9,10 +9,4 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "functions": {
-    "server/src/index.ts": {
-      "runtime": "@vercel/node"
-    }
-  }
 }
