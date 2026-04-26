@@ -18,7 +18,10 @@ export default function Layout() {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [footerExpandedSection, setFooterExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [adminSettings, setAdminSettings] = useState<any>(null);
+  const [adminSettings, setAdminSettings] = useState<any>({
+    maintenanceMode: false,
+    promoBanner: { enabled: false, text: "" }
+  });
   const location = useLocation();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
@@ -64,12 +67,12 @@ export default function Layout() {
 
   // Prevent scroll when menu is open
   useEffect(() => {
-    if (isMenuOpen || adminSettings.maintenanceMode) {
+    if (isMenuOpen || (adminSettings && adminSettings.maintenanceMode)) {
       document.body.style.setProperty('overflow', 'hidden', 'important');
     } else {
       document.body.style.setProperty('overflow', 'unset', 'important');
     }
-  }, [isMenuOpen, adminSettings.maintenanceMode]);
+  }, [isMenuOpen, adminSettings?.maintenanceMode]);
 
   const menuSections = [
     {
@@ -115,7 +118,6 @@ export default function Layout() {
     }
   ];
 
-  if (!adminSettings) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-slate-900 selection:bg-teal-100 selection:text-teal-900">
