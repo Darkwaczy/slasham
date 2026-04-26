@@ -122,7 +122,7 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
       { data: systemSettings },
       { data: auditLogs },
       { data: analytics }
-    ] = await Promise.all([
+    ]: any[] = await Promise.all([
       supabase.from("users").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
       supabase.from("merchants").select("*, users(email, name)", { count: 'exact' }).limit(50),
       supabase.from("merchant_applications").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
