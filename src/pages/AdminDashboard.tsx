@@ -29,10 +29,10 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const stats = {
-    users: data?.users?.length || 0,
-    businesses: data?.merchants?.length || 0,
-    campaigns: data?.deals?.length || 0,
-    revenue: (data?.vouchers || []).reduce((acc: number, v: any) => acc + (v.amount || 0), 0) / 1000000
+    users: data?.counts?.users || data?.users?.length || 0,
+    businesses: data?.counts?.merchants || data?.merchants?.length || 0,
+    campaigns: data?.counts?.deals || data?.deals?.length || 0,
+    revenue: (data?.counts?.total_revenue || 0) / 1000000
   };
 
   const analyticsData = data?.analytics?.length > 0 

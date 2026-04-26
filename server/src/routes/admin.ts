@@ -111,50 +111,37 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
     if (!supabase) throw new Error("DB not configured");
 
     const [
-      authUsers,
-      { data: profiles },
-      { data: merchants },
-      { data: apps },
-      { data: deals },
-      { data: requests },
-      { data: vouchers },
-      { data: reports },
-      { data: reviews },
+      { data: profiles, count: userCount },
+      { data: merchants, count: merchantCount },
+      { data: apps, count: appCount },
+      { data: deals, count: dealCount },
+      { data: requests, count: requestCount },
+      { data: vouchers, count: voucherCount },
+      { data: reports, count: reportCount },
+      { data: reviews, count: reviewCount },
       { data: systemSettings },
       { data: auditLogs },
       { data: analytics }
     ] = await Promise.all([
-      supabase.auth.admin.listUsers().then(r => r.data),
-      supabase.from("users").select("*"),
-      supabase.from("merchants").select("*, users(email, name)"),
-      supabase.from("merchant_applications").select("*"),
-      supabase.from("deals").select("*, merchants(business_name)"),
-      supabase.from("campaign_requests").select("*, merchants(business_name)"),
-      supabase.from("vouchers").select("*, users(email, name), deals(title, merchants(business_name))"),
-      supabase.from("reports").select("*, users(name, email), merchants(business_name)"),
-      supabase.from("reviews").select("*, users(name), merchants(business_name)"),
+      supabase.from("users").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("merchants").select("*, users(email, name)", { count: 'exact' }).limit(50),
+      supabase.from("merchant_applications").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("deals").select("*, merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("campaign_requests").select("*, merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("vouchers").select("*, users(email, name), deals(title, merchants(business_name))", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("reports").select("*, users(name, email), merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
+      supabase.from("reviews").select("*, users(name), merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
       supabase.from("system_settings").select("*").single(),
-      Promise.resolve(supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20)).catch(() => ({ data: [] })),
-      Promise.resolve(supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30)).catch(() => ({ data: [] }))
+      supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30)
     ]);
 
-    const profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
-    const users = (authUsers?.users || []).map((au: any) => {
-      const p = profileMap.get(au.id) as any || {};
-      return {
-        id: au.id,
-        email: au.email,
-        name: p.name || au.user_metadata?.name || "Member",
-        role: p.role || au.user_metadata?.role || "USER",
-        is_verified: p.is_verified ?? !!au.email_confirmed_at,
-        created_at: au.created_at,
-        city: p.city || "Not Specified",
-        phone: p.phone || "Not Specified"
-      };
-    });
+    // Calculate total revenue from all vouchers
+    const { data: voucherRevenue } = await supabase.from("vouchers").select("amount");
+    const totalRevenue = (voucherRevenue || []).reduce((acc: number, v: any) => acc + (Number(v.amount) || 0), 0);
 
     res.json({
-      users,
+      users: profiles || [],
       merchants: merchants || [],
       applications: apps || [],
       deals: deals || [],
@@ -175,6 +162,17 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
         enforce2FA: false,
         rateLimit: "100/min",
         sessionTimeout: "24h"
+      },
+      counts: {
+        users: userCount,
+        merchants: merchantCount,
+        applications: appCount,
+        deals: dealCount,
+        requests: requestCount,
+        vouchers: voucherCount,
+        reports: reportCount,
+        reviews: reviewCount,
+        total_revenue: totalRevenue
       }
     });
   } catch (error: any) {

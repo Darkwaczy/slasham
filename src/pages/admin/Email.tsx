@@ -124,40 +124,70 @@ export default function AdminEmail() {
 
       {/* Loading State */}
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <RefreshCw className="animate-spin text-slate-300" size={40} />
+        <div className="space-y-8 animate-pulse">
+          {activeTab === 'templates' ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-slate-100/50 border border-slate-100 p-6 rounded-3xl h-64 flex flex-col">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-200"></div>
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-slate-200 rounded-full w-1/2"></div>
+                      <div className="h-2 bg-slate-200 rounded-full w-3/4"></div>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-slate-200/50 rounded-2xl mb-4"></div>
+                  <div className="h-12 bg-slate-200 rounded-2xl"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-100/50 border border-slate-100 rounded-3xl h-96"></div>
+          )}
         </div>
       ) : (
         <>
           {/* TEMPLATES TAB */}
           {activeTab === 'templates' && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates.map(tpl => (
-                <div key={tpl.id} className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm flex flex-col hover:border-indigo-200 transition-colors">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                      <Edit size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 tracking-tight truncate">{tpl.name}</h3>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{tpl.subject}</p>
-                    </div>
+            <>
+              {templates.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-slate-100 p-20 rounded-[3rem] text-center">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                    <Mail size={40} />
                   </div>
-                  
-                  <div className="flex-1 text-xs text-slate-600 font-mono bg-slate-50 p-4 rounded-2xl mb-4 overflow-hidden relative">
-                     <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-50 pointer-events-none"></div>
-                     {tpl.html_body.substring(0, 150)}...
-                  </div>
-
-                  <button 
-                    onClick={() => setEditingTemplate(tpl)}
-                    className="w-full py-3 bg-white border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 text-slate-900 font-bold rounded-2xl transition-colors text-sm uppercase tracking-widest flex justify-center items-center gap-2"
-                  >
-                    Edit Template
-                  </button>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">No Templates Found</h3>
+                  <p className="text-slate-500 max-w-xs mx-auto mb-8">You haven't created any system templates yet. Run the SQL script to initialize default templates.</p>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {templates.map(tpl => (
+                    <div key={tpl.id} className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm flex flex-col hover:border-indigo-200 transition-colors">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                          <Edit size={20} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-900 tracking-tight truncate">{tpl.name}</h3>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{tpl.subject}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 text-xs text-slate-600 font-mono bg-slate-50 p-4 rounded-2xl mb-4 overflow-hidden relative">
+                         <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-50 pointer-events-none"></div>
+                         {tpl.html_body.substring(0, 150)}...
+                      </div>
+
+                      <button 
+                        onClick={() => setEditingTemplate(tpl)}
+                        className="w-full py-3 bg-white border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 text-slate-900 font-bold rounded-2xl transition-colors text-sm uppercase tracking-widest flex justify-center items-center gap-2"
+                      >
+                        Edit Template
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {/* BROADCASTS TAB */}
