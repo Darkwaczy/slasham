@@ -1,17 +1,38 @@
 import { Utensils } from "lucide-react";
 import DealCard from "../../components/DealCard";
-
-const now = new Date();
-const in3hrs  = new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString();
-const in1Day  = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 export default function FoodDeals() {
-  const deals = [
-    { id: 1, title: "50% Off Lunch at The Grill House",            price: "₦5,000", original: "₦10,000", image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=60", totalQuantity: 60,  soldQuantity: 52, expiryDate: in3hrs  },
-    { id: 2, title: "Buy 1 Get 1 Free Cocktails at SkyBar",        price: "₦3,500", original: "₦7,000",  image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=400&q=60", totalQuantity: 100, soldQuantity: 41, expiryDate: in1Day  },
-    { id: 3, title: "₦10,000 Voucher for ₦6,000 at Mama's Kitchen", price: "₦6,000", original: "₦10,000", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=60", totalQuantity: 80,  soldQuantity: 74, expiryDate: in7Days },
-  ];
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals?category=Dining");
+        const formattedDeals = data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+        }));
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Failed to fetch food deals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,26 +41,41 @@ export default function FoodDeals() {
           <Utensils size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold">Food &amp; Drinks</h1>
+          <h1 className="text-4xl font-bold">Food & Drink</h1>
           <p className="text-slate-500">The best dining experiences in your city for less.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            id={deal.id}
-            title={deal.title}
-            price={deal.price}
-            original={deal.original}
-            image={deal.image}
-            totalQuantity={deal.totalQuantity}
-            soldQuantity={deal.soldQuantity}
-            expiryDate={deal.expiryDate}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              id={deal.id}
+              title={deal.title}
+              price={deal.price}
+              original={deal.original}
+              image={deal.image}
+              category={deal.category}
+              location={deal.location}
+              expiryDate={deal.expiryDate}
+              totalQuantity={deal.totalQuantity}
+              soldQuantity={deal.soldQuantity}
+              dealExplanation={deal.dealExplanation}
+              index={i}
+            />
+          ))}
+          {deals.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active food & drink deals at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

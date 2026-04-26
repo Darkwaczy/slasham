@@ -9,6 +9,7 @@ interface AdminModalProps {
   description?: string;
   children: React.ReactNode;
   maxWidth?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 }
 
 export default function AdminModal({ 
@@ -17,8 +18,19 @@ export default function AdminModal({
   title, 
   description, 
   children,
-  maxWidth = "max-w-2xl"
+  maxWidth,
+  size = 'md'
 }: AdminModalProps) {
+  const sizeClasses = {
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-5xl',
+    '2xl': 'max-w-7xl',
+    full: 'max-w-[95vw]'
+  };
+
+  const resolvedMaxWidth = maxWidth || sizeClasses[size];
   // Close on ESC
   React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -31,7 +43,7 @@ export default function AdminModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -47,7 +59,7 @@ export default function AdminModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`relative w-full ${maxWidth} bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col max-h-[90vh]`}
+            className={`relative w-full ${resolvedMaxWidth} bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col max-h-[90vh]`}
           >
             {/* Header */}
             <div className="px-8 pt-8 pb-6 flex items-start justify-between shrink-0">

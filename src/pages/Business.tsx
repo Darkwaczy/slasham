@@ -19,6 +19,7 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, AnimatePresence } from "motion/react";
+import { Link } from "react-router-dom";
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -172,9 +173,9 @@ export default function Business() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#campaign" className="px-10 py-5 bg-emerald-600 text-white rounded-full font-bold text-lg hover:bg-emerald-700 transition-all hover:scale-105 shadow-xl shadow-emerald-200 flex items-center justify-center">
+              <Link to="/business/apply" className="px-10 py-5 bg-emerald-600 text-white rounded-full font-bold text-lg hover:bg-emerald-700 transition-all hover:scale-105 shadow-xl shadow-emerald-200 flex items-center justify-center">
                 Start Growing Today
-              </a>
+              </Link>
               <button className="px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
                 <PlayCircle size={20} /> Watch How it Works
               </button>
@@ -441,9 +442,9 @@ export default function Business() {
               Join 500+ successful businesses in Lagos and Abuja. Start your first campaign in less than 10 minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="px-12 py-6 bg-white text-emerald-700 rounded-full font-bold text-xl hover:scale-105 transition-all shadow-2xl">
+              <Link to="/business/apply" className="px-12 py-6 bg-white text-emerald-700 rounded-full font-bold text-xl hover:scale-105 transition-all shadow-2xl flex items-center justify-center">
                 Partner with Slasham
-              </button>
+              </Link>
               <button className="px-12 py-6 bg-emerald-700 text-white border-2 border-emerald-500 rounded-full font-bold text-xl hover:bg-emerald-800 transition-all">
                 Talk to an Expert
               </button>

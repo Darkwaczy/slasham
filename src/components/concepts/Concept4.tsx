@@ -1,5 +1,6 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import { deals } from "../../data/mockData";
+
+const deals: any[] = [];
 
 export default function Concept4() {
   return (
@@ -24,7 +25,7 @@ export default function Concept4() {
           </div>
         </div>
         <div className="relative flex justify-center">
-          <div className="w-full max-w-md aspect-[3/4] rounded-[100px] overflow-hidden shadow-2xl border-8 border-white">
+          <div className="w-full max-w-md aspect-3/4 rounded-[100px] overflow-hidden shadow-2xl border-8 border-white">
             <img 
               src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop" 
               alt="People enjoying food" 
@@ -53,7 +54,7 @@ export default function Concept4() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {deals.map((deal) => (
             <div key={deal.id} className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col">
-              <div className="aspect-[4/3] relative p-2">
+              <div className="aspect-4/3 relative p-2">
                 <div className="w-full h-full rounded-2xl overflow-hidden relative">
                   <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-[#2D3748]">
                     {deal.tag}
@@ -61,7 +62,7 @@ export default function Concept4() {
                   <img src={deal.image} alt={deal.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </div>
               </div>
-              <div className="p-6 flex flex-col flex-grow">
+              <div className="p-6 flex flex-col grow">
                 <span className="text-[#386641] text-xs font-medium uppercase tracking-wider mb-2">{deal.category}</span>
                 <h3 className="text-lg font-serif font-medium mb-1 text-[#1A202C] line-clamp-1">{deal.title}</h3>
                 <div className="flex items-center gap-1 text-[#718096] text-sm mb-6">

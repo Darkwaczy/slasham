@@ -1,5 +1,6 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import { deals } from "../../data/mockData";
+
+const deals: any[] = [];
 
 export default function Concept3() {
   return (
@@ -59,13 +60,13 @@ export default function Concept3() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {deals.map((deal) => (
             <div key={deal.id} className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-2 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col">
-              <div className="aspect-[4/3] border-b-4 border-black relative">
+              <div className="aspect-4/3 border-b-4 border-black relative">
                 <div className="absolute top-0 left-0 bg-[#FFD700] border-r-4 border-b-4 border-black px-3 py-1 font-black uppercase text-xs z-10">
                   {deal.tag}
                 </div>
                 <img src={deal.image} alt={deal.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" referrerPolicy="no-referrer" />
               </div>
-              <div className="p-5 flex flex-col flex-grow">
+              <div className="p-5 flex flex-col grow">
                 <h3 className="text-xl font-black uppercase mb-2 line-clamp-1">{deal.title}</h3>
                 <div className="flex items-center gap-1 font-bold text-sm mb-6">
                   <MapPin size={16} /> <span className="line-clamp-1">{deal.location}</span>

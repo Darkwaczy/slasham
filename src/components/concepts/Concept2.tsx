@@ -1,5 +1,6 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import { deals } from "../../data/mockData";
+
+const deals: any[] = [];
 
 export default function Concept2() {
   return (
@@ -22,7 +23,7 @@ export default function Concept2() {
           </div>
         </div>
         <div className="lg:col-span-7 relative">
-          <div className="aspect-[3/2] overflow-hidden">
+          <div className="aspect-3/2 overflow-hidden">
             <img 
               src="https://images.unsplash.com/photo-1517594422361-5e18a40060f2?q=80&w=1200&auto=format&fit=crop" 
               alt="Editorial Lifestyle" 
@@ -45,7 +46,7 @@ export default function Concept2() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
           {deals.map((deal) => (
             <div key={deal.id} className="group cursor-pointer">
-              <div className="aspect-[3/4] overflow-hidden mb-4">
+              <div className="aspect-3/4 overflow-hidden mb-4">
                 <img 
                   src={deal.image} 
                   alt={deal.title} 

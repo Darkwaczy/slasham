@@ -138,8 +138,8 @@ export default function DealCard({
           </h3>
 
           {/* The 'Yellow Mark' Area - Deal Explanation */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-white/40 shadow-sm">
-             <p className="text-[11px] text-slate-900 leading-tight font-bold">
+          <div className="bg-amber-50 rounded-lg p-3 border border-amber-100 shadow-sm">
+             <p className="text-[11px] text-amber-600 leading-tight font-black">
                {dealExplanation}
              </p>
           </div>

@@ -1,23 +1,51 @@
 import { 
   Gift, Users, Star, Copy, 
-  TrendingUp, Award, Zap, History, ChevronRight
+  TrendingUp, Award, Zap, History, ChevronRight, Loader2, CheckCircle2
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
-import { getUserPoints } from "../../utils/userPersistence";
+import { useNavigate } from "react-router-dom";
+import { apiClient } from "../../api/client";
 
 export default function RewardsReferrals() {
+  const navigate = useNavigate();
   const [pointsData, setPointsData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      const data = await apiClient("/user/stats");
+      setPointsData(data);
+    } catch (error) {
+      console.error("Failed to fetch user stats", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = () => setPointsData(getUserPoints());
-    load();
-    window.addEventListener('userDataUpdate', load);
-    return () => window.removeEventListener('userDataUpdate', load);
+    fetchStats();
   }, []);
 
-  if (!pointsData) return null;
-  const { total, history, referrals } = pointsData;
+  if (isLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="animate-spin text-slate-300" size={40} />
+      </div>
+    );
+  }
+
+  if (!pointsData) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center text-center">
+        <h3 className="text-xl font-black text-slate-900 mb-2">Rewards Unavailable</h3>
+        <p className="text-slate-500 font-medium max-w-sm">We couldn't load your rewards data at this time. Please try refreshing.</p>
+      </div>
+    );
+  }
+
+  const { points: total, history = [], referrals = [] } = pointsData;
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -42,9 +70,9 @@ export default function RewardsReferrals() {
            
            <div className="mt-10 pt-10 border-t border-white/5 grid grid-cols-2 sm:grid-cols-3 gap-6">
               {[
-                 { label: "Points Earned", val: "5,200", icon: <TrendingUp size={14} /> },
-                 { label: "Vouchers Unlocked", val: "14", icon: <Award size={14} /> },
-                 { label: "Referrals", val: "12", icon: <Users size={14} /> },
+                 { label: "Points Earned", val: (pointsData?.points || 0).toLocaleString(), icon: <TrendingUp size={14} /> },
+                 { label: "Vouchers Unlocked", val: (pointsData?.history?.length || 0).toString(), icon: <Award size={14} /> },
+                 { label: "Referrals", val: (pointsData?.referrals?.length || 0).toString(), icon: <Users size={14} /> },
               ].map((stat, i) => (
                  <div key={i}>
                     <div className="flex items-center gap-2 text-slate-500 mb-1">
@@ -86,16 +114,31 @@ export default function RewardsReferrals() {
                <div className="p-8 bg-slate-50 rounded-4xl border border-dashed border-slate-200 text-center space-y-6">
                   <p className="text-sm font-bold text-slate-500">Your Unique Invite Code</p>
                   <div className="flex items-center justify-center gap-3">
-                     <span className="text-3xl font-black text-slate-900 tracking-widest">SLASH-JD-2026</span>
-                     <button className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm">
-                        <Copy size={20} />
+                     <span className="text-3xl font-black text-slate-900 tracking-widest">SLASH-{(pointsData as any)?.referral_code || "---"}</span>
+                     <button 
+                       onClick={() => {
+                         const code = `SLASH-${(pointsData as any)?.referral_code || ""}`;
+                         navigator.clipboard.writeText(code).then(() => {
+                           setCopied(true);
+                           setTimeout(() => setCopied(false), 2000);
+                         });
+                       }}
+                       className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all shadow-sm"
+                     >
+                       {copied ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Copy size={20} />}
                      </button>
                   </div>
+                  {copied && <p className="text-xs font-black text-emerald-500 uppercase tracking-widest animate-pulse">Copied to clipboard!</p>}
                </div>
 
                <div className="mt-10 space-y-4">
                   <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 px-2 pb-2 border-b border-slate-50">Recent Invites</h4>
-                  {referrals.map((r: any) => (
+                  {referrals.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <Users size={32} className="text-slate-200 mx-auto mb-3" />
+                      <p className="text-sm font-bold text-slate-400">No referrals yet. Share your code!</p>
+                    </div>
+                  ) : referrals.map((r: any) => (
                      <div key={r.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-all group">
                         <div className="flex items-center gap-4">
                            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-black text-slate-400 text-xs">
@@ -126,13 +169,20 @@ export default function RewardsReferrals() {
                      </div>
                      <h3 className="text-xl font-black text-slate-900 tracking-tight">Points Activity</h3>
                   </div>
-                  <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-400">
+                  <button 
+                    onClick={() => navigate("/user/orders")}
+                    className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-emerald-500 transition-colors" title="Full History">
                      <ChevronRight size={20} />
                   </button>
                </div>
 
                <div className="space-y-6">
-                  {history.map((h: any, idx: number) => (
+                  {history.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <History size={32} className="text-slate-200 mx-auto mb-3" />
+                      <p className="text-sm font-bold text-slate-400">No activity yet. Start earning!</p>
+                    </div>
+                  ) : history.map((h: any, idx: number) => (
                      <motion.div 
                         key={h.id}
                         initial={{ opacity: 0, x: 20 }}

@@ -1,26 +1,76 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { apiClient } from "../../api/client";
 import { 
   User, Shield, Bell, CreditCard, Star, 
   MapPin, Phone, Mail, Camera, 
   Zap, Crown, CheckCircle2, ArrowRight,
-  Smartphone, Gift, Plus, ShieldCheck, 
-  QrCode, Clock
+  Gift, Plus, ShieldCheck, 
+  QrCode, Clock, Loader2
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { getUserProfile, saveUserProfile } from "../../utils/userPersistence";
 
 export default function UserSettings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const showToast = (msg: string, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const data = await apiClient("/auth/me");
+      setProfile(data);
+    } catch (error) {
+      console.error("Failed to fetch profile", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = () => setProfile(getUserProfile());
-    load();
-    window.addEventListener('userDataUpdate', load);
-    return () => window.removeEventListener('userDataUpdate', load);
+    fetchProfile();
   }, []);
 
-  if (!profile) return null;
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const updated = await apiClient("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: profile.name,
+          city: profile.city
+        })
+      });
+      setProfile(updated);
+      showToast("Profile updated successfully!");
+    } catch (error: any) {
+      showToast("Update failed: " + error.message, false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="animate-spin text-slate-300" size={40} />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center text-center">
+        <h3 className="text-xl font-black text-slate-900 mb-2">Profile Unavailable</h3>
+        <p className="text-slate-500 font-medium max-w-sm">We couldn't load your profile settings. Please try refreshing or logging in again.</p>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "profile", label: "Profile", icon: <User size={18} /> },
@@ -31,6 +81,13 @@ export default function UserSettings() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700 w-full max-w-[1400px]">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl text-sm font-bold transition-all animate-in slide-in-from-bottom-4 ${toast.ok ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+          {toast.ok ? <CheckCircle2 size={18} /> : <span>⚠</span>}
+          {toast.msg}
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-3">Account Settings</h1>
@@ -127,10 +184,11 @@ export default function UserSettings() {
 
                 <div className="flex justify-end pt-6">
                    <button 
-                     onClick={() => saveUserProfile(profile)}
-                     className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:scale-105 transition-all"
+                     onClick={handleSave}
+                     disabled={isSaving}
+                     className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:scale-105 transition-all disabled:opacity-50"
                    >
-                      Save Profile Changes
+                      {isSaving ? "Saving..." : "Save Profile Changes"}
                    </button>
                 </div>
               </motion.div>
@@ -169,7 +227,7 @@ export default function UserSettings() {
                           onClick={() => {
                             const updated = { ...profile, twoFactorEnabled: !profile.twoFactorEnabled };
                             setProfile(updated);
-                            saveUserProfile(updated);
+                            // Real app: call the backend to persist this change immediately
                           }}
                           className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${profile.twoFactorEnabled ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-white text-slate-950 hover:bg-emerald-500'}`}
                          >
@@ -281,19 +339,12 @@ export default function UserSettings() {
 
                 <div className="space-y-6">
                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-8 bg-slate-900 rounded-4xl text-white relative overflow-hidden flex flex-col justify-between h-48 group">
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16" />
-                         <div className="flex justify-between items-start">
-                            <Smartphone size={28} className="text-white/40" />
-                            <CheckCircle2 size={18} className="text-emerald-500" />
+                      <div className="p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-4xl flex flex-col items-center justify-center text-center gap-3 h-48">
+                         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm">
+                            <CreditCard size={24} />
                          </div>
-                         <div>
-                            <p className="text-lg font-mono font-bold tracking-[0.2em]">•••• •••• •••• 4582</p>
-                            <div className="flex justify-between items-end mt-4">
-                               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Gold Mastercard</span>
-                               <span className="text-[10px] font-bold">EXPIRES 12/28</span>
-                            </div>
-                         </div>
+                         <p className="text-sm font-bold text-slate-500">No Payment Methods</p>
+                         <p className="text-xs text-slate-400">You haven't added any cards yet.</p>
                       </div>
                       
                       <button className="p-8 border-2 border-dashed border-slate-100 rounded-4xl flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all group">
@@ -308,17 +359,17 @@ export default function UserSettings() {
                       <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Subscription Status</p>
                       <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-between">
                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm">
-                               <Crown size={20} />
+                             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
+                               <CheckCircle2 size={20} />
                             </div>
                             <div>
-                               <p className="text-sm font-black text-slate-900">Slasham Pro Monthly</p>
-                               <p className="text-xs text-slate-400 font-medium">Next billing: Apr 21, 2026</p>
+                               <p className="text-sm font-black text-slate-900">Standard Free Plan</p>
+                               <p className="text-xs text-slate-400 font-medium">Active</p>
                             </div>
                          </div>
                          <div className="text-right px-4">
-                            <p className="text-sm font-black text-slate-900">₦4,500/mo</p>
-                            <button className="text-[10px] font-black uppercase text-rose-500 hover:underline tracking-widest">Cancel Plan</button>
+                            <p className="text-sm font-black text-slate-900">₦0/mo</p>
+                            <button className="text-[10px] font-black uppercase text-emerald-500 hover:underline tracking-widest">Upgrade to Pro</button>
                          </div>
                       </div>
                    </div>
@@ -359,7 +410,9 @@ export default function UserSettings() {
                 ))}
               </div>
 
-              <button className="w-full py-5 bg-linear-to-r from-amber-500 to-orange-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-600/30 hover:scale-[1.02] active:scale-95 transition-all text-slate-950 flex items-center justify-center gap-2">
+              <button 
+                onClick={() => setActiveTab("billing")}
+                className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 transition-all text-white flex items-center justify-center gap-2">
                 Become a Pro Member <ArrowRight size={16} />
               </button>
             </div>
@@ -372,15 +425,15 @@ export default function UserSettings() {
                 <Star size={18} fill="#fbbf24" className="text-amber-400" />
              </div>
              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-slate-900">2,450</span>
+                <span className="text-3xl font-black text-slate-900">0</span>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total pts</span>
              </div>
              <div className="mt-8 pt-6 border-t border-slate-50">
-                <p className="text-xs text-slate-500 font-medium mb-4">You're making great progress towards your next <span className="text-indigo-600 font-black">Diamond Rank</span>!</p>
+                <p className="text-xs text-slate-500 font-medium mb-4">Start purchasing vouchers to earn points towards <span className="text-indigo-600 font-black">Diamond Rank</span>!</p>
                 <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden">
                    <motion.div 
                      initial={{ width: 0 }}
-                     animate={{ width: "75%" }}
+                     animate={{ width: "0%" }}
                      transition={{ duration: 1.5 }}
                      className="h-full bg-indigo-500 rounded-full"
                    />

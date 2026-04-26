@@ -1,17 +1,38 @@
 import { Settings } from "lucide-react";
 import DealCard from "../../components/DealCard";
-
-const now = new Date();
-const in8hrs   = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
-const in6Days  = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 export default function ServiceDeals() {
-  const deals = [
-    { id: 13, title: "Professional Car Detailing",     price: "₦15,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=400&q=60", totalQuantity: 80,  soldQuantity: 62, expiryDate: in8hrs   },
-    { id: 14, title: "Home Deep Cleaning Service",     price: "₦20,000", original: "₦35,000", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?auto=format&fit=crop&w=400&q=60", totalQuantity: 50,  soldQuantity: 47, expiryDate: in6Days  },
-    { id: 15, title: "1-on-1 Personal Training Session", price: "₦10,000", original: "₦18,000", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=400&q=60", totalQuantity: 100, soldQuantity: 34, expiryDate: in30Days },
-  ];
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals?category=Local Services");
+        const formattedDeals = data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+        }));
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Failed to fetch service deals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,26 +41,41 @@ export default function ServiceDeals() {
           <Settings size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold">Services</h1>
+          <h1 className="text-4xl font-bold">Local Services</h1>
           <p className="text-slate-500">Expert help for your home, car, and life.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            id={deal.id}
-            title={deal.title}
-            price={deal.price}
-            original={deal.original}
-            image={deal.image}
-            totalQuantity={deal.totalQuantity}
-            soldQuantity={deal.soldQuantity}
-            expiryDate={deal.expiryDate}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              id={deal.id}
+              title={deal.title}
+              price={deal.price}
+              original={deal.original}
+              image={deal.image}
+              category={deal.category}
+              location={deal.location}
+              expiryDate={deal.expiryDate}
+              totalQuantity={deal.totalQuantity}
+              soldQuantity={deal.soldQuantity}
+              dealExplanation={deal.dealExplanation}
+              index={i}
+            />
+          ))}
+          {deals.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active services at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

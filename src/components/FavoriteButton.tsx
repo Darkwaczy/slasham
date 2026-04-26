@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
+import { storage } from "../utils/storage";
 
 export default function FavoriteButton({ dealId, deal, className = "" }: { dealId: number | string; deal?: any; className?: string }) {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+      const saved = JSON.parse(storage.getItem('slasham_saved_deals') || '[]');
       if (saved.find((d: any) => String(d.id) === String(dealId))) {
         setIsSaved(true);
       }
@@ -23,11 +24,11 @@ export default function FavoriteButton({ dealId, deal, className = "" }: { dealI
     
     if (deal) {
       try {
-        const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+        const saved = JSON.parse(storage.getItem('slasham_saved_deals') || '[]');
         if (!isSaved) {
-          localStorage.setItem('slasham_saved_deals', JSON.stringify([...saved, deal]));
+          storage.setItem('slasham_saved_deals', JSON.stringify([...saved, deal]));
         } else {
-          localStorage.setItem('slasham_saved_deals', JSON.stringify(saved.filter((d: any) => String(d.id) !== String(dealId))));
+          storage.setItem('slasham_saved_deals', JSON.stringify(saved.filter((d: any) => String(d.id) !== String(dealId))));
         }
         window.dispatchEvent(new Event('savedDealsUpdate'));
       } catch (err) {

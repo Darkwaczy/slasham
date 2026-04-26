@@ -1,67 +1,84 @@
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users } from "lucide-react";
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-import { getAdminUsers, saveAdminUsers } from "../../utils/adminPersistence";
+import { apiClient } from "../../api/client";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiClient("/admin/users");
+      setUsers(data.map((u: any) => ({
+        id: u.id,
+        name: u.name || "Anonymous",
+        email: u.email,
+        status: u.role === "SUSPENDED" ? 'Suspended' : 'Active',
+        role: u.role === "ADMIN" ? "Administrator" : "Standard User",
+        joinDate: new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        location: "Lagos", // Default for now
+      })));
+    } catch (error) {
+      console.error("Failed to load users:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Load initial users
-    setUsers(getAdminUsers());
-    
-    // Listen for updates across tabs
-    const handleUpdate = () => setUsers(getAdminUsers());
-    window.addEventListener('adminDataUpdate', handleUpdate);
-    return () => window.removeEventListener('adminDataUpdate', handleUpdate);
+    loadData();
   }, []);
 
   const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.email || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleStatus = (id: string) => {
-    const updatedUsers = users.map(u => {
-      if (u.id === id) {
-        return { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' };
-      }
-      return u;
-    });
-    setUsers(updatedUsers);
-    saveAdminUsers(updatedUsers);
-    setIsActionModalOpen(false);
+  const handleToggleStatus = async (user: any) => {
+    try {
+        const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+        await apiClient(`/admin/users/${user.id}/status`, {
+            method: "POST",
+            body: JSON.stringify({ status: newStatus })
+        });
+        loadData();
+        setIsActionModalOpen(false);
+    } catch (error: any) {
+        alert("Status update failed: " + error.message);
+    }
   };
 
-  const handleDeleteUser = (id: string) => {
-    const updatedUsers = users.filter(u => u.id !== id);
-    setUsers(updatedUsers);
-    saveAdminUsers(updatedUsers);
-    setIsActionModalOpen(false);
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm("Permanently delete this user account?")) return;
+    try {
+        await apiClient(`/admin/users/${id}`, { method: "DELETE" });
+        loadData();
+        setIsActionModalOpen(false);
+    } catch (error: any) {
+        alert("Delete failed: " + error.message);
+    }
   };
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const newUser = {
-      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      status: "Active",
-      role: formData.get('role') as string,
-      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      location: formData.get('location') as string,
-    };
-    const updatedUsers = [newUser, ...users];
-    setUsers(updatedUsers);
-    saveAdminUsers(updatedUsers);
+    alert("Manual user creation is restricted. Users must register via the standard auth flow.");
     setIsAddModalOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="animate-spin text-slate-300" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -83,21 +100,21 @@ export default function AdminUsers() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { 
-            label: "Total Users", count: users.length * 240, 
+            label: "Total Users", count: users.length, 
             icon: Users,
             bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
             textClass: "text-indigo-700", labelClass: "text-indigo-500",
             iconBg: "bg-white/60", iconColor: "text-indigo-600"
           },
           { 
-            label: "Active Now", count: Math.floor(users.length * 96.4), 
+            label: "Active Now", count: users.filter(u => u.status === 'Active').length, 
             icon: ShieldCheck,
             bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
             textClass: "text-emerald-700", labelClass: "text-emerald-500",
             iconBg: "bg-white/60", iconColor: "text-emerald-600"
           },
           { 
-            label: "New Today", count: "+24", 
+            label: "New Today", count: 0, 
             icon: UserPlus,
             bgClass: "bg-sky-50", borderClass: "border-sky-100", 
             textClass: "text-sky-700", labelClass: "text-sky-500",
@@ -267,30 +284,6 @@ export default function AdminUsers() {
                 placeholder="chima@example.com"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Location</label>
-              <select 
-                name="location"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none appearance-none"
-              >
-                <option value="Lagos">Lagos</option>
-                <option value="Abuja">Abuja</option>
-                <option value="Port Harcourt">Port Harcourt</option>
-                <option value="Enugu">Enugu</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Role / Tier</label>
-              <select 
-                name="role"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none appearance-none"
-              >
-                <option value="Basic User">Basic User</option>
-                <option value="Gold Member">Gold Member</option>
-                <option value="Platinum">Platinum</option>
-                <option value="New User">New User</option>
-              </select>
-            </div>
           </div>
           <div className="pt-4 flex gap-4">
             <button 
@@ -330,7 +323,7 @@ export default function AdminUsers() {
 
           <div className="grid grid-cols-1 gap-2">
             <button 
-              onClick={() => handleToggleStatus(selectedUser.id)}
+              onClick={() => handleToggleStatus(selectedUser)}
               className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all ${
                 selectedUser?.status === 'Active' 
                 ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 

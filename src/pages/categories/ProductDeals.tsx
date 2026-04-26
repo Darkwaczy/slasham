@@ -1,17 +1,38 @@
 import { Package } from "lucide-react";
 import DealCard from "../../components/DealCard";
-
-const now = new Date();
-const in5hrs   = new Date(now.getTime() + 5 * 60 * 60 * 1000).toISOString();
-const in3Days  = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const in10Days = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 export default function ProductDeals() {
-  const deals = [
-    { id: 10, title: "Premium Leather Wallet",               price: "₦12,000", original: "₦25,000", image: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=400&q=60", totalQuantity: 50, soldQuantity: 38, expiryDate: in5hrs   },
-    { id: 11, title: "Wireless Noise Cancelling Headphones", price: "₦45,000", original: "₦80,000", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=60", totalQuantity: 30, soldQuantity: 27, expiryDate: in3Days  },
-    { id: 12, title: "Organic Skincare Set",                 price: "₦18,000", original: "₦30,000", image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=400&q=60", totalQuantity: 75, soldQuantity: 29, expiryDate: in10Days },
-  ];
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals?category=Goods");
+        const formattedDeals = data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+        }));
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Failed to fetch product deals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,26 +41,41 @@ export default function ProductDeals() {
           <Package size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold">Products</h1>
+          <h1 className="text-4xl font-bold">Goods</h1>
           <p className="text-slate-500">Curated items at exclusive member prices.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            id={deal.id}
-            title={deal.title}
-            price={deal.price}
-            original={deal.original}
-            image={deal.image}
-            totalQuantity={deal.totalQuantity}
-            soldQuantity={deal.soldQuantity}
-            expiryDate={deal.expiryDate}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              id={deal.id}
+              title={deal.title}
+              price={deal.price}
+              original={deal.original}
+              image={deal.image}
+              category={deal.category}
+              location={deal.location}
+              expiryDate={deal.expiryDate}
+              totalQuantity={deal.totalQuantity}
+              soldQuantity={deal.soldQuantity}
+              dealExplanation={deal.dealExplanation}
+              index={i}
+            />
+          ))}
+          {deals.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active goods at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -2,16 +2,15 @@ import { Search, Clock, CheckCircle2, FileText, ChevronRight, Tag, Trash2, Refre
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-import { getPersistentDeals, addPersistentDeal, deletePersistentDeal, getPersistentAds, savePersistentAd } from "../../utils/mockPersistence";
-import { getCampaignRequests, updateRequestStatus, CampaignRequest, deleteCampaignRequest } from "../../utils/merchantPersistence";
+import { apiClient } from "../../api/client";
 
 export default function AdminDeals() {
   const [deals, setDeals] = useState<any[]>([]);
-  const [requests, setRequests] = useState<CampaignRequest[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [ads, setAds] = useState<any[]>([]);
   const [activeTab, setActiveTab ] = useState<'inventory' | 'requests' | 'ads'>('inventory');
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRequest, setSelectedRequest] = useState<CampaignRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
 
@@ -21,88 +20,103 @@ export default function AdminDeals() {
   const [slashamPrice, setSlashamPrice] = useState("");
   const [targetCity, setTargetCity] = useState<'Lagos' | 'Abuja' | 'All'>('Lagos');
   const [selectedCategory, setSelectedCategory] = useState("Dining");
-  const [promoTag, setPromoTag] = useState("Verified");
-  const [isTrending, setIsTrending] = useState(false);
   const [isHotDeal, setIsHotDeal] = useState(false);
 
   // Ad Editing States
   const [editingAd, setEditingAd] = useState<any | null>(null);
 
-  const loadData = () => {
+  const loadData = async () => {
     setIsRefreshing(true);
-    const publicDeals = getPersistentDeals();
-    setDeals(publicDeals.map(d => ({
+    try {
+      const [dealsList, requestsList, billboardsList] = await Promise.all([
+        apiClient("/deals"),
+        apiClient("/admin/requests"),
+        apiClient("/admin/billboards")
+      ]);
+      
+      setDeals(dealsList.map((d: any) => ({
         ...d,
-        merchant: d.companyName || d.title.split("'")[0] || "Merchant Partner",
-        reached: d.tag === 'Verified' ? "85%" : "0%",
-        status: "Active",
-        expires: "30 days",
-    })));
-    setRequests(getCampaignRequests());
-    setAds(getPersistentAds());
-    setTimeout(() => setIsRefreshing(false), 500);
+        merchant: d.merchants?.business_name || "Merchant Partner",
+        status: "Active"
+      })));
+      setRequests(requestsList);
+      setAds(billboardsList);
+    } catch (error) {
+      console.error("Failed to load admin data:", error);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   useEffect(() => {
     loadData();
-    window.addEventListener('campaignRequestsUpdate', loadData);
-    window.addEventListener('persistentAdsUpdate', loadData);
-    return () => {
-        window.removeEventListener('campaignRequestsUpdate', loadData);
-        window.removeEventListener('persistentAdsUpdate', loadData);
-    };
   }, []);
 
-  const handleApprove = (req: CampaignRequest) => {
+  const handleApprove = async (req: any) => {
     if (!slashamPrice.trim()) {
       alert("Please determine the Slasham Discounted Price before authorizing launch.");
       return;
     }
 
-    const priceWithNaira = slashamPrice.startsWith('₦') ? slashamPrice : `₦${slashamPrice.replace(/\D/g, '')}`;
+    try {
+        const numericPrice = parseFloat(slashamPrice.replace(/[^0-9.]/g, ''));
+        
+        // 1. Update request status
+        await apiClient(`/admin/requests/${req.id}/status`, {
+            method: "POST",
+            body: JSON.stringify({ status: "APPROVED", admin_notes: "Authorized via Marketplace Console" })
+        });
 
-    updateRequestStatus(req.id, 'Approved', 'Platform verification successful. This deal is now LIVE.', priceWithNaira);
-    
-    addPersistentDeal({
-        title: req.productName,
-        companyName: req.companyName || req.businessName,
-        location: targetCity === 'All' ? "Multiple Locations" : (targetCity === 'Lagos' ? "Lagos, Nigeria" : "Abuja, Nigeria"),
-        price: priceWithNaira,
-        original: req.originalPrice,
-        image: req.productImage,
-        category: selectedCategory,
-        tag: promoTag,
-        description: req.description,
-        validity: `Valid for 30 days. No booking required.`,
-        unlockNote: req.unlockNote,
-        shippingInfo: req.shippingInfo,
-        expiryDate: req.expiryDate,
-        isHotCoupon: isHotDeal,
-        isTrending: isTrending,
-        targetCity: targetCity,
-        requestId: req.id
-    });
-    
-    setIsRequestModalOpen(false);
-    setSlashamPrice("");
-    setIsTrending(false);
-    setIsHotDeal(false);
+        // 2. Create the real deal
+        await apiClient("/deals", {
+            method: "POST",
+            body: JSON.stringify({
+                merchant_id: req.merchant_id,
+                title: req.product_name,
+                description: req.description,
+                category: selectedCategory,
+                original_price: req.original_price,
+                discount_price: numericPrice,
+                total_quantity: req.total_quantity || 100,
+                validity_days: 30,
+                expiry_date: req.expiry_date || new Date(Date.now() + 30 * 86400000).toISOString(),
+                is_hot: isHotDeal,
+                images: [req.product_image],
+                deal_explanation: "Limited time verified offer"
+            })
+        });
+
+        setIsRequestModalOpen(false);
+        setSlashamPrice("");
+        loadData();
+    } catch (error: any) {
+        alert("Launch failed: " + error.message);
+    }
   };
 
-  const handleUpdateAd = () => {
+  const handleUpdateAd = async () => {
       if (editingAd) {
-          savePersistentAd(editingAd);
-          setEditingAd(null);
-          loadData();
+          try {
+            await apiClient("/admin/billboards", {
+                method: "POST",
+                body: JSON.stringify(editingAd)
+            });
+            setEditingAd(null);
+            loadData();
+          } catch (error: any) {
+            alert("Ad update failed: " + error.message);
+          }
       }
   };
 
-  const handleDeleteDeal = (deal: any) => {
-    if (deal.requestId) {
-        deleteCampaignRequest(deal.requestId);
+  const handleDeleteDeal = async (deal: any) => {
+    if (!confirm("Are you sure you want to delete this deal?")) return;
+    try {
+        await apiClient(`/deals/${deal.id}`, { method: "DELETE" });
+        loadData();
+    } catch (error: any) {
+        alert("Delete failed: " + error.message);
     }
-    deletePersistentDeal(Number(deal.id));
-    loadData();
   };
 
   const filteredDeals = (deals || []).filter(d => {
@@ -112,7 +126,7 @@ export default function AdminDeals() {
     return matchesSearch && matchesStatus;
   });
 
-  const pendingRequests = requests.filter(r => r.status === 'Pending');
+  const pendingRequests = requests.filter(r => r.status === 'PENDING');
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -181,14 +195,14 @@ export default function AdminDeals() {
                 iconBg: "bg-white/60", iconColor: "text-amber-600"
               },
               { 
-                label: "Trending Now", count: deals.filter(d => d.isTrending).length, sub: "Platform Velocity",
+                label: "Trending Now", count: deals.filter(d => d.is_trending).length, sub: "Platform Velocity",
                 icon: TrendingUp,
                 bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
                 textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
                 iconBg: "bg-white/60", iconColor: "text-emerald-600"
               },
               { 
-                label: "Hot Coupons", count: deals.filter(d => d.isHotCoupon).length, sub: "High Value Claims",
+                label: "Hot Coupons", count: deals.filter(d => d.is_hot).length, sub: "High Value Claims",
                 icon: Zap,
                 bgClass: "bg-rose-50", borderClass: "border-rose-100", 
                 textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
@@ -237,7 +251,6 @@ export default function AdminDeals() {
                   <tr className="bg-slate-50/50">
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Information</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Placement</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -245,7 +258,7 @@ export default function AdminDeals() {
                   <AnimatePresence mode="popLayout">
                     {filteredDeals.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-8 py-20 text-center text-slate-400 italic">No deals found matching your criteria.</td>
+                        <td colSpan={3} className="px-8 py-20 text-center text-slate-400 italic">No deals found matching your criteria.</td>
                       </tr>
                     ) : filteredDeals.map((deal: any, idx: number) => (
                       <motion.tr 
@@ -260,23 +273,15 @@ export default function AdminDeals() {
                         <td className="px-8 py-5 text-left">
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden shadow-sm">
-                              <img src={deal.image} className="w-full h-full object-cover" alt="" />
+                              <img src={deal.images?.[0] || ""} className="w-full h-full object-cover" alt="" />
                             </div>
                             <div>
                               <p className="text-sm font-bold text-slate-900 mb-0.5">{deal.title}</p>
-                              <p className="text-[11px] text-slate-500 font-medium">{deal.category} • {deal.price}</p>
+                              <p className="text-[11px] text-slate-500 font-medium">{deal.category} • ₦{deal.discount_price?.toLocaleString()}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-8 py-5 text-nowrap text-sm font-bold text-slate-700 text-left">{deal.merchant}</td>
-                        <td className="px-8 py-5 text-left">
-                           <div className="flex flex-wrap gap-1.5">
-                                {deal.isHotCoupon && <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-widest rounded-md">Hot Deal</span>}
-                                {deal.isTrending && <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-md">Trending</span>}
-                                <span className="px-2 py-0.5 bg-slate-50 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-md">{deal.targetCity || 'Lagos'}</span>
-                                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-md">{deal.tag}</span>
-                           </div>
-                        </td>
                         <td className="px-8 py-5 text-right space-x-1">
                           <button 
                             onClick={() => handleDeleteDeal(deal)}
@@ -318,11 +323,11 @@ export default function AdminDeals() {
                     <div className="flex justify-between items-start mb-6">
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-slate-100 rounded-3xl overflow-hidden shadow-lg shadow-emerald-500/5">
-                          <img src={req.productImage} className="w-full h-full object-cover" alt="" />
+                          <img src={req.product_image} className="w-full h-full object-cover" alt="" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.productName}</h3>
-                          <p className="text-sm font-bold text-indigo-600">{req.companyName || req.businessName}</p>
+                          <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-2">{req.product_name}</h3>
+                          <p className="text-sm font-bold text-indigo-600">{req.merchants?.business_name}</p>
                         </div>
                       </div>
                       <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl animate-pulse">
@@ -333,11 +338,11 @@ export default function AdminDeals() {
                     <div className="grid grid-cols-2 gap-4 mb-8">
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 text-left">Market Price</p>
-                        <p className="text-lg font-black text-slate-900 leading-none text-left">{req.originalPrice}</p>
+                        <p className="text-lg font-black text-slate-900 leading-none text-left">₦{req.original_price?.toLocaleString()}</p>
                       </div>
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 text-left">Coupon Type</p>
-                        <p className="text-lg font-black text-slate-900 leading-none text-left">{req.couponType}</p>
+                        <p className="text-lg font-black text-slate-900 leading-none text-left">{req.coupon_type || "Standard"}</p>
                       </div>
                     </div>
 
@@ -354,7 +359,6 @@ export default function AdminDeals() {
           </div>
         </div>
       ) : (
-        /* PHASE 2: ADS MANAGEMENT UI */
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
              <div className="space-y-6">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Active Billboard Banners</h3>
@@ -368,14 +372,14 @@ export default function AdminDeals() {
                     >
                         <div className="flex gap-6">
                             <div className="w-24 h-24 rounded-3xl overflow-hidden shrink-0 border border-slate-100 group-hover:scale-105 transition-transform">
-                                <img src={ad.pattern} className="w-full h-full object-cover" alt="" />
+                                <img src={ad.image_url} className="w-full h-full object-cover" alt="" />
                             </div>
                             <div className="flex-1">
-                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-white mb-2 inline-block ${ad.codeBg.split(' ')[0]}`}>Slot #{ad.id}</span>
+                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-white mb-2 inline-block ${ad.bg_class?.split(' ')[0] || 'bg-slate-900'}`}>Slot #{ad.id}</span>
                                 <h4 className="text-lg font-black text-slate-900 leading-none mb-1 uppercase tracking-tight">{ad.title} {ad.subtitle}</h4>
-                                <p className="text-xs text-slate-500 font-medium mb-4 line-clamp-1">{ad.desc}</p>
+                                <p className="text-xs text-slate-500 font-medium mb-4 line-clamp-1">{ad.description}</p>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code: <span className="text-slate-900">{ad.code}</span></span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code: <span className="text-slate-900">{ad.promo_code}</span></span>
                                     <button 
                                         onClick={() => setEditingAd(ad)}
                                         className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all"
@@ -426,8 +430,8 @@ export default function AdminDeals() {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Short Description</label>
                                 <textarea 
-                                    value={editingAd.desc}
-                                    onChange={(e) => setEditingAd({...editingAd, desc: e.target.value})}
+                                    value={editingAd.description}
+                                    onChange={(e) => setEditingAd({...editingAd, description: e.target.value})}
                                     className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 min-h-[80px]"
                                 />
                             </div>
@@ -436,8 +440,8 @@ export default function AdminDeals() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Promo Code</label>
                                     <input 
                                         type="text" 
-                                        value={editingAd.code}
-                                        onChange={(e) => setEditingAd({...editingAd, code: e.target.value})}
+                                        value={editingAd.promo_code}
+                                        onChange={(e) => setEditingAd({...editingAd, promo_code: e.target.value})}
                                         className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-black uppercase outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
@@ -445,8 +449,8 @@ export default function AdminDeals() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Background Color Class</label>
                                     <input 
                                         type="text" 
-                                        value={editingAd.bg}
-                                        onChange={(e) => setEditingAd({...editingAd, bg: e.target.value})}
+                                        value={editingAd.bg_class}
+                                        onChange={(e) => setEditingAd({...editingAd, bg_class: e.target.value})}
                                         className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-mono outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
@@ -455,8 +459,8 @@ export default function AdminDeals() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Main Banner Image URL</label>
                                 <input 
                                     type="text" 
-                                    value={editingAd.pattern}
-                                    onChange={(e) => setEditingAd({...editingAd, pattern: e.target.value})}
+                                    value={editingAd.image_url}
+                                    onChange={(e) => setEditingAd({...editingAd, image_url: e.target.value})}
                                     className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-mono outline-none focus:ring-2 focus:ring-indigo-500 text-slate-400"
                                 />
                             </div>
@@ -490,7 +494,6 @@ export default function AdminDeals() {
         </div>
       )}
 
-      {/* PHASE 3: ENHANCED APPROVAL MODAL */}
       <AdminModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
@@ -500,11 +503,11 @@ export default function AdminDeals() {
         <div className="space-y-8 pt-6 text-left">
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 bg-slate-100 rounded-4xl overflow-hidden shadow-xl shadow-emerald-500/10">
-              <img src={selectedRequest?.productImage} className="w-full h-full object-cover" alt="" />
+              <img src={selectedRequest?.product_image} className="w-full h-full object-cover" alt="" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">{selectedRequest?.businessName}</p>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{selectedRequest?.productName}</h2>
+              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">{selectedRequest?.merchants?.business_name}</p>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{selectedRequest?.product_name}</h2>
               <p className="text-slate-400 font-medium mt-2 max-w-sm leading-relaxed line-clamp-2 text-sm">{selectedRequest?.description}</p>
             </div>
           </div>
@@ -520,15 +523,6 @@ export default function AdminDeals() {
                             className={`w-12 h-6 rounded-full transition-colors relative ${isHotDeal ? 'bg-rose-500' : 'bg-slate-200'}`}
                         >
                             <motion.div animate={{ x: isHotDeal ? 24 : 4 }} className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between p-2">
-                        <span className="text-xs font-bold text-slate-700">Flag as 'Trending'</span>
-                        <button 
-                            onClick={() => setIsTrending(!isTrending)}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${isTrending ? 'bg-amber-500' : 'bg-slate-200'}`}
-                        >
-                            <motion.div animate={{ x: isTrending ? 24 : 4 }} className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
                         </button>
                     </div>
                 </div>
@@ -569,31 +563,11 @@ export default function AdminDeals() {
              </div>
           </div>
 
-          <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">PROMO TAGGING</p>
-                    <span className="text-[9px] font-bold text-indigo-500">Affects Card Badge</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {["Verified", "Weekend Special", "VIP Access", "Selling Fast", "Monthly Pass", "70% OFF", "BOGO"].map(tag => (
-                        <button 
-                            key={tag}
-                            onClick={() => setPromoTag(tag)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                promoTag === tag ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border border-slate-100 hover:border-indigo-200'
-                            }`}
-                        >
-                            {tag}
-                        </button>
-                    ))}
-                </div>
-          </div>
-
           <div className="space-y-4 p-8 bg-emerald-50 rounded-4xl border border-emerald-100 shadow-inner">
              <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Set Slasham Discount Price</label>
                 <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg text-emerald-600 text-[10px] font-bold">
-                   <Tag size={12} /> Market Price: {selectedRequest?.originalPrice}
+                   <Tag size={12} /> Market Price: ₦{selectedRequest?.original_price?.toLocaleString()}
                 </div>
              </div>
              <div className="relative">

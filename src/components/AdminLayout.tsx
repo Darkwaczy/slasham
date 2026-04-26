@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
+import { storage } from "../utils/storage";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function AdminLayout() {
   const navItems = [
     { name: "Console", path: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Users", path: "/admin/users", icon: Users },
+    { name: "Partner Applications", path: "/admin/applications", icon: ArrowUpRight },
     { name: "Businesses", path: "/admin/businesses", icon: Store },
     { name: "Campaigns", path: "/admin/deals", icon: Tag },
     { name: "Vouchers", path: "/admin/coupons", icon: Ticket },
@@ -28,7 +30,7 @@ export default function AdminLayout() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("slasham_user");
+    storage.removeItem("slasham_user");
     navigate("/login");
   };
 

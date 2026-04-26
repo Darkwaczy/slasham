@@ -1,55 +1,60 @@
 import { 
   Star, MessageSquare, Image as ImageIcon, 
-  Send, ShieldCheck, Quote 
+  Send, ShieldCheck, Quote, Loader2 
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
-import { getUserReviews, saveUserReviews } from "../../utils/userPersistence";
+import { apiClient } from "../../api/client";
 
 export default function UserReviews() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [avgRating, setAvgRating] = useState("0.0");
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const load = () => {
-      const dbReviews = getUserReviews();
-      setReviews(dbReviews);
+  const loadReviews = async () => {
+    try {
+      const data = await apiClient("/api/user/reviews");
+      setReviews(data.map((r: any) => ({
+        id: r.id,
+        title: r.title || "Feedback",
+        merchant: r.merchants?.business_name || "Merchant",
+        rating: r.rating,
+        status: r.status === "PUBLISHED" ? "Published" : "Flagged",
+        text: r.comment,
+        date: new Date(r.created_at).toLocaleDateString(),
+        response: r.merchant_response
+      })));
       
-      const published = dbReviews.filter((r: any) => r.status === 'Published');
+      const published = data.filter((r: any) => r.status === 'PUBLISHED');
       if (published.length > 0) {
         const sum = published.reduce((acc: number, r: any) => acc + r.rating, 0);
         setAvgRating((sum / published.length).toFixed(1));
       } else {
         setAvgRating("0.0");
       }
-    };
-    load();
-    window.addEventListener('userDataUpdate', load);
-    return () => window.removeEventListener('userDataUpdate', load);
+    } catch (error) {
+      console.error("Failed to load reviews:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReviews();
   }, []);
 
   const handleAddNewReview = () => {
-    const reviewText = window.prompt("Write your review:");
-    if (!reviewText) return;
-    
-    const newRev = {
-      id: Date.now(),
-      title: "New Review Experience",
-      merchant: "Verified Partner",
-      rating: 5,
-      status: "Published",
-      text: reviewText,
-      date: "Just now",
-      response: null
-    };
-    
-    const updated = [newRev, ...reviews];
-    setReviews(updated);
-    saveUserReviews(updated);
+    alert("Review submission is now handled via the verified merchant visit flow. Visit a business to unlock review capabilities.");
   };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+      {isLoading ? (
+        <div className="py-20 flex justify-center">
+            <Loader2 className="animate-spin text-slate-300" size={40} />
+        </div>
+      ) : (
+        <>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full text-amber-600 text-[10px] font-black uppercase tracking-widest mb-4">
@@ -165,6 +170,8 @@ export default function UserReviews() {
             </button>
          </div>
       </div>
+    </>
+    )}
     </div>
   );
 }

@@ -1,17 +1,38 @@
 import { Sparkles } from "lucide-react";
 import DealCard from "../../components/DealCard";
-
-const now = new Date();
-const in2hrs   = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
-const in4Days  = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 export default function ExperienceDeals() {
-  const deals = [
-    { id: 4, title: "Skydiving over Abuja",        price: "₦150,000", original: "₦250,000", image: "https://images.unsplash.com/photo-1521017432521-f34f729bb917?auto=format&fit=crop&w=400&q=60", totalQuantity: 20, soldQuantity: 17, expiryDate: in2hrs   },
-    { id: 5, title: "Sunset Boat Cruise in Lagos", price: "₦25,000",  original: "₦40,000",  image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=400&q=60", totalQuantity: 40, soldQuantity: 25, expiryDate: in4Days  },
-    { id: 6, title: "Paint & Sip Experience",      price: "₦12,000",  original: "₦20,000",  image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=400&q=60", totalQuantity: 60, soldQuantity: 19, expiryDate: in14Days },
-  ];
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals?category=Things To Do");
+        const formattedDeals = data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1521017432521-f34f729bb917",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+        }));
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Failed to fetch experience deals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,26 +41,41 @@ export default function ExperienceDeals() {
           <Sparkles size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold">Experiences</h1>
+          <h1 className="text-4xl font-bold">Things To Do</h1>
           <p className="text-slate-500">Unforgettable moments at unbeatable prices.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            id={deal.id}
-            title={deal.title}
-            price={deal.price}
-            original={deal.original}
-            image={deal.image}
-            totalQuantity={deal.totalQuantity}
-            soldQuantity={deal.soldQuantity}
-            expiryDate={deal.expiryDate}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              id={deal.id}
+              title={deal.title}
+              price={deal.price}
+              original={deal.original}
+              image={deal.image}
+              category={deal.category}
+              location={deal.location}
+              expiryDate={deal.expiryDate}
+              totalQuantity={deal.totalQuantity}
+              soldQuantity={deal.soldQuantity}
+              dealExplanation={deal.dealExplanation}
+              index={i}
+            />
+          ))}
+          {deals.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active 'things to do' deals at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

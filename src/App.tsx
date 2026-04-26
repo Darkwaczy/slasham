@@ -31,6 +31,7 @@ import AdminRedemptions from "./pages/admin/Redemptions";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
+import AdminApplications from "./pages/admin/Applications";
 import UserLayout from "./components/UserLayout";
 import AdminLayout from "./components/AdminLayout";
 import MerchantLayout from "./components/MerchantLayout";
@@ -50,6 +51,9 @@ import Settings from "./pages/user/Settings";
 import Press from "./pages/company/Press";
 import Contact from "./pages/company/Contact";
 import MerchantScanner from "./pages/merchant/Scanner";
+import MerchantApply from "./pages/merchant/Apply";
+import MerchantLogin from "./pages/merchant/Login";
+import AdminLogin from "./pages/admin/Login";
 
 // Category Pages
 import FoodDeals from "./pages/categories/FoodDeals";
@@ -85,6 +89,8 @@ export default function App() {
       <Routes>
         <Route path="login" element={<Auth />} />
         <Route path="signup" element={<Auth />} />
+        <Route path="merchant/login" element={<MerchantLogin />} />
+        <Route path="admin/login" element={<AdminLogin />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="deals" element={<Deals />} />
@@ -95,6 +101,7 @@ export default function App() {
           <Route path="business/campaign" element={<RunCampaign />} />
           <Route path="business/list" element={<ListBusiness />} />
           <Route path="business/register" element={<RegistrationFlow />} />
+          <Route path="business/apply" element={<MerchantApply />} />
           <Route path="business/:id" element={<BusinessDetail />} />
           <Route path="how-it-works" element={<HowItWorks />} />
           <Route path="about" element={<AboutUs />} />
@@ -145,6 +152,7 @@ export default function App() {
         <Route path="admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="applications" element={<AdminApplications />} />
           <Route path="businesses" element={<AdminBusinesses />} />
           <Route path="deals" element={<AdminDeals />} />
           <Route path="coupons" element={<AdminCoupons />} />

@@ -1,5 +1,6 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import { deals } from "../../data/mockData";
+
+const deals: any[] = [];
 
 export default function Concept5() {
   return (
@@ -25,7 +26,7 @@ export default function Concept5() {
           </div>
         </div>
         <div className="relative">
-          <div className="aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 bg-white p-2 shadow-sm">
+          <div className="aspect-4/3 rounded-xl overflow-hidden border border-gray-200 bg-white p-2 shadow-sm">
             <img 
               src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop" 
               alt="People enjoying food" 
@@ -51,13 +52,13 @@ export default function Concept5() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {deals.map((deal) => (
             <div key={deal.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-colors flex flex-col group">
-              <div className="aspect-[4/3] relative border-b border-gray-100">
+              <div className="aspect-4/3 relative border-b border-gray-100">
                 <div className="absolute top-2 left-2 z-10 bg-white border border-gray-200 px-2 py-0.5 rounded text-[10px] font-mono text-gray-600">
                   {deal.tag}
                 </div>
                 <img src={deal.image} alt={deal.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
-              <div className="p-4 flex flex-col flex-grow">
+              <div className="p-4 flex flex-col grow">
                 <div className="flex justify-between items-start mb-1">
                   <h3 className="text-base font-semibold text-gray-900 line-clamp-1">{deal.title}</h3>
                 </div>

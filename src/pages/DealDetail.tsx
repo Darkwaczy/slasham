@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, ShieldCheck, CreditCard, X, ChevronRight, Building, Truck, ClipboardCheck, Info, BookOpen, Gavel, Check, ShoppingBag, Ticket, Store, HelpCircle, ChevronDown, Share2, Heart, Video, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import gsap from "gsap";
-import { getPersistentDeals } from "../utils/mockPersistence";
+import { apiClient } from "../api/client";
 import CouponAgreementModal from "../components/CouponAgreementModal";
 import CelebrationModal from "../components/CelebrationModal";
 
@@ -56,9 +56,32 @@ export default function DealDetail() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const allDeals = getPersistentDeals();
-    const found = allDeals.find(d => String(d.id) === String(id));
-    setDeal(found);
+    const fetchDeal = async () => {
+      try {
+        const d = await apiClient(`/deals/${id}`);
+        // Map backend deal to frontend shape
+        setDeal({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          companyName: d.merchants?.business_name,
+          description: d.description,
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+          validity: d.terms_conditions,
+          redeemAddress: d.merchants?.address
+        });
+      } catch (error) {
+        console.error("Failed to fetch deal:", error);
+      }
+    };
+    fetchDeal();
   }, [id]);
 
   useEffect(() => {
@@ -112,18 +135,22 @@ export default function DealDetail() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
     setIsBuying(true);
     setShowPaymentModal(false);
     
-    import("../utils/mockPersistence").then(m => {
-        m.saveUserVoucher(deal);
-    });
+    try {
+      await apiClient("/vouchers/claim", {
+        method: "POST",
+        body: JSON.stringify({ deal_id: id }),
+      });
 
-    setTimeout(() => {
       setIsBuying(false);
       navigate("/user/coupons");
-    }, 2000);
+    } catch (error: any) {
+      setIsBuying(false);
+      alert(`Claim failed: ${error.message}`);
+    }
   };
 
   const handleReviewSubmit = () => {
@@ -463,11 +490,13 @@ export default function DealDetail() {
               </div>
             )}
             
-            <div className="space-y-2">
+            <div className="space-y-6">
               <h2 className="text-6xl font-black text-slate-900 tracking-tighter leading-none">{discountPercent}% Off</h2>
-              <p className="text-black text-sm font-black tracking-widest uppercase">
-                {deal.dealExplanation}
-              </p>
+              <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 shadow-sm">
+                <p className="text-amber-600 text-sm font-black tracking-widest uppercase leading-tight">
+                  {deal.dealExplanation}
+                </p>
+              </div>
             </div>
             
             {deal.totalQuantity && (

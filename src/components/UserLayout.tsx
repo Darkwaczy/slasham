@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Ticket, Heart, CreditCard, Star, Settings, 
@@ -6,12 +6,40 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
+import { storage } from "../utils/storage";
+import { apiClient } from "../api/client";
 
 export default function UserLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    return name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/deals?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const data = await apiClient("/auth/me");
+        setUserData(data);
+      } catch (err) {
+        console.error("Failed to fetch user for layout", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const navItems = [
     { name: "Overview", path: "/user/dashboard", icon: LayoutDashboard },
@@ -24,7 +52,7 @@ export default function UserLayout() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("slasham_user");
+    storage.removeItem("slasham_user");
     navigate("/login");
   };
 
@@ -95,9 +123,12 @@ export default function UserLayout() {
                 <span className="font-bold text-emerald-900 text-sm">Need Help?</span>
               </div>
               <p className="text-xs text-emerald-700/70 font-medium">Contact our 24/7 support team for any queries.</p>
-              <button className="w-full py-2 bg-white text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors border border-emerald-100">
+              <a 
+                href="mailto:support@slasham.com" 
+                className="w-full py-2 bg-white text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors border border-emerald-100 flex items-center justify-center"
+              >
                 Support Center
-              </button>
+              </a>
            </div>
         </div>
 
@@ -105,11 +136,11 @@ export default function UserLayout() {
         <div className="p-6 border-t border-slate-100">
           <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer relative">
             <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shadow-inner ring-2 ring-white">
-              <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop" alt="User" />
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || "User")}&background=10b981&color=fff`} alt="User" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-slate-900 truncate">John Doe</p>
-              <p className="text-xs text-slate-500 truncate">Pro Member</p>
+              <p className="text-sm font-black text-slate-900 truncate">{userData?.name || "Member"}</p>
+              <p className="text-xs text-slate-500 truncate">Standard Plan</p>
             </div>
             <button 
               onClick={handleLogout}
@@ -147,15 +178,22 @@ export default function UserLayout() {
             <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2.5 rounded-2xl ring-1 ring-slate-200 border-b-2 border-slate-200/50 focus-within:ring-emerald-500 focus-within:bg-white transition-all w-80">
               <Search size={18} className="text-slate-400" />
               <input 
-                type="text" 
-                placeholder="Search deals, vouchers..." 
-                className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full placeholder:text-slate-400"
+                type="text"
+                autoComplete="off"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+                placeholder="Search deals, vouchers..."
+                className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full placeholder:text-slate-400 outline-none"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-2xl relative transition-all group">
-                <Bell size={20} className="group-hover:rotate-12" />
+              <button 
+                onClick={() => navigate("/user/notifications")}
+                className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-2xl relative transition-all group"
+              >
+                <Bell size={20} className="group-hover:rotate-12 transition-transform" />
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
               </button>
               
@@ -166,8 +204,8 @@ export default function UserLayout() {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-bold shadow-lg shadow-slate-900/10">
-                    JD
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-500/20">
+                    {getInitials(userData?.name || "")}
                   </div>
                 </button>
                 
@@ -180,7 +218,7 @@ export default function UserLayout() {
                       className="absolute right-0 mt-4 w-56 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-60"
                     >
                       <div className="px-4 py-3 border-b border-slate-50 mb-2">
-                        <p className="text-sm font-black text-slate-900">John Doe</p>
+                        <p className="text-sm font-black text-slate-900">{userData?.name || "Member"}</p>
                         <p className="text-xs text-slate-500">Member since 2026</p>
                       </div>
                       <button 

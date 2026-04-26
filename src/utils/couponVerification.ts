@@ -3,6 +3,8 @@
  * Implements strong hashing for unique coupon identification and validation.
  */
 
+import { storage } from "./storage";
+
 export interface Coupon {
   hash: string;
   dealId: number | string;
@@ -33,7 +35,7 @@ export const generateCouponHash = (dealId: string | number, userId: string): str
 const STORAGE_KEY_COUPONS = "slasham_verified_coupons";
 
 export const getVerifiedCoupons = (): Coupon[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_COUPONS);
+  const stored = storage.getItem(STORAGE_KEY_COUPONS);
   return stored ? JSON.parse(stored) : [];
 };
 
@@ -45,7 +47,7 @@ export const issueCoupon = (dealId: string | number, userId: string): Coupon => 
     userId,
     redeemed: false
   };
-  localStorage.setItem(STORAGE_KEY_COUPONS, JSON.stringify([...coupons, newCoupon]));
+  storage.setItem(STORAGE_KEY_COUPONS, JSON.stringify([...coupons, newCoupon]));
   return newCoupon;
 };
 
@@ -60,16 +62,16 @@ export const validateCoupon = (hash: string): { success: boolean; message: strin
     c.hash === hash ? { ...c, redeemed: true, redeemedAt: new Date().toISOString() } : c
   );
   
-  localStorage.setItem(STORAGE_KEY_COUPONS, JSON.stringify(updated));
+  storage.setItem(STORAGE_KEY_COUPONS, JSON.stringify(updated));
 
   // --- NEW: SYNC WITH USER WALLET ---
   try {
     const VOUCHER_KEY = "slasham_user_vouchers";
-    const userVouchers = JSON.parse(localStorage.getItem(VOUCHER_KEY) || "[]");
+    const userVouchers = JSON.parse(storage.getItem(VOUCHER_KEY) || "[]");
     const updatedUserVouchers = userVouchers.map((v: any) => 
       v.code === hash ? { ...v, status: "Redeemed", redeemedAt: new Date().toISOString() } : v
     );
-    localStorage.setItem(VOUCHER_KEY, JSON.stringify(updatedUserVouchers));
+    storage.setItem(VOUCHER_KEY, JSON.stringify(updatedUserVouchers));
     window.dispatchEvent(new Event('vouchersUpdate'));
   } catch (err) {
     console.error("Wallet sync failed:", err);

@@ -1,7 +1,9 @@
 /**
  * Admin State Utility
- * Simulates a backend-to-frontend synchronization using LocalStorage for the mockup.
+ * Mocked settings store. Product requirement: do not persist on the frontend.
  */
+
+import { storage } from "./storage";
 
 export interface AdminSettings {
   siteName: string;
@@ -42,7 +44,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
 const STORAGE_KEY = "slasham_admin_settings";
 
 export const getAdminSettings = (): AdminSettings => {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = storage.getItem(STORAGE_KEY);
   if (!stored) return DEFAULT_SETTINGS;
   try {
     return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
@@ -52,7 +54,7 @@ export const getAdminSettings = (): AdminSettings => {
 };
 
 export const saveAdminSettings = (settings: AdminSettings) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  storage.setItem(STORAGE_KEY, JSON.stringify(settings));
   // Dispatch a custom event so other components can listen without re-polling
   window.dispatchEvent(new Event('adminSettingsUpdate'));
 };

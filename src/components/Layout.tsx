@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 import { getAdminSettings, AdminSettings } from "../utils/adminState";
+import { storage } from "../utils/storage";
 import { Logo } from "./Logo";
 
 
@@ -31,7 +32,7 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("slasham_user");
+    const storedUser = storage.getItem("slasham_user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -41,7 +42,7 @@ export default function Layout() {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("slasham_user");
+    storage.removeItem("slasham_user");
     setUser(null);
   };
 
@@ -72,11 +73,11 @@ export default function Layout() {
       title: "Deals",
       icon: <Utensils size={20} className="text-orange-500" />,
       items: [
-        { label: "Food & Drinks", path: "/deals/food", icon: <Utensils size={18} className="text-orange-500" /> },
-        { label: "Experiences", path: "/deals/experiences", icon: <Sparkles size={18} className="text-purple-500" /> },
-        { label: "Beauty & Wellness", path: "/deals/beauty", icon: <Heart size={18} className="text-rose-500" /> },
-        { label: "Products", path: "/deals/products", icon: <Package size={18} className="text-blue-500" /> },
-        { label: "Services", path: "/deals/services", icon: <Settings size={18} className="text-slate-500" /> },
+        { label: "Food & Drink", path: "/deals/food", icon: <Utensils size={18} className="text-orange-500" /> },
+        { label: "Beauty & Spas", path: "/deals/beauty", icon: <Sparkles size={18} className="text-purple-500" /> },
+        { label: "Things To Do", path: "/deals/experiences", icon: <Sparkles size={18} className="text-rose-500" /> },
+        { label: "Goods", path: "/deals/products", icon: <Package size={18} className="text-blue-500" /> },
+        { label: "Local Services", path: "/deals/services", icon: <Settings size={18} className="text-slate-500" /> },
       ]
     },
     {
@@ -474,10 +475,10 @@ export default function Layout() {
                 </h4>
                 <div className={`overflow-hidden transition-all duration-300 ${footerExpandedSection === 'explore' ? 'max-h-[300px] mt-6' : 'max-h-0 md:max-h-[300px] md:mt-0'}`}>
                 <ul className="space-y-4 text-white/70 font-medium font-sans">
-                    <li><Link to="/deals?category=dining" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Dining</Link></li>
-                    <li><Link to="/deals?category=wellness" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Wellness &amp; Spa</Link></li>
-                    <li><Link to="/deals?category=events" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Events &amp; Tickets</Link></li>
-                    <li><Link to="/deals?category=getaways" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Getaways</Link></li>
+                    <li><Link to="/deals/food" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Food & Drink</Link></li>
+                    <li><Link to="/deals/beauty" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Beauty & Spas</Link></li>
+                    <li><Link to="/deals/experiences" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Things To Do</Link></li>
+                    <li><Link to="/deals/products" className="hover:text-white transition-colors flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-white/50"></span> Goods</Link></li>
                   </ul>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle2, MapPin } from "lucide-react";
-import { deals } from "../../data/mockData";
+
+const deals: any[] = [];
 
 export default function Concept1() {
   return (
@@ -29,7 +30,7 @@ export default function Concept1() {
         </div>
         <div className="relative">
           <div className="absolute inset-0 bg-emerald-100 rounded-full blur-3xl opacity-50 translate-x-10 translate-y-10"></div>
-          <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border-8 border-white">
+          <div className="relative aspect-4/5 rounded-4xl overflow-hidden shadow-2xl border-8 border-white">
             <img 
               src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop" 
               alt="People enjoying food" 
@@ -64,13 +65,13 @@ export default function Concept1() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {deals.map((deal) => (
             <div key={deal.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 flex flex-col">
-              <div className="aspect-[4/3] relative">
+              <div className="aspect-4/3 relative">
                 <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm">
                   {deal.tag}
                 </div>
                 <img src={deal.image} alt={deal.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
-              <div className="p-5 flex flex-col flex-grow">
+              <div className="p-5 flex flex-col grow">
                 <span className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-2">{deal.category}</span>
                 <h3 className="text-lg font-bold mb-1 text-gray-900 line-clamp-1">{deal.title}</h3>
                 <div className="flex items-center gap-1 text-gray-500 text-sm mb-4">

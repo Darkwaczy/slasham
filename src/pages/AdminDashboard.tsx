@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import AdminModal from "../components/AdminModal";
-import { getAdminUsers, getAdminBusinesses } from "../utils/adminPersistence";
-import { getPersistentDeals } from "../utils/mockPersistence";
 
 const data = [
   { name: 'Jan', revenue: 4000, users: 2400 },
@@ -15,32 +13,34 @@ const data = [
   { name: 'Jun', revenue: 6390, users: 4200 },
 ];
 
+import { apiClient } from "../api/client";
+
 export default function AdminDashboard() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<null | 'clean' | 'threat'>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [liveStats, setLiveStats] = useState({ users: 0, businesses: 0, campaigns: 0, revenue: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStats = async () => {
+    try {
+      const data = await apiClient("/admin/stats");
+      setLiveStats({
+        users: data.total_users,
+        businesses: data.total_merchants,
+        campaigns: data.total_deals,
+        revenue: parseFloat(data.total_revenue_m)
+      });
+    } catch (error) {
+      console.error("Admin stats fetch failed", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const updateStats = () => {
-        const campaigns = getPersistentDeals().length;
-        setLiveStats({
-            users: getAdminUsers().length,
-            businesses: getAdminBusinesses().length,
-            campaigns: campaigns,
-            revenue: campaigns * 1.2
-        });
-    };
-    updateStats();
-    
-    window.addEventListener('adminDataUpdate', updateStats);
-    window.addEventListener('persistentDealsUpdate', updateStats);
-    
-    return () => {
-        window.removeEventListener('adminDataUpdate', updateStats);
-        window.removeEventListener('persistentDealsUpdate', updateStats);
-    };
+    fetchStats();
   }, []);
 
   const stats = [

@@ -1,45 +1,37 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Trash2, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Truck, Zap, Upload, Building, MapPin, Loader2, Users, CheckCircle } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin, Loader2, Users, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-import { getCampaignRequests, saveCampaignRequest, updateRequestStatus } from "../../utils/merchantPersistence";
-import { addPersistentDeal } from "../../utils/mockPersistence";
-import { getLocationNames } from "../../utils/locations";
-import { getAdminBusinesses, saveAdminBusinesses } from "../../utils/adminPersistence";
+import { apiClient } from "../../api/client";
 
 export default function AdminBusinesses() {
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = () => {
-        const staticBiz = getAdminBusinesses();
-        const requests = getCampaignRequests();
-        const requestBiz = requests.map(r => ({
-          id: r.merchantId,
-          name: r.businessName,
-          owner: r.email?.split('@')[0] || "Owner",
-          category: r.category,
-          rating: 4.5,
-          status: r.status === 'Approved' ? 'Verified' : 'Pending',
-          deals: 1,
-          city: r.location || r.address?.split(',').pop()?.trim() || "Lagos",
-          email: r.email,
-          address: r.address
-        }));
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiClient("/admin/merchants");
+      setBusinesses(data.map((m: any) => ({
+        id: m.id,
+        name: m.business_name,
+        owner: m.users?.name || "Owner",
+        category: m.description?.split(',')[0] || "General",
+        rating: 4.8,
+        status: m.is_verified ? 'Verified' : 'Pending',
+        city: m.city || "Lagos",
+        email: m.users?.email,
+        address: m.address
+      })));
+    } catch (error) {
+      console.error("Failed to load merchants:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        const combined = [...staticBiz];
-        requestBiz.forEach((rb: any) => {
-          if (!combined.some(b => b.name === rb.name)) {
-            combined.push(rb);
-          }
-        });
-        setBusinesses(combined);
-        setIsLoading(false);
-    };
+  useEffect(() => {
     loadData();
-    window.addEventListener('campaignRequestsUpdate', loadData);
-    return () => window.removeEventListener('campaignRequestsUpdate', loadData);
   }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +41,6 @@ export default function AdminBusinesses() {
   const [isQuickDealModalOpen, setIsQuickDealModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("All");
 
-  const [shippingEnabled, setShippingEnabled] = useState(false);
   const [isHotCoupon, setIsHotCoupon] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -60,19 +51,18 @@ export default function AdminBusinesses() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleToggleVerify = (id: string) => {
-    const updated = businesses.map(b => {
-      if (b.id === id) {
-        return { ...b, status: b.status === 'Verified' ? 'Pending' : 'Verified' };
-      }
-      return b;
-    });
-    setBusinesses(updated);
-    
-    // We only save to adminBusinesses, filtering out the dynamic mapped campaign requests to avoid bloat.
-    const persistentBusinesses = updated.filter(b => b.id.startsWith('B-'));
-    saveAdminBusinesses(persistentBusinesses);
-    setIsActionModalOpen(false);
+  const handleToggleVerify = async (biz: any) => {
+    try {
+        const newStatus = biz.status === 'Verified' ? false : true;
+        await apiClient(`/admin/merchants/${biz.id}/verify`, {
+            method: "POST",
+            body: JSON.stringify({ is_verified: newStatus })
+        });
+        loadData();
+        setIsActionModalOpen(false);
+    } catch (error: any) {
+        alert("Verification toggle failed: " + error.message);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,89 +72,47 @@ export default function AdminBusinesses() {
     }
   };
 
-  const handleDeleteBiz = (id: string) => {
-    const updated = businesses.filter(b => b.id !== id);
-    setBusinesses(updated);
-    
-    const persistentBusinesses = updated.filter(b => b.id.startsWith('B-'));
-    saveAdminBusinesses(persistentBusinesses);
-    setIsActionModalOpen(false);
-  };
-
-  const handleCreateDirectDeal = (e: React.FormEvent) => {
+  const handleCreateDirectDeal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBiz) return;
     
     const formData = new FormData(e.target as HTMLFormElement);
     const productName = formData.get('productName') as string;
-    const companyName = formData.get('companyName') as string;
     const slashamPrice = formData.get('slashamPrice') as string;
     const originalPrice = formData.get('originalPrice') as string;
     const category = formData.get('category') as string;
-    const location = formData.get('location') as string;
-    const redeemAddress = formData.get('redeemAddress') as string || selectedBiz.address;
-    const unlockNote = formData.get('unlockNote') as string;
-    const image = previewImage || formData.get('imageUrl') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400`;
+    const image = previewImage || formData.get('imageUrl') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef`;
 
-    // 1. Create a "Ghost" approved request for history
-    const req = saveCampaignRequest({
-      merchantId: selectedBiz.id,
-      businessName: selectedBiz.name,
-      companyName,
-      productName,
-      productImage: image,
-      originalPrice,
-      dealPrice: slashamPrice,
-      category,
-      description: formData.get('description') as string,
-      address: redeemAddress,
-      location,
-      email: selectedBiz.email,
-      phone: "+234-ADMIN-DIRECT",
-      couponType: "Voucher",
-      expiryDate: formData.get('expiryDate') as string,
-      isHotCoupon,
-      unlockNote,
-      shippingInfo: {
-          enabled: shippingEnabled,
-          fee: formData.get('shippingFee') as string || "0",
-          note: formData.get('shippingNote') as string || ""
-      },
-      redeemAddress
-    });
+    try {
+        const numericPrice = parseFloat(slashamPrice.replace(/[^0-9.]/g, ''));
+        const numericOriginal = parseFloat(originalPrice.replace(/[^0-9.]/g, ''));
 
-    // 2. Mark it as approved immediately
-    updateRequestStatus(req.id, 'Approved', 'Administrative bypass: Direct deployment authorized by Platform Ops.', slashamPrice);
+        await apiClient("/deals", {
+            method: "POST",
+            body: JSON.stringify({
+                merchant_id: selectedBiz.id,
+                title: productName,
+                description: formData.get('description') as string,
+                category,
+                original_price: numericOriginal,
+                discount_price: numericPrice,
+                total_quantity: 100,
+                validity_days: 30,
+                expiry_date: formData.get('expiryDate') as string,
+                is_hot: isHotCoupon,
+                images: [image],
+                deal_explanation: "Directly deployed via Admin Console"
+            })
+        });
 
-    // 3. Add to live inventory
-    addPersistentDeal({
-        title: productName,
-        companyName: companyName || selectedBiz.name,
-        location: location,
-        price: slashamPrice,
-        original: originalPrice,
-        image,
-        category,
-        tag: isHotCoupon ? "Hot Deal" : "Verified",
-        description: formData.get('description') as string,
-        validity: "Valid for 30 days. No booking required.",
-        expiryDate: formData.get('expiryDate') as string,
-        isHotCoupon,
-        unlockNote,
-        shippingInfo: {
-            enabled: shippingEnabled,
-            fee: formData.get('shippingFee') as string || "0",
-            note: formData.get('shippingNote') as string || ""
-        },
-        redeemAddress
-    });
-
-    setIsQuickDealModalOpen(false);
-    setIsActionModalOpen(false);
-    setPreviewImage(null);
-    setShippingEnabled(false);
-    setIsHotCoupon(false);
-    alert(`Success: Live deal launched for ${selectedBiz.name} in ${location}.`);
+        setIsQuickDealModalOpen(false);
+        setIsActionModalOpen(false);
+        setPreviewImage(null);
+        alert(`Success: Live deal launched for ${selectedBiz.name}.`);
+        loadData();
+    } catch (error: any) {
+        alert("Launch failed: " + error.message);
+    }
   };
 
   if (isLoading) {
@@ -379,17 +327,10 @@ export default function AdminBusinesses() {
             </button>
 
             <button 
-              onClick={() => handleToggleVerify(selectedBiz.id)}
+              onClick={() => handleToggleVerify(selectedBiz)}
               className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
             >
               <ShieldAlert size={18} className="text-amber-500" /> Toggle Verification Status
-            </button>
-
-            <button 
-              onClick={() => handleDeleteBiz(selectedBiz.id)}
-              className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-rose-500 hover:bg-rose-50 transition-all shadow-sm"
-            >
-              <Trash2 size={18} /> Remove Partner
             </button>
           </div>
         </div>
@@ -425,7 +366,7 @@ export default function AdminBusinesses() {
                    <div className="relative">
                       <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <select name="location" defaultValue={selectedBiz?.city || "Lagos"} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
-                         {getLocationNames().map(name => <option key={name} value={name}>{name}</option>)}
+                         {["Lagos", "Abuja", "Ibadan", "Port Harcourt"].map(name => <option key={name} value={name}>{name}</option>)}
                       </select>
                    </div>
                 </div>
@@ -449,10 +390,6 @@ export default function AdminBusinesses() {
                         </select>
                     </div>
                 </div>
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Unlock Note (Small text under %)</label>
-                    <input name="unlockNote" placeholder="e.g. Pay small amount to unlock this 55% discount." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
-                </div>
              </div>
 
              {/* Images */}
@@ -470,8 +407,8 @@ export default function AdminBusinesses() {
                    </div>
                    <div className="relative">
                       <input type="file" id="imageUpload" onChange={handleImageChange} className="hidden" accept="image/*" />
-                      <label htmlFor="imageUpload" className="w-full h-full flex items-center justify-center gap-3 px-5 py-4 bg-indigo-100 border-2 border-dashed border-indigo-300 text-indigo-700 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-pointer hover:bg-indigo-200 transition-all">
-                         <Upload size={18} /> {previewImage ? "Change Photo" : "Upload Full Photo"}
+                      <label htmlFor="imageUpload" className="w-14 h-full flex items-center justify-center gap-3 px-5 py-4 bg-indigo-100 border-2 border-dashed border-indigo-300 text-indigo-700 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-pointer hover:bg-indigo-200 transition-all">
+                         <Upload size={18} /> {previewImage ? "Change" : "Upload"}
                       </label>
                    </div>
                 </div>
@@ -504,7 +441,6 @@ export default function AdminBusinesses() {
                 </div>
              </div>
 
-             {/* Hot Deals & Shipping */}
              <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 space-y-6">
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-3">
@@ -522,52 +458,11 @@ export default function AdminBusinesses() {
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isHotCoupon ? 'left-7' : 'left-1'}`} />
                    </button>
                 </div>
-
-                <div className="h-px bg-slate-200" />
-
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <Truck size={20} className={shippingEnabled ? "text-indigo-600" : "text-slate-300"} />
-                         <div>
-                            <p className="text-xs font-black text-slate-900 tracking-tight leading-none mb-1 uppercase">Enable Shipping</p>
-                            <p className="text-[10px] text-slate-400 font-medium">Add delivery logistics for this product</p>
-                         </div>
-                      </div>
-                      <button 
-                         type="button"
-                         onClick={() => setShippingEnabled(!shippingEnabled)}
-                         className={`w-12 h-6 rounded-full relative transition-all duration-300 ${shippingEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
-                      >
-                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${shippingEnabled ? 'left-7' : 'left-1'}`} />
-                      </button>
-                   </div>
-
-                   <AnimatePresence>
-                      {shippingEnabled && (
-                        <motion.div 
-                           initial={{ opacity: 0, height: 0 }}
-                           animate={{ opacity: 1, height: 'auto' }}
-                           exit={{ opacity: 0, height: 0 }}
-                           className="grid grid-cols-2 gap-4 pt-2"
-                        >
-                           <div className="space-y-2">
-                              <label className="text-[8px] font-black uppercase text-indigo-600 px-1">Delivery Fee</label>
-                              <input name="shippingFee" defaultValue="2000" placeholder="₦2,000" className="w-full px-4 py-3 bg-white border border-indigo-100 rounded-xl font-bold text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
-                           </div>
-                           <div className="space-y-2">
-                              <label className="text-[8px] font-black uppercase text-indigo-600 px-1">Shipping Terms</label>
-                              <input name="shippingNote" placeholder="Free delivery in Lagos..." className="w-full px-4 py-3 bg-white border border-indigo-100 rounded-xl font-bold text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
-                           </div>
-                        </motion.div>
-                      )}
-                   </AnimatePresence>
-                </div>
              </div>
 
              <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deal Details</label>
-                <textarea name="description" required placeholder="Write a short pitch for this regular customer store..." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold min-h-[100px] outline-none focus:ring-2 focus:ring-indigo-500" />
+                <textarea name="description" required placeholder="Write a short pitch for this product..." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold min-h-[100px] outline-none focus:ring-2 focus:ring-indigo-500" />
              </div>
           </div>
 

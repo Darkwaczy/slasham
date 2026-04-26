@@ -1,0 +1,79 @@
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import healthRouter from "./routes/health";
+import authRouter from "./routes/auth";
+import uploadRouter from "./routes/upload";
+import merchantsRouter from "./routes/merchants";
+import dealsRouter from "./routes/deals";
+import vouchersRouter from "./routes/vouchers";
+import adminRouter from "./routes/admin";
+import userRouter from "./routes/user";
+import { getEnv } from "./env";
+
+export function createApp() {
+  const env = getEnv();
+  const app = express();
+
+  // ── Security Headers ─────────────────────────────────────────────────────
+  app.use(helmet());
+
+  // ── CORS ─────────────────────────────────────────────────────────────────
+  app.use(
+    cors({
+      origin: env.corsOrigins,
+      credentials: true,
+    })
+  );
+
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  app.use(cookieParser());
+
+  // ── Rate Limiters ─────────────────────────────────────────────────────────
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,                   // 10 attempts per window
+    message: { error: "Too many login attempts. Please try again in 15 minutes." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5,                    // 5 registrations per IP per hour
+    message: { error: "Too many accounts created from this IP. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  const otpLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Too many verification attempts. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // Apply rate limiters to sensitive auth endpoints
+  app.use("/api/auth/login", loginLimiter);
+  app.use("/api/auth/register", registerLimiter);
+  app.use("/api/auth/verify-otp", otpLimiter);
+
+  // ── Routes ────────────────────────────────────────────────────────────────
+  app.get("/", (_req, res) => res.redirect("/health"));
+  app.use("/health", healthRouter);
+  app.use("/api/auth", authRouter);
+  app.use("/api/upload", uploadRouter);
+  app.use("/api/merchants", merchantsRouter);
+  app.use("/api/deals", dealsRouter);
+  app.use("/api/vouchers", vouchersRouter);
+  app.use("/api/admin", adminRouter);
+  app.use("/api/user", userRouter);
+
+  return app;
+}
+
+

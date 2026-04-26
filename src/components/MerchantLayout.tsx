@@ -17,36 +17,39 @@ import {
   QrCode
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getNotifications, markNotifsRead, Notification } from "../utils/merchantPersistence";
+import { apiClient } from "../api/client";
 import { Logo } from "./Logo";
 
 export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [merchantData, setMerchantData] = useState<any>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const merchantId = "M-99"; // Mock merchant
 
   useEffect(() => {
-    const loadNotifs = () => {
-      setNotifications(getNotifications(merchantId));
+    const loadMerchant = async () => {
+      try {
+        const data = await apiClient("/auth/me");
+        setMerchantData(data);
+      } catch (error) {
+        console.error("Failed to load merchant profile", error);
+      }
     };
-    loadNotifs();
-    window.addEventListener('notificationsUpdate', loadNotifs);
-    return () => window.removeEventListener('notificationsUpdate', loadNotifs);
+    loadMerchant();
   }, []);
-
-  const handleMarkRead = () => {
-    markNotifsRead(merchantId);
-    setIsNotifOpen(false);
-  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleLogout = () => {
-    localStorage.removeItem("slasham_user");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+        await apiClient("/auth/logout", { method: "POST" });
+        navigate("/login");
+    } catch (error) {
+        // Fallback for UI if logout fails
+        navigate("/login");
+    }
   };
 
   const menuItems = [
@@ -85,9 +88,6 @@ export default function MerchantLayout() {
           <div className="p-8">
             <Link to="/" className="inline-block group hover:opacity-80 transition-opacity">
               <Logo size="md" className="mb-1" />
-              <div className="flex flex-col ml-[42px]">
-                {/* <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Intelligence Hub</span> */}
-              </div>
             </Link>
           </div>
 
@@ -132,15 +132,15 @@ export default function MerchantLayout() {
             <div className="p-4 bg-slate-50 rounded-3xl group cursor-pointer hover:bg-slate-100 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black">
-                  OB
+                  {merchantData?.name?.charAt(0) || "M"}
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-black text-slate-900 truncate tracking-tight">Orchid Bistro</span>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-black text-slate-900 truncate tracking-tight">{merchantData?.name || "Merchant"}</span>
                   <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-widest">Verified Partner</span>
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="ml-auto text-slate-400 hover:text-rose-500 transition-colors border-none p-1"
+                  className="text-slate-400 hover:text-rose-500 transition-colors border-none p-1"
                 >
                   <LogOut size={18} />
                 </button>
@@ -194,7 +194,7 @@ export default function MerchantLayout() {
                     >
                       <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Intelligence Brief</span>
-                        <button onClick={handleMarkRead} className="text-[10px] font-black text-yellow-600 hover:underline">Clear All</button>
+                        <button onClick={() => setNotifications([])} className="text-[10px] font-black text-yellow-600 hover:underline">Clear All</button>
                       </div>
                       <div className={`max-h-[400px] overflow-y-auto`}>
                         {notifications.length === 0 ? (
@@ -232,7 +232,7 @@ export default function MerchantLayout() {
                   <Plus size={16} /> New Campaign
                </button>
                <div className="w-10 h-10 rounded-2xl bg-[#000000] text-white flex items-center justify-center font-black text-sm cursor-pointer shadow-lg shadow-black/10 hover:bg-slate-800 transition-colors">
-                  OB
+                  {merchantData?.name?.charAt(0) || "M"}
                </div>
             </div>
           </div>

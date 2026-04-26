@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
+import { storage } from "../../utils/storage";
 
 export default function SavedDeals() {
   const [viewMode, setViewMode] = useState("grid"); // grid or list
@@ -14,7 +15,7 @@ export default function SavedDeals() {
 
   const loadSavedDeals = () => {
     try {
-      const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+      const saved = JSON.parse(storage.getItem('slasham_saved_deals') || '[]');
       setDeals(saved);
     } catch {
       setDeals([]);
@@ -29,9 +30,9 @@ export default function SavedDeals() {
 
   const removeDeal = (id: number) => {
     try {
-      const saved = JSON.parse(localStorage.getItem('slasham_saved_deals') || '[]');
+      const saved = JSON.parse(storage.getItem('slasham_saved_deals') || '[]');
       const updated = saved.filter((d: any) => String(d.id) !== String(id));
-      localStorage.setItem('slasham_saved_deals', JSON.stringify(updated));
+      storage.setItem('slasham_saved_deals', JSON.stringify(updated));
       loadSavedDeals();
       window.dispatchEvent(new Event('savedDealsUpdate'));
     } catch (err) {

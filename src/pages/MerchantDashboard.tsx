@@ -12,36 +12,57 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { apiClient } from "../api/client";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { validateCoupon } from "../utils/couponVerification";
 
 export default function MerchantDashboard() {
   const navigate = useNavigate();
   const [validationCode, setValidationCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{ success: boolean; message: string } | null>(null);
-
-  const stats = [
-    { label: "Total Revenue", value: "₦1,240,000", change: "+12.5%", icon: <DollarSign size={20} />, color: "black" },
-    { label: "Active Deals", value: "8", change: "0", icon: <Ticket size={20} />, color: "yellow" },
-    { label: "New Customers", value: "142", change: "+18%", icon: <Users size={20} />, color: "emerald" },
-    { label: "Total Claims", value: "842", change: "+2.4%", icon: <TrendingUp size={20} />, color: "yellow" },
-  ];
-
-  const [redemptions, setRedemptions] = useState([
-    { id: "SL-8291", customer: "Adebayo Tunde", deal: "30% Off Lunch Buffet", time: "2 mins ago", status: "Verified" },
-    { id: "SL-8290", customer: "Sarah Johnson", deal: "Spa Day Package", time: "15 mins ago", status: "Verified" },
-    { id: "SL-8289", customer: "Chidi Okafor", deal: "Buy 1 Get 1 Cocktail", time: "1 hour ago", status: "Verified" },
-    { id: "SL-8288", customer: "Fatima Yusuf", deal: "30% Off Lunch Buffet", time: "3 hours ago", status: "Verified" },
-    { id: "SL-8287", customer: "John Bull", deal: "Large BBQ Chicken", time: "5 hours ago", status: "Verified" },
+  const [merchant, setMerchant] = useState<any>(null);
+  const [stats, setStats] = useState([
+    { label: "Total Revenue", value: "₦0", change: "0%", icon: <DollarSign size={20} />, color: "black" },
+    { label: "Active Deals", value: "0", change: "0", icon: <Ticket size={20} />, color: "yellow" },
+    { label: "New Customers", value: "0", change: "0%", icon: <Users size={20} />, color: "emerald" },
+    { label: "Total Claims", value: "0", change: "0%", icon: <TrendingUp size={20} />, color: "yellow" },
   ]);
 
+  const [redemptions, setRedemptions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const profile = await apiClient("/merchants/my-profile");
+        setMerchant(profile);
+
+        const deals = await apiClient("/deals/merchant/my-deals");
+        
+        // Calculate basic stats
+        const activeDeals = deals.filter((d: any) => d.is_active).length;
+        const totalClaims = deals.reduce((acc: number, d: any) => acc + (d.sold_quantity || 0), 0);
+        const totalRevenue = deals.reduce((acc: number, d: any) => acc + ((d.sold_quantity || 0) * d.discount_price), 0);
+
+        setStats([
+          { label: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
+          { label: "Active Deals", value: activeDeals.toString(), change: "0", icon: <Ticket size={20} />, color: "yellow" },
+          { label: "New Customers", value: "0", change: "+0%", icon: <Users size={20} />, color: "emerald" },
+          { label: "Total Claims", value: totalClaims.toString(), change: "+0%", icon: <TrendingUp size={20} />, color: "yellow" },
+        ]);
+
+        // We'll need an endpoint for recent redemptions, but for now we can fetch vouchers if we had a merchant view
+        // For now, let's keep redemptions empty or fetch placeholder if needed
+      } catch (err) {
+        console.error("Dashboard data fetch failed", err);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const formatCode = (val: string) => {
-    // Remove all non-alphanumeric and limit raw characters to 12
     const raw = val.replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toUpperCase();
-    
-    // Auto-inject hyphens: XXXX-XXXX-XXXX
     let formatted = "";
     for (let i = 0; i < raw.length; i++) {
         if (i === 4 || i === 8) {
@@ -62,24 +83,28 @@ export default function MerchantDashboard() {
     setIsValidating(true);
     setValidationResult(null);
 
-    // Simulate verification protocol
-    setTimeout(() => {
-      const result = validateCoupon(validationCode.trim().toUpperCase());
-      setValidationResult(result);
-      setIsValidating(false);
+    try {
+      const result = await apiClient("/vouchers/redeem", {
+        method: "POST",
+        body: JSON.stringify({ voucher_code: validationCode.trim().toUpperCase() }),
+      });
+
+      setValidationResult({ success: true, message: result.message });
+      setValidationCode("");
       
-      if (result.success) {
-        setValidationCode("");
-        // Add to the local list for immediate visual feedback
-        setRedemptions(prev => [{
-           id: validationCode.toUpperCase(),
-           customer: "Verified Customer",
-           deal: "Active Campaign Redemption",
-           time: "Just now",
-           status: "Verified"
-        }, ...prev.slice(0, 4)]);
-      }
-    }, 1200);
+      // Refresh redemptions list (placeholder logic for now)
+      setRedemptions(prev => [{
+         id: validationCode.toUpperCase(),
+         customer: "Verified Customer",
+         deal: "Live Redemption",
+         time: "Just now",
+         status: "Verified"
+      }, ...prev.slice(0, 4)]);
+    } catch (err: any) {
+      setValidationResult({ success: false, message: err.message });
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   return (
@@ -87,7 +112,9 @@ export default function MerchantDashboard() {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Welcome back, Orchid Bistro</h1>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">
+              Welcome back, {merchant?.business_name || "Merchant"}
+            </h1>
             <p className="text-slate-500 font-medium">Your business performance is looking strong today.</p>
           </div>
           <div className="flex gap-3">

@@ -1,33 +1,29 @@
 import { useState, useEffect } from "react";
-import { QrCode, ShieldCheck, History, Search, CheckCircle2, XCircle, Clock, MapPin, Tag } from "lucide-react";
+import { QrCode, ShieldCheck, History, Search, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { validateCoupon, getVerifiedCoupons, Coupon } from "../../utils/couponVerification";
-import { getPersistentDeals } from "../../utils/mockPersistence";
+import { apiClient } from "../../api/client";
 
 export default function MerchantScanner() {
   const [couponHash, setCouponHash] = useState("");
   const [validationResult, setValidationResult] = useState<{ success: boolean; message: string; deal?: any } | null>(null);
-  const [recentRedemptions, setRecentRedemptions] = useState<Coupon[]>([]);
+  const [recentRedemptions, setRecentRedemptions] = useState<any[]>([]);
   const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     loadHistory();
   }, []);
 
-  const loadHistory = () => {
-    const all = getVerifiedCoupons();
-    // Only show redeemed coupons for "History"
-    const redeemed = all.filter(c => c.redeemed).sort((a, b) => 
-      new Date(b.redeemedAt || 0).getTime() - new Date(a.redeemedAt || 0).getTime()
-    );
-    setRecentRedemptions(redeemed.slice(0, 5));
+  const loadHistory = async () => {
+    try {
+      const data = await apiClient("/vouchers/merchant/redemptions");
+      setRecentRedemptions(data);
+    } catch (error) {
+      console.error("Failed to load redemption history:", error);
+    }
   };
 
   const formatCode = (val: string) => {
-    // Remove all non-alphanumeric and limit raw characters to 12
     const raw = val.replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toUpperCase();
-    
-    // Auto-inject hyphens: XXXX-XXXX-XXXX
     let formatted = "";
     for (let i = 0; i < raw.length; i++) {
         if (i === 4 || i === 8) {
@@ -47,26 +43,30 @@ export default function MerchantScanner() {
     if (!couponHash.trim()) return;
 
     setIsValidating(true);
-    // Simulate network verification delay
-    setTimeout(() => {
-      const result = validateCoupon(couponHash.trim().toUpperCase());
+    try {
+      const result = await apiClient("/vouchers/redeem", {
+        method: "POST",
+        body: JSON.stringify({ voucher_code: couponHash.trim().toUpperCase() })
+      });
       
-      let dealInfo = null;
-      if (result.success) {
-        // Find the deal info to show the merchant what they are giving out
-        const coupons = getVerifiedCoupons();
-        const coupon = coupons.find(c => c.hash === couponHash.trim().toUpperCase());
-        if (coupon) {
-          const allDeals = getPersistentDeals();
-          dealInfo = allDeals.find(d => String(d.id) === String(coupon.dealId));
-        }
-      }
-
-      setValidationResult({ ...result, deal: dealInfo });
-      setIsValidating(false);
+      setValidationResult({ 
+        success: true, 
+        message: result.message, 
+        deal: {
+          title: result.voucher.deals?.title,
+          image: result.voucher.deals?.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef"
+        } 
+      });
+      setCouponHash("");
       loadHistory();
-      if (result.success) setCouponHash("");
-    }, 800);
+    } catch (error: any) {
+      setValidationResult({ 
+        success: false, 
+        message: error.message || "Invalid Voucher Code" 
+      });
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   return (
@@ -112,7 +112,7 @@ export default function MerchantScanner() {
                 >
                   {isValidating ? (
                     <>
-                      <Clock className="animate-spin" size={20} /> Querying Blockchain...
+                      <Clock className="animate-spin" size={20} /> Querying Database...
                     </>
                   ) : (
                     <>
@@ -148,15 +148,11 @@ export default function MerchantScanner() {
                 </div>
 
                 {validationResult.deal && (
-                  <div className="w-full mt-6 bg-white/40 backdrop-blur-sm rounded-3xl p-6 border border-white/20 flex flex-col md:flex-row items-center gap-6">
-                    <img src={validationResult.deal.image} className="w-24 h-24 rounded-2xl object-cover shadow-lg" alt="" />
-                    <div className="text-left space-y-2">
+                  <div className="w-full mt-6 bg-white/40 backdrop-blur-sm rounded-3xl p-6 border border-white/20 flex flex-col md:flex-row items-center gap-6 text-left">
+                    {validationResult.deal.image && <img src={validationResult.deal.image} className="w-24 h-24 rounded-2xl object-cover shadow-lg" alt="" />}
+                    <div className="space-y-2">
                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Active Asset</p>
                        <h4 className="text-xl font-black leading-tight">{validationResult.deal.title}</h4>
-                       <div className="flex gap-4">
-                          <span className="flex items-center gap-1.5 text-xs font-bold"><Tag size={12} className="opacity-50" /> {validationResult.deal.price}</span>
-                          <span className="flex items-center gap-1.5 text-xs font-bold"><MapPin size={12} className="opacity-50" /> {validationResult.deal.location}</span>
-                       </div>
                     </div>
                   </div>
                 )}
@@ -192,7 +188,7 @@ export default function MerchantScanner() {
                 ) : (
                   recentRedemptions.map((red, i) => (
                     <motion.div 
-                      key={red.hash}
+                      key={red.id}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
@@ -201,12 +197,12 @@ export default function MerchantScanner() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                            <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.4)]" />
-                           <p className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors uppercase tracking-widest">Protocol Clear</p>
+                           <p className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors uppercase tracking-widest">{red.deals?.title || "Protocol Clear"}</p>
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 ml-4 font-mono">{red.hash}</p>
+                        <p className="text-[10px] font-bold text-slate-400 ml-4 font-mono">{red.voucher_code}</p>
                       </div>
                       <div className="text-right">
-                         <p className="text-[9px] font-black text-slate-900 opacity-30">{new Date(red.redeemedAt || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                         <p className="text-[9px] font-black text-slate-900 opacity-30">{new Date(red.redeemed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                          <ShieldCheck className="text-emerald-500 ml-auto opacity-40 group-hover:opacity-100 transition-opacity" size={16} />
                       </div>
                     </motion.div>

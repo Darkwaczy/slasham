@@ -12,9 +12,11 @@ import {
   Share2,
   Heart,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
-import { deals } from "../data/mockData";
+import { useState, useEffect } from "react";
+import { apiClient } from "../api/client";
 
 const businessInfo: Record<string, any> = {
   "rsvp-lagos": {
@@ -86,7 +88,31 @@ const businessInfo: Record<string, any> = {
 
 export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const business = id ? businessInfo[id] : null;
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals");
+        setDeals(data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: `₦${d.discount_price.toLocaleString()}`,
+          original: `₦${d.original_price.toLocaleString()}`,
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+          category: d.category,
+          tag: d.category
+        })));
+      } catch (error) {
+        console.error("Failed to fetch deals for business", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   if (!business) {
     return (
@@ -107,6 +133,11 @@ export default function BusinessDetail() {
 
   return (
     <div className="bg-white min-h-screen">
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-100 flex items-center justify-center">
+            <Loader2 className="animate-spin text-emerald-500" size={40} />
+        </div>
+      )}
       {/* Hero Header */}
       <div className="relative h-[40vh] md:h-[60vh] overflow-hidden">
         <img 
@@ -116,7 +147,7 @@ export default function BusinessDetail() {
           referrerPolicy="no-referrer"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
         
         {/* Top Actions */}
         <div className="absolute top-8 left-6 right-6 flex justify-between items-center z-20">

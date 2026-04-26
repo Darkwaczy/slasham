@@ -7,42 +7,81 @@ import {
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { getUserVouchers } from "../../utils/mockPersistence";
+import { apiClient } from "../../api/client";
 
 export default function UserDashboardOverview() {
   const [vouchers, setVouchers] = useState<any[]>([]);
+  const [userData, setUserData] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>({ points: 0, total_savings: 0 });
+  const [recommendedDeals, setRecommendedDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setVouchers(getUserVouchers());
-    const handleUpdate = () => setVouchers(getUserVouchers());
-    window.addEventListener('vouchersUpdate', handleUpdate);
-    return () => window.removeEventListener('vouchersUpdate', handleUpdate);
+    const fetchData = async () => {
+      try {
+        const [profile, voucherList, stats, deals] = await Promise.all([
+          apiClient("/auth/me"),
+          apiClient("/vouchers/my-vouchers"),
+          apiClient("/user/stats"),
+          apiClient("/deals")
+        ]);
+        setUserData(profile);
+        setVouchers(voucherList);
+        setUserStats(stats);
+        setRecommendedDeals(deals);
+      } catch (error) {
+        console.error("Dashboard overview fetch failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const activeCount = vouchers.filter(v => v.status === "Active").length;
-  const expiringSoon = vouchers.find(v => v.status === "Active"); 
+  const activeCount = vouchers.filter(v => v.status === "ACTIVE").length;
+  const expiringSoon = vouchers.find(v => v.status === "ACTIVE"); 
 
   const recentActivity = vouchers.slice(0, 3).map(v => ({
     id: v.id,
-    type: v.status === "Redeemed" ? "Redemption" : "Purchase",
-    title: v.title,
-    date: v.status === "Redeemed" ? "Just now" : "Today",
-    amount: v.price || v.original || "₦4,500",
-    status: v.status === "Redeemed" ? "Redeemed" : "Successful",
-    icon: v.status === "Redeemed" ? <Pizza size={16} /> : <ShieldCheck size={16} />
+    type: v.status === "REDEEMED" ? "Redemption" : "Purchase",
+    title: v.deals?.title,
+    date: v.status === "REDEEMED" ? "Just now" : "Today",
+    amount: `₦${v.deals?.discount_price?.toLocaleString() || "500"}`,
+    status: v.status === "REDEEMED" ? "Redeemed" : "Successful",
+    icon: v.status === "REDEEMED" ? <Pizza size={16} /> : <ShieldCheck size={16} />
   }));
 
   const stats = [
-    { title: "Active Vouchers", value: activeCount.toString(), icon: <Ticket size={24} />, color: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-600" },
-    { title: "Points Earned", value: "2,450", icon: <Star size={24} />, color: "bg-amber-500", light: "bg-amber-50", text: "text-amber-600" },
-    { title: "Total Savings", value: "₦15,000", icon: <TrendingUp size={24} />, color: "bg-blue-500", light: "bg-blue-50", text: "text-blue-600" },
-    { title: "Wallet Balance", value: "₦0.00", icon: <Wallet size={24} />, color: "bg-slate-900", light: "bg-slate-50", text: "text-slate-900" },
+    { title: "Active Vouchers", value: activeCount.toString(), icon: <Ticket size={24} />, cardBg: "bg-linear-to-b from-emerald-50 to-white", iconBg: "bg-emerald-100", titleText: "text-emerald-600/80", valueText: "text-slate-900", iconColor: "text-emerald-600" },
+    { title: "Points Earned", value: (userStats?.points || 0).toLocaleString(), icon: <Star size={24} />, cardBg: "bg-linear-to-b from-amber-50 to-white", iconBg: "bg-amber-100", titleText: "text-amber-600/80", valueText: "text-slate-900", iconColor: "text-amber-600" },
+    { title: "Total Savings", value: `₦${(userStats?.total_savings || 0).toLocaleString()}`, icon: <TrendingUp size={24} />, cardBg: "bg-linear-to-b from-amber-50 to-white", iconBg: "bg-amber-100", titleText: "text-amber-600/80", valueText: "text-slate-900", iconColor: "text-amber-600" },
+    { title: "Wallet Balance", value: "₦0.00", icon: <Wallet size={24} />, cardBg: "bg-linear-to-b from-emerald-50 to-white", iconBg: "bg-emerald-100", titleText: "text-emerald-600/80", valueText: "text-slate-900", iconColor: "text-emerald-600" },
   ];
 
-  const recommendations = [
-    { id: 1, title: "7th Heaven Spa", deal: "50% OFF Signature Massage", image: "https://images.unsplash.com/photo-1544161515-4ae6ce6ca606?w=400&h=250&fit=crop", rating: "4.9" },
-    { id: 2, title: "The Yellow Chilli", deal: "Buy 1 Get 1 Free Jollof", image: "https://images.unsplash.com/photo-1512152272829-e3139592d56f?w=400&h=250&fit=crop", rating: "4.7" },
-  ];
+  const recommendations = recommendedDeals.slice(0, 2).map((deal: any) => {
+    let discount = "HOT";
+    if (deal.original_price && deal.original_price > deal.discount_price) {
+        const pct = Math.round((1 - (deal.discount_price / deal.original_price)) * 100);
+        discount = `${pct}% OFF`;
+    }
+    
+    return {
+      id: deal.id,
+      title: deal.title,
+      deal: discount,
+      image: deal.images?.[0] || `https://picsum.photos/seed/${deal.id}/400/250`,
+      rating: "4.9" // Mock rating until review aggregation is built
+    };
+  });
+
+  if (isLoading) {
+    return (
+      <div className="py-40 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compiling Pulse Metrics...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 w-full animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -50,10 +89,10 @@ export default function UserDashboardOverview() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative overflow-hidden rounded-[3rem] bg-slate-950 p-12 text-white border border-slate-800"
+        className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-amber-50 to-white p-12 text-slate-900 border border-amber-100 shadow-sm"
       >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-400/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-400/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
         
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-12 text-center lg:text-left">
           <div>
@@ -61,18 +100,19 @@ export default function UserDashboardOverview() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6"
+              className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100/50 border border-slate-200/50   rounded-full text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-sm"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-              Tier: Gold Member
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></div>
+              Tier: Standard Member
             </motion.div>
-            <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tighter leading-none">Bonjour, <span className="text-emerald-500">John!</span></h1>
-            <p className="text-slate-400 text-lg max-w-xl leading-relaxed">
-              You've saved <span className="text-white font-black underline decoration-emerald-500/40 decoration-4 underline-offset-4">₦15,000</span> this month. You're in the top 5% of smart spenders in Lagos!
+
+            <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tighter leading-none">Welcome, <span className="text-amber-500">{userData?.name?.split(' ')[0] || "Member"}!</span></h1>
+            <p className="text-slate-500 text-lg max-w-xl leading-relaxed font-medium">
+              You've saved <span className="text-emerald-600 font-black underline decoration-emerald-600/40 decoration-4 underline-offset-4">₦{(userStats?.total_savings || 0).toLocaleString()}</span> this month. You're in the top 5% of smart spenders in Lagos!
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <Link to="/deals" className="px-10 py-5 bg-emerald-500 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2">
+            <Link to="/deals" className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-500/20 active:scale-95 flex items-center justify-center gap-2">
               Find New Deals <ChevronRight size={18} />
             </Link>
           </div>
@@ -87,13 +127,13 @@ export default function UserDashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 + 0.3 }}
-            className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all group"
+            className={`p-8 ${stat.cardBg} rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all group`}
           >
-            <div className={`w-14 h-14 ${stat.light} ${stat.text} rounded-[1.25rem] flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform`}>
+            <div className={`w-14 h-14 ${stat.iconBg} ${stat.iconColor} rounded-[1.25rem] flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform`}>
               {stat.icon}
             </div>
-            <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">{stat.title}</h3>
-            <p className="text-3xl font-black text-slate-900 tracking-tight leading-none">{stat.value}</p>
+            <h3 className={`${stat.titleText} text-[10px] font-black uppercase tracking-[0.2em] mb-2`}>{stat.title}</h3>
+            <p className={`text-3xl font-black ${stat.valueText} tracking-tight leading-none`}>{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -121,7 +161,7 @@ export default function UserDashboardOverview() {
             <div className="space-y-6">
               {recentActivity.map((activity, idx) => (
                 <motion.div 
-                  key={activity.id}
+                  key={idx}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 + 0.5 }}
@@ -147,6 +187,11 @@ export default function UserDashboardOverview() {
                   </div>
                 </motion.div>
               ))}
+              {recentActivity.length === 0 && (
+                <div className="py-10 text-center opacity-40">
+                  <p className="text-xs font-black uppercase tracking-widest">No recent pulses detected</p>
+                </div>
+              )}
             </div>
           </section>
 
@@ -203,7 +248,7 @@ export default function UserDashboardOverview() {
                 </div>
                 <h3 className="text-2xl font-black mb-3 leading-tight tracking-tight">Expiring Soon!</h3>
                 <p className="text-rose-100/80 text-sm mb-10 leading-relaxed font-medium">
-                  Your <span className="text-white font-black underline decoration-white/40 decoration-2 underline-offset-4">{expiringSoon.title}</span> voucher expires on {new Date(expiringSoon.expiryDate || Date.now() + 86400000).toLocaleDateString()}. Don't let it go to waste!
+                  Your <span className="text-white font-black underline decoration-white/40 decoration-2 underline-offset-4">{expiringSoon.deals?.title}</span> voucher expires on {new Date(expiringSoon.expiry_date || Date.now() + 86400000).toLocaleDateString()}. Don't let it go to waste!
                 </p>
                 <Link to="/user/coupons" className="block w-full py-5 bg-white text-rose-600 rounded-[3rem] font-black text-xs text-center uppercase tracking-[0.2em] hover:bg-rose-50 transition-all shadow-xl active:scale-95">
                   Redeem Now

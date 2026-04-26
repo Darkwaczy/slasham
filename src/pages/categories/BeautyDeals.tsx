@@ -1,17 +1,38 @@
 import { Heart } from "lucide-react";
 import DealCard from "../../components/DealCard";
-
-const now = new Date();
-const in6hrs  = new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString();
-const in2Days = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const in5Days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 export default function BeautyDeals() {
-  const deals = [
-    { id: 7,  title: "Full Body Massage at Oasis Spa",     price: "₦15,000", original: "₦30,000", image: "https://images.unsplash.com/photo-1544161515-4508f5ad4c14?auto=format&fit=crop&w=400&q=60", totalQuantity: 45,  soldQuantity: 40, expiryDate: in6hrs  },
-    { id: 8,  title: "Hydrafacial & Skin Consultation",    price: "₦25,000", original: "₦45,000", image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=60", totalQuantity: 30,  soldQuantity: 18, expiryDate: in2Days },
-    { id: 9,  title: "Manicure & Pedicure Package",        price: "₦8,000",  original: "₦15,000", image: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=400&q=60", totalQuantity: 100, soldQuantity: 67, expiryDate: in5Days },
-  ];
+  const [deals, setDeals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await apiClient("/deals?category=Beauty & Spas");
+        const formattedDeals = data.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          price: d.discount_price.toString(),
+          original: d.original_price.toString(),
+          image: d.images?.[0] || "https://images.unsplash.com/photo-1544161515-4508f5ad4c14",
+          category: d.category,
+          location: d.merchants?.city || "Lagos",
+          expiryDate: d.expiry_date,
+          totalQuantity: d.total_quantity,
+          soldQuantity: d.sold_quantity,
+          dealExplanation: d.deal_explanation,
+        }));
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Failed to fetch beauty deals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,26 +41,41 @@ export default function BeautyDeals() {
           <Heart size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold">Beauty &amp; Wellness</h1>
+          <h1 className="text-4xl font-bold">Beauty & Spas</h1>
           <p className="text-slate-500">Self-care that doesn't break the bank.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            id={deal.id}
-            title={deal.title}
-            price={deal.price}
-            original={deal.original}
-            image={deal.image}
-            totalQuantity={deal.totalQuantity}
-            soldQuantity={deal.soldQuantity}
-            expiryDate={deal.expiryDate}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              id={deal.id}
+              title={deal.title}
+              price={deal.price}
+              original={deal.original}
+              image={deal.image}
+              category={deal.category}
+              location={deal.location}
+              expiryDate={deal.expiryDate}
+              totalQuantity={deal.totalQuantity}
+              soldQuantity={deal.soldQuantity}
+              dealExplanation={deal.dealExplanation}
+              index={i}
+            />
+          ))}
+          {deals.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active beauty & spas deals at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

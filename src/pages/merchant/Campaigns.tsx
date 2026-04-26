@@ -1,25 +1,50 @@
-import { Plus, Tag, Edit3, Image as ImageIcon, DollarSign, Calendar, Truck, Zap, Upload, Eye, CheckCircle2, XCircle, Clock, Building, MapPin } from "lucide-react";
+import { Plus, Tag, Edit3, Image as ImageIcon, DollarSign, Calendar, Truck, Zap, Upload, Eye, CheckCircle2, XCircle, Clock, Building, MapPin, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-import { getCampaignRequests, saveCampaignRequest, updateCampaignRequest } from "../../utils/merchantPersistence";
 import { getLocationNames } from "../../utils/locations";
+import { apiClient } from "../../api/client";
 
 export default function MerchantCampaigns() {
   const [requests, setRequests] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<any>(null);
   const [filter, setFilter] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [shippingEnabled, setShippingEnabled] = useState(false);
   const [isHotCoupon, setIsHotCoupon] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const fetchDeals = async () => {
+    try {
+      const data = await apiClient("/deals/merchant/my-deals");
+      // Map backend fields to frontend UI expectation
+      const mapped = data.map((d: any) => ({
+        id: d.id,
+        productName: d.title,
+        productImage: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+        originalPrice: `₦${d.original_price.toLocaleString()}`,
+        category: d.category,
+        status: d.is_active ? "Approved" : "Pending",
+        location: "Lagos", // Mock for now, should come from merchant profile
+        totalQuantity: d.total_quantity,
+        soldQuantity: d.sold_quantity,
+        description: d.description,
+        dealExplanation: d.deal_explanation,
+        expiryDate: d.expiry_date
+      }));
+      setRequests(mapped);
+    } catch (error) {
+      console.error("Failed to fetch merchant deals:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setRequests(getCampaignRequests());
-    const handleUpdate = () => setRequests(getCampaignRequests());
-    window.addEventListener('campaignRequestsUpdate', handleUpdate);
-    return () => window.removeEventListener('campaignRequestsUpdate', handleUpdate);
+    fetchDeals();
   }, []);
 
   const handleToggleShipping = () => setShippingEnabled(!shippingEnabled);
@@ -28,65 +53,60 @@ export default function MerchantCampaigns() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setPreviewImage(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const merchantUser = JSON.parse(localStorage.getItem("slasham_user") || '{"id":"M-999","businessName":"Lagos Grill"}');
-    
-    if (editingRequest) {
-      const submittedAt = new Date(editingRequest.submittedAt).getTime();
-      const now = new Date().getTime();
-      const minutesPassed = (now - submittedAt) / (1000 * 60);
-      
-      if (minutesPassed > 10) {
-        alert("Verification Lockdown: Deals cannot be modified 10 minutes after submission to ensure integrity.");
-        return;
+    setIsLoading(true);
+
+    try {
+      let imageUrl = previewImage;
+
+      // 1. Upload image if selected
+      if (selectedFile) {
+        const uploadData = new FormData();
+        uploadData.append("image", selectedFile);
+        const uploadRes = await apiClient("/upload/image", {
+          method: "POST",
+          body: uploadData,
+          headers: {}, // Fetch will set multipart/form-data boundary
+        });
+        imageUrl = uploadRes.url;
       }
+
+      // 2. Register deal
+      const dealData = {
+        title: formData.get('productName') as string,
+        description: formData.get('description') as string,
+        deal_explanation: formData.get('dealExplanation') as string,
+        category: formData.get('category') as string,
+        original_price: parseFloat((formData.get('originalPrice') as string).replace(/[^0-9.]/g, '')),
+        discount_price: parseFloat((formData.get('discountPrice') as string) || "500"), // Default unlock price
+        total_quantity: parseInt(formData.get('totalQuantity') as string),
+        expiry_date: formData.get('expiryDate') as string,
+        is_hot: isHotCoupon,
+        images: imageUrl ? [imageUrl] : [],
+        validity_days: 30 // Default
+      };
+
+      await apiClient("/deals", {
+        method: "POST",
+        body: JSON.stringify(dealData),
+      });
+
+      setIsModalOpen(false);
+      setPreviewImage(null);
+      setSelectedFile(null);
+      fetchDeals();
+    } catch (error: any) {
+      alert(`Failed to save deal: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
-
-    const requestData = {
-      merchantId: merchantUser.id || "M-101",
-      businessName: merchantUser.businessName || "Zaza Lounge",
-      companyName: formData.get('companyName') as string,
-      productName: formData.get('productName') as string,
-      productImage: previewImage || formData.get('imageUrl') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400`,
-      originalPrice: formData.get('originalPrice') as string,
-      dealPrice: "TBD",
-      category: formData.get('category') as string,
-      description: formData.get('description') as string,
-      address: formData.get('redeemAddress') as string || merchantUser.address || "14 Victoria Island, Lagos",
-      location: formData.get('location') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      couponType: formData.get('couponType') as any,
-      expiryDate: formData.get('expiryDate') as string,
-      unlockNote: formData.get('unlockNote') as string,
-      shippingInfo: {
-          enabled: shippingEnabled,
-          fee: formData.get('shippingFee') as string || "0",
-          note: formData.get('shippingNote') as string || ""
-      },
-      isHotCoupon,
-      redeemAddress: formData.get('redeemAddress') as string,
-      totalQuantity: parseInt(formData.get('totalQuantity') as string) || 100,
-      soldQuantity: editingRequest ? editingRequest.soldQuantity : 0
-    };
-
-    if (editingRequest) {
-      updateCampaignRequest(editingRequest.id, requestData);
-    } else {
-      saveCampaignRequest(requestData);
-    }
-
-    setIsModalOpen(false);
-    setPreviewImage(null);
-    setShippingEnabled(false);
-    setIsHotCoupon(false);
-    setEditingRequest(null);
   };
 
   return (
@@ -226,6 +246,13 @@ export default function MerchantCampaigns() {
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deal Explanation (Yellow Text)</label>
+                    <input name="dealExplanation" defaultValue={editingRequest?.dealExplanation} placeholder="e.g. You must buy two (2) cartons to activate" className="w-full px-5 py-4 bg-amber-50 border border-amber-100 rounded-2xl font-bold focus:ring-2 focus:ring-amber-500 outline-none text-amber-700" />
+                </div>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Market Category</label>
                     <div className="relative">
                         <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -239,8 +266,11 @@ export default function MerchantCampaigns() {
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Discount Unlock Message</label>
-                    <input name="unlockNote" defaultValue={editingRequest?.unlockNote} placeholder="e.g. Pay small to unlock this 60% discount" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Unlock Price (User pays Slasham)</label>
+                    <div className="relative">
+                        <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input name="discountPrice" type="number" defaultValue={editingRequest?.discountPrice || 500} placeholder="500" className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    </div>
                 </div>
              </div>
 
@@ -363,7 +393,20 @@ export default function MerchantCampaigns() {
 
           <div className="flex gap-4 pt-6 pb-4">
              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancel</button>
-             <button type="submit" className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] border shadow-xl shadow-emerald-500/20">{editingRequest ? "Update Deal" : "Register Deal"}</button>
+             <button 
+               type="submit" 
+               disabled={isLoading}
+               className={`flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] border shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 ${isLoading ? 'opacity-70' : ''}`}
+             >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="animate-spin" size={14} /> 
+                    Processing...
+                  </>
+                ) : (
+                  editingRequest ? "Update Deal" : "Register Deal"
+                )}
+             </button>
           </div>
         </form>
       </AdminModal>
