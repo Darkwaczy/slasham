@@ -313,7 +313,7 @@ export default function MerchantCampaigns() {
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deal Expiry Date</label>
                     <div className="relative">
                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                       <input type="date" name="expiryDate" defaultValue={editingRequest?.expiryDate} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                       <input type="date" name="expiryDate" defaultValue={editingRequest?.expiryDate} required className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer" />
                     </div>
                 </div>
                 <div className="space-y-2">

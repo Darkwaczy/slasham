@@ -1,34 +1,46 @@
 import { Search, Ticket, CheckCircle2, XCircle, Clock, MoreHorizontal, RotateCcw, Ban } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_COUPONS = [
-  { id: "C-9901", code: "SLASH50", user: "john@example.com", merchant: "Pizza Hut", status: "Active", value: "50% Off", createdAt: "10 mins ago" },
-  { id: "C-9902", code: "SPA2026", user: "sarah.s@gmail.com", merchant: "Oasis Spa", status: "Redeemed", value: "₦5,000", createdAt: "1 hour ago" },
-  { id: "C-9903", code: "GRILLFREE", user: "mike.j@outlook.com", merchant: "Lagos Grill", status: "Expired", value: "Free Drink", createdAt: "2 days ago" },
-  { id: "C-9904", code: "MOVIEPASS", user: "emily.b@slasham.com", merchant: "Skyline", status: "Active", value: "Buy 1 Get 1", createdAt: "3 hours ago" },
-  { id: "C-9905", code: "GYMFIT", user: "alex.w@yahoo.com", merchant: "Urban Fit", status: "Redeemed", value: "1 Month Free", createdAt: "5 hours ago" },
-];
+import { apiClient } from "../../api/client";
 
 export default function AdminCoupons() {
-  const [coupons, setCoupons] = useState(INITIAL_COUPONS);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiClient("/admin/vouchers");
+      setCoupons(data);
+    } catch (error) {
+      console.error("Failed to load vouchers:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const filteredCoupons = coupons.filter(c => {
-    const matchesSearch = c.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         c.user.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (c.voucher_code || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (c.users?.email || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "All" || c.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
-    setCoupons(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+  const handleUpdateStatus = async (_id: string, _newStatus: string) => {
+    // API logic for status update would go here
     setIsActionModalOpen(false);
   };
+
+  if (isLoading) return null; // Or a loader
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -146,37 +158,37 @@ export default function AdminCoupons() {
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            c.status === 'Active' ? 'bg-indigo-50 text-indigo-600' :
-                            c.status === 'Redeemed' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
+                            c.status === 'ACTIVE' ? 'bg-indigo-50 text-indigo-600' :
+                            c.status === 'REDEEMED' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
                         }`}>
                             <Ticket size={16} />
                         </div>
                         <span className="font-black text-slate-900 font-mono tracking-tighter">
-                          {c.code}
+                          {c.voucher_code}
                         </span>
                       </div>
                     </td>
                     <td className="px-8 py-5">
                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700">{c.user}</span>
-                            <span className="text-[10px] text-slate-400 font-bold leading-none">{c.createdAt}</span>
+                            <span className="text-sm font-bold text-slate-700">{c.users?.email || 'N/A'}</span>
+                            <span className="text-[10px] text-slate-400 font-bold leading-none">{new Date(c.created_at).toLocaleDateString()}</span>
                         </div>
                     </td>
-                    <td className="px-8 py-5 text-sm font-bold text-slate-700">{c.merchant}</td>
+                    <td className="px-8 py-5 text-sm font-bold text-slate-700">{c.deals?.merchants?.business_name || 'N/A'}</td>
                     <td className="px-8 py-5">
                       <span className="text-[10pt] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg uppercase tracking-tight">
-                         {c.value}
+                         {c.deals?.title || 'Coupon Benefit'}
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-3 group/btn">
                         <span className={`flex items-center justify-end gap-1.5 text-[10px] font-black uppercase tracking-widest ${
-                        c.status === 'Redeemed' ? 'text-emerald-500' : 
-                        c.status === 'Active' ? 'text-indigo-500' : 'text-rose-500'
+                        c.status === 'REDEEMED' ? 'text-emerald-500' : 
+                        c.status === 'ACTIVE' ? 'text-indigo-500' : 'text-rose-500'
                         }`}>
-                        {c.status === 'Redeemed' && <CheckCircle2 size={12} />}
-                        {c.status === 'Active' && <Clock size={12} />}
-                        {c.status === 'Expired' && <XCircle size={12} />}
+                        {c.status === 'REDEEMED' && <CheckCircle2 size={12} />}
+                        {c.status === 'ACTIVE' && <Clock size={12} />}
+                        {c.status === 'EXPIRED' && <XCircle size={12} />}
                         {c.status}
                         </span>
                         <div className="p-2 hover:bg-slate-100 rounded-lg text-slate-300 group-hover/btn:text-slate-600 transition-all opacity-0 group-hover:opacity-100">

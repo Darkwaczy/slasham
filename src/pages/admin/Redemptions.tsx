@@ -1,34 +1,45 @@
 import { Search, CheckCircle, Clock, ShieldAlert, ArrowDownToLine, Trash2, ShieldCheck, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_REDEMPTIONS = [
-  { id: "R-5521", user: "John Doe", merchant: "Zaza Lounge", deal: "RSVP Lagos Dinner", time: "2 hours ago", status: "Verified", value: "₦12,500" },
-  { id: "R-5522", user: "Sarah Smith", merchant: "Oasis Spa", deal: "Full Body Massage", time: "5 hours ago", status: "Verified", value: "₦8,000" },
-  { id: "R-5523", user: "Mike J.", merchant: "Pizza Hut", deal: "Large BBQ Chicken", time: "6 hours ago", status: "Pending", value: "₦4,500" },
-  { id: "R-5524", user: "Emily Brown", merchant: "Lagos Grill", deal: "Family Platter", time: "Yesterday", status: "Verified", value: "₦15,200" },
-  { id: "R-5525", user: "Alex Wilson", merchant: "Urban Fit", deal: "Day Pass", time: "Yesterday", status: "Flagged", value: "₦2,000" },
-];
+import { apiClient } from "../../api/client";
 
 export default function AdminRedemptions() {
-  const [redemptions, setRedemptions] = useState(INITIAL_REDEMPTIONS);
+  const [redemptions, setRedemptions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedR, setSelectedR] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiClient("/admin/redemptions");
+      setRedemptions(data);
+    } catch (error) {
+      console.error("Failed to load redemptions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const filteredRedemptions = redemptions.filter(r => {
-    const matchesSearch = r.user.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         r.merchant.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (r.users?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (r.deals?.merchants?.business_name || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "All" || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
-    setRedemptions(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  const handleUpdateStatus = async (_id: string, _newStatus: string) => {
     setIsActionModalOpen(false);
   };
+
+  if (isLoading) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -135,29 +146,29 @@ export default function AdminRedemptions() {
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
-                          {r.user.charAt(0)}
+                          {(r.users?.name || "U").charAt(0)}
                         </div>
-                        <span className="text-sm font-bold text-slate-900">{r.user}</span>
+                        <span className="text-sm font-bold text-slate-900">{r.users?.name || "Anonymous User"}</span>
                       </div>
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex flex-col">
-                        <span className="text-sm font-black text-slate-700">{r.merchant}</span>
-                        <span className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.05em]">{r.deal}</span>
+                        <span className="text-sm font-black text-slate-700">{r.deals?.merchants?.business_name || "N/A"}</span>
+                        <span className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.05em]">{r.deals?.title || "Campaign"}</span>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                        <span className="text-sm font-black text-slate-900">{r.value}</span>
+                        <span className="text-sm font-black text-slate-900">₦{r.deals?.discount_price?.toLocaleString() || "0"}</span>
                     </td>
-                    <td className="px-8 py-5 text-sm font-bold text-slate-400">{r.time}</td>
+                    <td className="px-8 py-5 text-sm font-bold text-slate-400">{new Date(r.redeemed_at).toLocaleDateString()}</td>
                     <td className="px-8 py-5 text-right">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                        r.status === 'Verified' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 
-                        r.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-rose-50 text-rose-600 border-rose-100'
+                        r.status === 'REDEEMED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 
+                        r.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-rose-50 text-rose-600 border-rose-100'
                       }`}>
-                        {r.status === 'Verified' && <CheckCircle size={10} />}
-                        {r.status === 'Pending' && <Clock size={10} />}
-                        {r.status === 'Flagged' && <ShieldAlert size={10} />}
+                        {r.status === 'REDEEMED' && <CheckCircle size={10} />}
+                        {r.status === 'PENDING' && <Clock size={10} />}
+                        {r.status === 'FLAGGED' && <ShieldAlert size={10} />}
                         {r.status}
                       </span>
                     </td>

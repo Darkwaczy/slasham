@@ -34,25 +34,21 @@ export default function MerchantDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const profile = await apiClient("/merchants/my-profile");
-        setMerchant(profile);
-
-        const deals = await apiClient("/deals/merchant/my-deals");
-        
-        // Calculate basic stats
-        const activeDeals = deals.filter((d: any) => d.is_active).length;
-        const totalClaims = deals.reduce((acc: number, d: any) => acc + (d.sold_quantity || 0), 0);
-        const totalRevenue = deals.reduce((acc: number, d: any) => acc + ((d.sold_quantity || 0) * d.discount_price), 0);
-
-        setStats([
-          { label: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
-          { label: "Active Deals", value: activeDeals.toString(), change: "0", icon: <Ticket size={20} />, color: "yellow" },
-          { label: "New Customers", value: "0", change: "+0%", icon: <Users size={20} />, color: "emerald" },
-          { label: "Total Claims", value: totalClaims.toString(), change: "+0%", icon: <TrendingUp size={20} />, color: "yellow" },
+        const [profile, liveStats, log] = await Promise.all([
+          apiClient("/merchants/my-profile"),
+          apiClient("/merchants/stats"),
+          apiClient("/merchants/redemption-log")
         ]);
 
-        // We'll need an endpoint for recent redemptions, but for now we can fetch vouchers if we had a merchant view
-        // For now, let's keep redemptions empty or fetch placeholder if needed
+        setMerchant(profile);
+        setRedemptions(log);
+
+        setStats([
+          { label: "Total Revenue", value: `₦${liveStats.totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
+          { label: "Active Deals", value: liveStats.activeDeals.toString(), change: "0", icon: <Ticket size={20} />, color: "yellow" },
+          { label: "New Customers", value: liveStats.uniqueCustomers.toString(), change: "+0%", icon: <Users size={20} />, color: "emerald" },
+          { label: "Total Claims", value: liveStats.totalClaims.toString(), change: "+0%", icon: <TrendingUp size={20} />, color: "yellow" },
+        ]);
       } catch (err) {
         console.error("Dashboard data fetch failed", err);
       }

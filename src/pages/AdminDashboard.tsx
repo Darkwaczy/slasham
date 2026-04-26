@@ -4,14 +4,7 @@ import { useState, useEffect } from "react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import AdminModal from "../components/AdminModal";
 
-const data = [
-  { name: 'Jan', revenue: 4000, users: 2400 },
-  { name: 'Feb', revenue: 3000, users: 1398 },
-  { name: 'Mar', revenue: 9000, users: 9800 },
-  { name: 'Apr', revenue: 2780, users: 3908 },
-  { name: 'May', revenue: 4890, users: 4800 },
-  { name: 'Jun', revenue: 6390, users: 4200 },
-];
+
 
 import { apiClient } from "../api/client";
 
@@ -23,15 +16,35 @@ export default function AdminDashboard() {
   const [liveStats, setLiveStats] = useState({ users: 0, businesses: 0, campaigns: 0, revenue: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
+  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+
   const fetchStats = async () => {
     try {
-      const data = await apiClient("/admin/stats");
+      const [stats, analytics, logs] = await Promise.all([
+        apiClient("/admin/stats"),
+        apiClient("/admin/analytics"),
+        apiClient("/admin/applications") // Use recent applications as recent events for now
+      ]);
+
       setLiveStats({
-        users: data.total_users,
-        businesses: data.total_merchants,
-        campaigns: data.total_deals,
-        revenue: parseFloat(data.total_revenue_m)
+        users: stats.total_users,
+        businesses: stats.total_merchants,
+        campaigns: stats.total_deals,
+        revenue: parseFloat(stats.total_revenue_m)
       });
+
+      setAnalyticsData(analytics);
+      
+      // Map applications to log format
+      const mappedLogs = logs.slice(0, 3).map((app: any) => ({
+        title: "New Merchant Application",
+        user: app.business_name,
+        time: new Date(app.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: app.status === 'PENDING' ? 'Review Required' : 'Processed'
+      }));
+      setRecentLogs(mappedLogs);
+
     } catch (error) {
       console.error("Admin stats fetch failed", error);
     } finally {
@@ -160,7 +173,7 @@ export default function AdminDashboard() {
             </div>
             <div className="h-[380px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
+                <AreaChart data={analyticsData}>
                   <defs>
                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15}/>
@@ -201,9 +214,9 @@ export default function AdminDashboard() {
                   <p className="text-[10px] text-slate-400 font-bold mt-3">4 Nodes Active • Uptime: 99.992%</p>
                </div>
 
-               <div className="space-y-6">
+                <div className="space-y-6">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Audit Logs</p>
-                  {recentEvents.map((event, idx) => (
+                  {recentLogs.map((event, idx) => (
                     <div key={idx} className="flex gap-4 group cursor-pointer">
                       <div className={`shrink-0 w-2 h-2 rounded-full mt-2 transition-transform group-hover:scale-150 ${
                         event.status === 'Critical' ? 'bg-rose-500' : 

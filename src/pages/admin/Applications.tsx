@@ -12,7 +12,13 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Filter,
-  User
+  User,
+  Zap,
+  Phone,
+  Globe,
+  Loader2,
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
@@ -26,6 +32,8 @@ export default function AdminApplications() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchApplications = async () => {
     setIsRefreshing(true);
@@ -48,36 +56,45 @@ export default function AdminApplications() {
     if (!window.confirm("Approve this merchant? This will create their account and generate onboarding credentials.")) return;
     setIsProcessing(true);
     try {
-      const result = await apiClient(`/admin/applications/${id}/approve`, { method: "POST" });
-      alert(`Approved! Temporary password: ${result.tempPassword}`);
+      await apiClient(`/admin/applications/${id}/approve`, { method: "POST" });
+      alert("Application approved! Credentials sent to merchant email.");
       fetchApplications();
       setIsModalOpen(false);
     } catch (err: any) {
-      alert(err.message);
+      alert("Error: " + err.message);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!window.confirm("Reject this application?")) return;
+  const handleReject = async () => {
+    if (!rejectionReason) return alert("Please provide a reason for rejection.");
     setIsProcessing(true);
     try {
-      await apiClient(`/admin/applications/${id}/reject`, { method: "POST" });
+      await apiClient(`/admin/applications/${selectedApp.id}/reject`, { 
+        method: "POST",
+        body: JSON.stringify({ reason: rejectionReason })
+      });
+      alert("Application rejected and merchant notified.");
       fetchApplications();
+      setIsRejectModalOpen(false);
       setIsModalOpen(false);
+      setRejectionReason("");
     } catch (err: any) {
-      alert(err.message);
+      alert("Error: " + err.message);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const filteredApps = applications.filter(app => 
-    app.business_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.contact_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredApps = applications.filter(app => {
+    const search = searchQuery.toLowerCase();
+    const bizName = (app.business_name || "").toLowerCase();
+    const contact = (app.contact_name || "").toLowerCase();
+    const email = (app.email || "").toLowerCase();
+    
+    return bizName.includes(search) || contact.includes(search) || email.includes(search);
+  });
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -101,11 +118,11 @@ export default function AdminApplications() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          <div className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Review</p>
-            <p className="text-3xl font-black text-slate-900">{applications.filter(a => a.status === 'PENDING').length}</p>
+            <p className="text-3xl font-black text-slate-900">{applications.filter(a => a.status?.toUpperCase() === 'PENDING').length}</p>
          </div>
          <div className="bg-emerald-50 p-6 rounded-4xl border border-emerald-100 shadow-sm">
             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Approved Partners</p>
-            <p className="text-3xl font-black text-emerald-700">{applications.filter(a => a.status === 'APPROVED').length}</p>
+            <p className="text-3xl font-black text-emerald-700">{applications.filter(a => a.status?.toUpperCase() === 'APPROVED').length}</p>
          </div>
          <div className="bg-slate-900 p-6 rounded-4xl border border-slate-800 shadow-sm">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Inquiries</p>
@@ -303,7 +320,7 @@ export default function AdminApplications() {
                     </div>
                  </div>
 
-                 <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex items-center gap-4">
+                  <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex items-center gap-4">
                     <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
                        <ShieldCheck size={24} />
                     </div>
@@ -311,15 +328,46 @@ export default function AdminApplications() {
                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Verification Status</p>
                        <p className="text-xs font-bold text-slate-600">Background scan completed.</p>
                     </div>
-                 </div>
-              </div>
+                  </div>
+
+                  {/* New Detailed Metrics Section */}
+                  {selectedApp.metadata && (
+                    <div className="space-y-6 pt-2">
+                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <Zap size={14} className="text-yellow-500" /> Business Profile & Metrics
+                       </h4>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                             <p className="text-[8px] font-black text-slate-400 uppercase">RC Number</p>
+                             <p className="text-xs font-black text-slate-900">{selectedApp.metadata.rc_number}</p>
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                             <p className="text-[8px] font-black text-slate-400 uppercase">Operating Hours</p>
+                             <p className="text-xs font-black text-slate-900">{selectedApp.metadata.operating_hours}</p>
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                             <p className="text-[8px] font-black text-slate-400 uppercase">Instagram</p>
+                             <p className="text-xs font-black text-emerald-600">{selectedApp.metadata.instagram_handle}</p>
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                             <p className="text-[8px] font-black text-slate-400 uppercase">Monthly Traffic</p>
+                             <p className="text-xs font-black text-slate-900">{selectedApp.metadata.monthly_customers}</p>
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-2xl p-4 col-span-2">
+                             <p className="text-[8px] font-black text-slate-400 uppercase">Campaign Goal</p>
+                             <p className="text-xs font-black text-indigo-600">{selectedApp.metadata.primary_goal}</p>
+                          </div>
+                       </div>
+                    </div>
+                  )}
+               </div>
             </div>
 
             {/* Action Buttons */}
             {selectedApp.status === 'PENDING' && (
               <div className="pt-10 flex gap-4 border-t border-slate-100">
                 <button 
-                  onClick={() => handleReject(selectedApp.id)}
+                  onClick={() => setIsRejectModalOpen(true)}
                   disabled={isProcessing}
                   className="flex-1 py-5 rounded-2xl border-2 border-rose-100 text-rose-500 font-black uppercase text-xs tracking-widest hover:bg-rose-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
@@ -338,6 +386,50 @@ export default function AdminApplications() {
           </motion.div>
         )}
         </AnimatePresence>
+      </AdminModal>
+      {/* Rejection Reason Modal */}
+      <AdminModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        title="Reason for Rejection"
+        description="This note will be included in the email sent to the merchant."
+      >
+        <div className="space-y-6 pt-4">
+          <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 flex gap-3 text-rose-600">
+            <AlertCircle size={20} className="shrink-0" />
+            <p className="text-[11px] font-bold leading-relaxed">
+              Declining an application is final. The merchant will be notified immediately with the reason provided below.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <MessageSquare size={14} /> Rejection Note
+            </label>
+            <textarea 
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="e.g. RC Number could not be verified in the CAC portal..."
+              className="w-full h-32 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all outline-none text-sm font-medium resize-none"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setIsRejectModalOpen(false)}
+              className="flex-1 py-4 bg-slate-100 text-slate-900 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleReject}
+              disabled={isProcessing || !rejectionReason}
+              className="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-rose-500/20 transition-all disabled:opacity-50"
+            >
+              {isProcessing ? <Loader2 className="animate-spin mx-auto" /> : "Confirm Rejection"}
+            </button>
+          </div>
+        </div>
       </AdminModal>
     </div>
   );

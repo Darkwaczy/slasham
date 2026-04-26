@@ -21,9 +21,10 @@ export default function AdminUsers() {
         name: u.name || "Anonymous",
         email: u.email,
         status: u.role === "SUSPENDED" ? 'Suspended' : 'Active',
-        role: u.role === "ADMIN" ? "Administrator" : "Standard User",
+        role: u.role === "ADMIN" ? "Administrator" : u.role === "MERCHANT" ? "Merchant" : "Standard User",
         joinDate: new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-        location: "Lagos", // Default for now
+        location: u.city || "Not Specified",
+        created_at: u.created_at
       })));
     } catch (error) {
       console.error("Failed to load users:", error);
@@ -40,6 +41,17 @@ export default function AdminUsers() {
     (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
     (u.email || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const stats = {
+    total: users.length,
+    active: users.filter(u => u.status === 'Active').length,
+    today: users.filter(u => {
+        const joinDate = new Date(u.created_at).toDateString();
+        const today = new Date().toDateString();
+        return joinDate === today;
+    }).length,
+    suspended: users.filter(u => u.status === 'Suspended').length
+  };
 
   const handleToggleStatus = async (user: any) => {
     try {
@@ -100,28 +112,28 @@ export default function AdminUsers() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { 
-            label: "Total Users", count: users.length, 
+            label: "Total Users", count: stats.total, 
             icon: Users,
             bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
             textClass: "text-indigo-700", labelClass: "text-indigo-500",
             iconBg: "bg-white/60", iconColor: "text-indigo-600"
           },
           { 
-            label: "Active Now", count: users.filter(u => u.status === 'Active').length, 
+            label: "Active Now", count: stats.active, 
             icon: ShieldCheck,
             bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
             textClass: "text-emerald-700", labelClass: "text-emerald-500",
             iconBg: "bg-white/60", iconColor: "text-emerald-600"
           },
           { 
-            label: "New Today", count: 0, 
+            label: "New Today", count: stats.today, 
             icon: UserPlus,
             bgClass: "bg-sky-50", borderClass: "border-sky-100", 
             textClass: "text-sky-700", labelClass: "text-sky-500",
             iconBg: "bg-white/60", iconColor: "text-sky-600"
           },
           { 
-            label: "Suspended", count: users.filter(u => u.status === 'Suspended').length, 
+            label: "Suspended", count: stats.suspended, 
             icon: UserMinus,
             bgClass: "bg-rose-50", borderClass: "border-rose-100", 
             textClass: "text-rose-700", labelClass: "text-rose-500",

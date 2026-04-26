@@ -52,10 +52,22 @@ export default function MerchantApply() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validatePhone = (phone: string) => {
+    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
+    return phoneRegex.test(phone);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    if (!validatePhone(formData.phone)) {
+      setError("Please enter a valid phone number (e.g. +234 812 345 6789)");
+      setIsSubmitting(false);
+      window.scrollTo(0, 500);
+      return;
+    }
 
     try {
       await apiClient("/merchants/apply", {

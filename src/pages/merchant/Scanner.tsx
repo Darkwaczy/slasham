@@ -15,7 +15,7 @@ export default function MerchantScanner() {
 
   const loadHistory = async () => {
     try {
-      const data = await apiClient("/vouchers/merchant/redemptions");
+      const data = await apiClient("/merchants/redemption-log");
       setRecentRedemptions(data);
     } catch (error) {
       console.error("Failed to load redemption history:", error);
@@ -188,7 +188,7 @@ export default function MerchantScanner() {
                 ) : (
                   recentRedemptions.map((red, i) => (
                     <motion.div 
-                      key={red.id}
+                      key={red.id + i}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
@@ -197,12 +197,12 @@ export default function MerchantScanner() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                            <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.4)]" />
-                           <p className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors uppercase tracking-widest">{red.deals?.title || "Protocol Clear"}</p>
+                           <p className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors uppercase tracking-widest">{red.deal}</p>
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 ml-4 font-mono">{red.voucher_code}</p>
+                        <p className="text-[10px] font-bold text-slate-400 ml-4 font-mono">{red.id}</p>
                       </div>
                       <div className="text-right">
-                         <p className="text-[9px] font-black text-slate-900 opacity-30">{new Date(red.redeemed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                         <p className="text-[9px] font-black text-slate-900 opacity-30">{red.time}</p>
                          <ShieldCheck className="text-emerald-500 ml-auto opacity-40 group-hover:opacity-100 transition-opacity" size={16} />
                       </div>
                     </motion.div>

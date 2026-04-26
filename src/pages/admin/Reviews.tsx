@@ -1,39 +1,50 @@
 import { Star, ShieldAlert, CheckCircle, Trash2, ShieldCheck, Flag, MoreHorizontal, User, Quote, Search } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
-
-const INITIAL_REVIEWS = [
-  { id: "REV-10", user: "John D.", merchant: "Zaza Lounge", rating: 5, comment: "Amazing experience, very fast service!", date: "1 hour ago", status: "Published", sentiment: "Positive" },
-  { id: "REV-11", user: "Sarah S.", merchant: "Oasis Spa", rating: 4, comment: "It was good but a bit expensive.", date: "4 hours ago", status: "Published", sentiment: "Neutral" },
-  { id: "REV-12", user: "Mike J.", merchant: "Pizza Hut", rating: 2, comment: "Pizza was cold and delivery took too long.", date: "Yesterday", status: "Flagged", sentiment: "Negative" },
-  { id: "REV-13", user: "Emily B.", merchant: "Lagos Grill", rating: 5, comment: "Best steak in town!", date: "2 days ago", status: "Published", sentiment: "Positive" },
-];
+import { apiClient } from "../../api/client";
 
 export default function AdminReviews() {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReview, setSelectedReview] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [filter, setFilter] = useState("All");
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiClient("/admin/reviews");
+      setReviews(data);
+    } catch (error) {
+      console.error("Failed to load reviews:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const filteredReviews = reviews.filter(r => {
-    const matchesSearch = r.user.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         r.merchant.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.comment.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (r.users?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (r.merchants?.business_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (r.comment || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filter === "All" || r.status === filter;
     return matchesSearch && matchesFilter;
   });
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  const handleUpdateStatus = async (_id: string, _newStatus: string) => {
     setIsActionModalOpen(false);
   };
 
-  const handleDeleteReview = (id: string) => {
-    setReviews(prev => prev.filter(r => r.id !== id));
+  const handleDeleteReview = async (_id: string) => {
     setIsActionModalOpen(false);
   };
+
+  if (isLoading) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -108,32 +119,26 @@ export default function AdminReviews() {
                     <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">
-                                {r.user.charAt(0)}
+                                {(r.users?.name || "U").charAt(0)}
                             </div>
-                            <span className="text-sm font-bold text-slate-900">{r.user}</span>
+                            <span className="text-sm font-bold text-slate-900">{r.users?.name || "Anonymous"}</span>
                         </div>
                     </td>
                     <td className="px-8 py-5">
                         <span className="text-sm font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-lg italic">
-                           {r.merchant}
+                           {r.merchants?.business_name || "N/A"}
                         </span>
                     </td>
-                    <td className="px-8 py-5 py-6">
+                    <td className="px-8 py-5">
                       <div className="flex items-center justify-between gap-4 mb-2">
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
                                 <Star key={i} size={12} className={i < r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200 fill-slate-200"} />
                             ))}
                           </div>
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                              r.sentiment === 'Positive' ? 'text-emerald-500 bg-emerald-50' : 
-                              r.sentiment === 'Negative' ? 'text-rose-500 bg-rose-50' : 'text-slate-400 bg-slate-50'
-                          }`}>
-                            {r.sentiment} Sentiment
-                          </span>
                       </div>
                       <p className="text-sm text-slate-500 font-medium max-w-md leading-relaxed line-clamp-2">"{r.comment}"</p>
-                      <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest">{r.date}</p>
+                      <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest">{new Date(r.created_at).toLocaleDateString()}</p>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-4">
