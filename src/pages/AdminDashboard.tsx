@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       {/* Console Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Intelligence Console</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Slasham Admin Dashboard</h1>
           <p className="text-slate-500 font-medium">Real-time performance metrics across the Slasham network</p>
         </div>
         <div className="flex gap-3">
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
         {[
           { title: "Total Users", count: stats.users.toLocaleString(), icon: <Users size={24} />, color: "amber" },
           { title: "Businesses", count: stats.businesses.toLocaleString(), icon: <Store size={24} />, color: "indigo" },
-          { title: "Active Campaigns", count: stats.campaigns.toLocaleString(), icon: <Tag size={24} />, color: "rose" },
+          { title: "Active Campaigns", count: stats.campaigns.toLocaleString(), icon: <Tag size={24} />, color: "amber" },
           { title: "Monthly Revenue", count: `₦${(stats.revenue / 1).toFixed(1)}M`, icon: <Wallet size={24} />, color: "emerald" },
         ].map((stat, i) => (
           <motion.div 

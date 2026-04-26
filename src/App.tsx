@@ -36,6 +36,7 @@ const AdminReviews = lazy(() => import("./pages/admin/Reviews"));
 const AdminReports = lazy(() => import("./pages/admin/Reports"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminApplications = lazy(() => import("./pages/admin/Applications"));
+const AdminEmail = lazy(() => import("./pages/admin/Email"));
 const UserLayout = lazy(() => import("./components/UserLayout"));
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const MerchantLayout = lazy(() => import("./components/MerchantLayout"));
@@ -170,6 +171,7 @@ export default function App() {
             <Route path="redemptions" element={<AdminRedemptions />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="reports" element={<AdminReports />} />
+            <Route path="email" element={<AdminEmail />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="MerchantDashboard" element={<Navigate to="/merchant/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

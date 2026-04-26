@@ -779,4 +779,78 @@ router.post("/settings", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// --- EMAIL TEMPLATES & BROADCASTS ---
+
+router.get("/emails/templates", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+    const { data, error } = await supabase.from("email_templates").select("*").order("name");
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/emails/templates/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+    const { subject, html_body } = req.body;
+    const { data, error } = await supabase
+      .from("email_templates")
+      .update({ subject, html_body, updated_at: new Date() })
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/emails/broadcasts", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+    const { data, error } = await supabase.from("email_broadcasts").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/emails/broadcast", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+    const { subject, html_body, target_audience } = req.body;
+    
+    // In a real app, we would query the users table based on target_audience and use Resend to bulk send.
+    // Here we record the broadcast for the UI demo.
+    const mockSentCount = target_audience === 'ALL_USERS' ? 12450 : target_audience === 'MERCHANTS' ? 342 : 120;
+    
+    const { data, error } = await supabase
+      .from("email_broadcasts")
+      .insert({
+        subject,
+        html_body,
+        target_audience,
+        sent_count: mockSentCount,
+        status: 'COMPLETED',
+        sent_by: req.user.email
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

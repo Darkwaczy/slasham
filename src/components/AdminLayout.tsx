@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Store, Tag, Ticket, 
   CheckCircle, Star, AlertTriangle, Settings, LogOut,
   Bell, Search, Menu, X, ChevronRight,
-  ArrowUpRight
+  ArrowUpRight, Mail
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
@@ -27,6 +27,7 @@ export default function AdminLayout() {
     { name: "Redemptions", path: "/admin/redemptions", icon: CheckCircle },
     { name: "Reviews", path: "/admin/reviews", icon: Star },
     { name: "Disputes", path: "/admin/reports", icon: AlertTriangle },
+    { name: "Email", path: "/admin/email", icon: Mail },
     { name: "Admin Settings", path: "/admin/settings", icon: Settings },
   ];
 
