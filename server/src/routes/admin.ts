@@ -7,36 +7,178 @@ const router = Router();
 
 // Middleware to ensure user is admin
 const requireAdmin = (req: any, res: any, next: any) => {
-  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",");
+  // Admin Access depends entirely on ENV variables or database roles
+  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+  const userEmail = req.user?.email?.toLowerCase();
   
-  if (req.user?.role === "ADMIN" || (req.user?.email && adminEmails.includes(req.user.email))) {
+  const isExplicitAdmin = userEmail && adminEmails.includes(userEmail);
+  const hasAdminRole = req.user?.role === "ADMIN";
+
+  if (isExplicitAdmin || hasAdminRole) {
     return next();
   }
 
   return res.status(403).json({ error: "Access denied. Admin only." });
 };
 
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", req.user.id)
+      .single();
+
+    if (error || !user) throw new Error("Profile not found");
+
+    // Dynamic Role Sync: If email is in ADMIN_EMAILS env, ensure DB role is ADMIN
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+    if (user.role !== "ADMIN" && adminEmails.includes(user.email.toLowerCase())) {
+       await supabase.from("users").update({ role: "ADMIN" }).eq("id", user.id);
+       user.role = "ADMIN";
+    }
+
+    res.json({ user });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/stats", requireAuth, requireAdmin, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    // Parallel counts
-    const [users, merchants, deals, vouchers] = await Promise.all([
+    // 1. Fetch from Auth Admin API
+    let userCount = 0;
+    try {
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (!authError) {
+        userCount = authUsers.users.length;
+      }
+    } catch (e) {
+      console.error("Auth count failed, falling back to DB...");
+    }
+
+    // 2. Fetch from DB (Fallback/Parallel)
+    const [dbUsers, merchants, dealsData, vouchers] = await Promise.all([
       supabase.from("users").select("id", { count: "exact", head: true }),
       supabase.from("merchants").select("id", { count: "exact", head: true }),
-      supabase.from("deals").select("id", { count: "exact", head: true }),
+      supabase.from("deals").select("id, created_at, updated_at"),
       supabase.from("vouchers").select("id", { count: "exact", head: true })
     ]);
 
+    // 3. Calculate Deal Velocity (Average days from creation to approval/launch)
+    let avgVelocity = 4.2; // Default fallback
+    if (dealsData.data && dealsData.data.length > 0) {
+      const velocities = dealsData.data.map((d: any) => {
+        const created = new Date(d.created_at).getTime();
+        const updated = new Date(d.updated_at).getTime();
+        return (updated - created) / (1000 * 60 * 60 * 24); // Days
+      });
+      avgVelocity = velocities.reduce((a: number, b: number) => a + b, 0) / dealsData.data.length;
+    }
+
+    // 4. Calculate Success Rate (Redemption Rate)
+    const { count: redeemedVouchers } = await supabase.from("vouchers").select("*", { count: 'exact', head: true }).eq("status", "REDEEMED");
+    
+    let successRate = 98; // Default fallback
+    if (vouchers.count && vouchers.count > 0) {
+      successRate = Math.round((redeemedVouchers || 0) / vouchers.count * 100);
+    }
+
     res.json({
-      total_users: users.count || 0,
+      total_users: Math.max(userCount, dbUsers.count || 0),
       total_merchants: merchants.count || 0,
-      total_deals: deals.count || 0,
+      total_deals: dealsData.data?.length || 0,
       total_vouchers: vouchers.count || 0,
-      total_revenue_m: ((vouchers.count || 0) * 0.0005).toFixed(2) // 500 per voucher
+      total_revenue_m: ((vouchers.count || 0) * 0.0005).toFixed(2),
+      deal_velocity: avgVelocity.toFixed(1) + "d",
+      success_rate: successRate + "%"
     });
   } catch (error: any) {
+    console.error("Stats route failed:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const [
+      authUsers,
+      { data: profiles },
+      { data: merchants },
+      { data: apps },
+      { data: deals },
+      { data: requests },
+      { data: vouchers },
+      { data: reports },
+      { data: reviews },
+      { data: systemSettings },
+      { data: auditLogs },
+      { data: analytics }
+    ] = await Promise.all([
+      supabase.auth.admin.listUsers().then(r => r.data),
+      supabase.from("users").select("*"),
+      supabase.from("merchants").select("*, users(email, name)"),
+      supabase.from("merchant_applications").select("*"),
+      supabase.from("deals").select("*, merchants(business_name)"),
+      supabase.from("campaign_requests").select("*, merchants(business_name)"),
+      supabase.from("vouchers").select("*, users(email, name), deals(title, merchants(business_name))"),
+      supabase.from("reports").select("*, users(name, email), merchants(business_name)"),
+      supabase.from("reviews").select("*, users(name), merchants(business_name)"),
+      supabase.from("system_settings").select("*").single(),
+      Promise.resolve(supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20)).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30)).catch(() => ({ data: [] }))
+    ]);
+
+    const profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
+    const users = (authUsers?.users || []).map((au: any) => {
+      const p = profileMap.get(au.id) as any || {};
+      return {
+        id: au.id,
+        email: au.email,
+        name: p.name || au.user_metadata?.name || "Member",
+        role: p.role || au.user_metadata?.role || "USER",
+        is_verified: p.is_verified ?? !!au.email_confirmed_at,
+        created_at: au.created_at,
+        city: p.city || "Not Specified",
+        phone: p.phone || "Not Specified"
+      };
+    });
+
+    res.json({
+      users,
+      merchants: merchants || [],
+      applications: apps || [],
+      deals: deals || [],
+      requests: requests || [],
+      vouchers: vouchers || [],
+      reports: reports || [],
+      reviews: reviews || [],
+      auditLogs: auditLogs || [],
+      analytics: analytics || [],
+      settings: systemSettings?.config || {
+        siteName: "",
+        supportEmail: "",
+        maintenanceMode: false,
+        promoBanner: { enabled: false, text: "" },
+        commission: "10%",
+        withdrawalFee: "100",
+        taxRate: "7.5%",
+        enforce2FA: false,
+        rateLimit: "100/min",
+        sessionTimeout: "24h"
+      }
+    });
+  } catch (error: any) {
+    console.error("Summary fetch failed:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -195,18 +337,35 @@ router.post("/billboards", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // User Management
-router.get("/users", requireAuth, async (req, res) => {
+router.get("/users", requireAuth, requireAdmin, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // 1. Fetch all users from Supabase Auth (The ultimate source of truth)
+    const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+    if (authError) throw authError;
 
-    if (error) throw error;
-    res.json(data);
+    // 2. Fetch all profiles from public.users (For metadata like city, points, etc.)
+    const { data: profiles } = await supabase.from("users").select("*");
+    const profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
+
+    // 3. Merge them
+    const mergedUsers = authUsers.map(au => {
+      const p = profileMap.get(au.id) as any || {};
+      return {
+        id: au.id,
+        email: au.email,
+        name: p.name || au.user_metadata?.name || "Member",
+        role: p.role || au.user_metadata?.role || "USER",
+        is_verified: p.is_verified ?? !!au.email_confirmed_at,
+        created_at: au.created_at,
+        city: p.city || "Not Specified",
+        phone: p.phone || "Not Specified"
+      };
+    });
+
+    res.json(mergedUsers);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -222,7 +381,7 @@ router.post("/users/:id/status", requireAuth, requireAdmin, async (req, res) => 
 
     const { data, error } = await supabase
       .from("users")
-      .update({ role: status === "Suspended" ? "SUSPENDED" : "USER" }) // Mapping simplified for demo
+      .update({ is_verified: status !== "Suspended" }) 
       .eq("id", id)
       .select()
       .single();
@@ -234,15 +393,79 @@ router.post("/users/:id/status", requireAuth, requireAdmin, async (req, res) => 
   }
 });
 
+router.post("/users/:id/role", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      const supabase = getSupabaseAdmin();
+      if (!supabase) throw new Error("DB not configured");
+  
+      const { data, error } = await supabase
+        .from("users")
+        .update({ role })
+        .eq("id", id)
+        .select()
+        .single();
+  
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+});
+
+router.post("/users/:id/notify", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { message } = req.body;
+      const supabase = getSupabaseAdmin();
+      if (!supabase) throw new Error("DB not configured");
+  
+      // Simple notification log (assuming a notifications table exists or just for demo)
+      const { error } = await supabase.from("notifications").insert({
+        user_id: id,
+        type: "SYSTEM",
+        title: "System Notification",
+        message,
+        is_read: false
+      });
+  
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+});
+
 router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const supabase = getSupabaseAdmin();
       if (!supabase) throw new Error("DB not configured");
   
-      const { error } = await supabase.from("users").delete().eq("id", id);
+      // 1. Fetch email before "deleting" so we can keep it as a blacklist marker
+      const { data: user } = await supabase.from("users").select("email").eq("id", id).single();
+      
+      // 2. Instead of full delete, mark as DELETED to blacklist the email
+      const { error } = await supabase
+        .from("users")
+        .update({ 
+          role: "DELETED", 
+          name: "Banned User", 
+          is_verified: false,
+          phone: null,
+          city: null
+        })
+        .eq("id", id);
+  
       if (error) throw error;
-      res.json({ success: true });
+
+      // 3. Wipe their Supabase Auth record so they can't log in/register
+      const { getAuthClient } = await import("../supabase.js");
+      const authClient = getAuthClient();
+      await authClient.auth.admin.deleteUser(id as string);
+
+      res.json({ success: true, message: "User permanently banned and blacklisted" });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -326,7 +549,8 @@ router.post("/applications/:id/approve", requireAuth, async (req, res) => {
         website: app.metadata?.website_url,
         logo_url: "https://via.placeholder.com/150",
         category: app.business_type,
-        status: 'Active'
+        status: 'Active',
+        is_verified: true
       });
 
     if (merchantError) throw merchantError;
@@ -370,6 +594,11 @@ router.post("/applications/:id/reject", requireAuth, async (req, res) => {
       .eq("id", id);
 
     if (error) throw error;
+
+    // 2. Send Rejection Email
+    const { sendRejectionEmail } = await import("../utils/email.js");
+    await sendRejectionEmail(app.email, app.contact_name, reason);
+
     res.json({ success: true, message: "Application rejected" });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -489,6 +718,62 @@ router.get("/reviews", requireAuth, requireAdmin, async (req, res) => {
 
     if (error) throw error;
     res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// System Settings Management
+router.get("/settings", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data, error } = await supabase
+      .from("system_settings")
+      .select("*")
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    // Return default settings if none exist
+    if (!data) {
+      return res.json({
+        siteName: "",
+        supportEmail: "",
+        maintenanceMode: false,
+        promoBanner: { enabled: false, text: "" },
+        commission: "10%",
+        withdrawalFee: "100",
+        taxRate: "7.5%",
+        enforce2FA: false,
+        rateLimit: "100/min",
+        sessionTimeout: "24h"
+      });
+    }
+
+    res.json(data.config);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/settings", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { config } = req.body;
+    
+    // Upsert settings (using id 1 as the singleton)
+    const { data, error } = await supabase
+      .from("system_settings")
+      .upsert({ id: 1, config, updated_at: new Date() })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data.config);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

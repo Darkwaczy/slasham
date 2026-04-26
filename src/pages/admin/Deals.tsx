@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminDeals() {
   const [deals, setDeals] = useState<any[]>([]);
@@ -51,6 +52,8 @@ export default function AdminDeals() {
   useEffect(() => {
     loadData();
   }, []);
+
+  if (isRefreshing && deals.length === 0) return <AdminSkeleton />;
 
   const handleApprove = async (req: any) => {
     if (!slashamPrice.trim()) {

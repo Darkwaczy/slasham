@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/client";
 import AdminModal from "../../components/AdminModal";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminReports() {
   const [reports, setReports] = useState<any[]>([]);
@@ -57,6 +58,8 @@ export default function AdminReports() {
       setIsProcessing(false);
     }
   };
+
+  if (isLoading) return <AdminSkeleton />;
 
   const filteredReports = reports.filter(r => {
     const matchesSearch = r.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -118,7 +121,10 @@ export default function AdminReports() {
          </div>
          <div className="bg-slate-900 p-6 rounded-4xl border border-slate-800 shadow-sm text-left">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Platform Trust</p>
-            <p className="text-3xl font-black text-white">98.4%</p>
+            <p className="text-3xl font-black text-white">
+               {reports.length === 0 ? "100%" : 
+                `${((reports.filter(r => r.status === 'RESOLVED').length / reports.length) * 100).toFixed(1)}%`}
+            </p>
          </div>
       </div>
 
@@ -163,16 +169,7 @@ export default function AdminReports() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                       <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Incident Buffer...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredReports.length === 0 ? (
+              {filteredReports.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-8 py-20 text-center text-slate-400 font-medium italic">No disputes found matching your criteria.</td>
                 </tr>

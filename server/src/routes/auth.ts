@@ -19,8 +19,18 @@ router.post("/register", async (req, res) => {
 
     const authClient = getAuthClient();
     const supabase = getSupabaseAdmin();
-
     if (!supabase) throw new Error("DB not configured");
+
+    // Check if email is blacklisted (previously deleted)
+    const { data: bannedUser } = await supabase
+      .from("users")
+      .select("role")
+      .eq("email", email)
+      .single();
+
+    if (bannedUser && (bannedUser.role === "DELETED" || bannedUser.role === "BANNED")) {
+      return res.status(403).json({ error: "This email has been permanently banned from the platform." });
+    }
 
     // 1. Create Supabase Auth User via Admin API for better control
     const { data: authData, error: authError } = await authClient.auth.admin.createUser({
@@ -179,7 +189,11 @@ router.post("/login", async (req, res) => {
       }
     }
 
-    // Block unverified users from accessing the platform
+    // Block unverified or banned users
+    if (role === "DELETED" || role === "BANNED") {
+      return res.status(403).json({ error: "This account has been permanently disabled." });
+    }
+
     if (!is_verified) {
       return res.status(403).json({
         error: "Please verify your email before logging in.",

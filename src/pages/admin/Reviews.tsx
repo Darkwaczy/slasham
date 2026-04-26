@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminReviews() {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -44,7 +45,7 @@ export default function AdminReviews() {
     setIsActionModalOpen(false);
   };
 
-  if (isLoading) return null;
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -55,13 +56,17 @@ export default function AdminReviews() {
         </div>
         <div className="flex items-center gap-2">
             <div className="flex -space-x-2 mr-4">
-                {[1,2,3,4].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 overflow-hidden">
-                        <User size={14} />
+                {reviews.slice(0, 4).map((r, i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white overflow-hidden shadow-sm uppercase">
+                        {(r.users?.name || "U").charAt(0)}
                     </div>
                 ))}
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">+12 Pendings</p>
+            {reviews.length > 0 && (
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                    +{reviews.length} Pendings
+                </p>
+            )}
         </div>
       </div>
 

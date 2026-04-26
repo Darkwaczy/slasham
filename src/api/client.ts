@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+/// <reference types="vite/client" />
+const BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
 
 /**
  * A tiny wrapper around native fetch to automatically
@@ -7,9 +8,9 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
 
   // If uploading FormData, browser sets correct multipart/form-data with boundary

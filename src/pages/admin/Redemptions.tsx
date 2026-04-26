@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminRedemptions() {
   const [redemptions, setRedemptions] = useState<any[]>([]);
@@ -11,6 +12,33 @@ export default function AdminRedemptions() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedR, setSelectedR] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+
+  const totalVolume = redemptions.reduce((acc, r) => acc + (r.deals?.discount_price || 0), 0);
+
+  const handleExportAudit = () => {
+    if (redemptions.length === 0) return alert("No data to export");
+    
+    const headers = ["ID", "User", "Merchant", "Deal", "Price", "Status", "Date"];
+    const rows = redemptions.map(r => [
+      r.id,
+      r.users?.name || "Anonymous",
+      r.deals?.merchants?.business_name || "N/A",
+      r.deals?.title || "N/A",
+      r.deals?.discount_price || 0,
+      r.status,
+      new Date(r.redeemed_at).toLocaleString()
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `slasham_redemptions_audit_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -39,7 +67,7 @@ export default function AdminRedemptions() {
     setIsActionModalOpen(false);
   };
 
-  if (isLoading) return null;
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -48,7 +76,10 @@ export default function AdminRedemptions() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Redemption Logs</h1>
           <p className="text-slate-500 font-medium">Coordinate and verify all merchant-to-customer transactions</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-emerald-500/10">
+        <button 
+          onClick={handleExportAudit}
+          className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-emerald-500/10 active:scale-95"
+        >
            <ArrowDownToLine size={18} /> Export Full Audit
         </button>
       </div>
@@ -56,7 +87,7 @@ export default function AdminRedemptions() {
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           { 
-            label: "Today's Volume", count: "₦142,500", trend: "Optimal",
+            label: "Today's Volume", count: `₦${totalVolume.toLocaleString()}`, trend: "Live Data",
             icon: CheckCircle,
             bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
             textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",

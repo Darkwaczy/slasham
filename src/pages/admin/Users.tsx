@@ -1,41 +1,27 @@
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users, Loader2 } from "lucide-react";
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
+import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading, refreshData, updateData } = useAdminData();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await apiClient("/admin/users");
-      setUsers(data.map((u: any) => ({
-        id: u.id,
-        name: u.name || "Anonymous",
-        email: u.email,
-        status: u.role === "SUSPENDED" ? 'Suspended' : 'Active',
-        role: u.role === "ADMIN" ? "Administrator" : u.role === "MERCHANT" ? "Merchant" : "Standard User",
-        joinDate: new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-        location: u.city || "Not Specified",
-        created_at: u.created_at
-      })));
-    } catch (error) {
-      console.error("Failed to load users:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const users = (data?.users || []).map((u: any) => ({
+    ...u,
+    status: u.is_verified === false ? 'Suspended' : 'Active',
+    roleLabel: u.role === "ADMIN" ? "Administrator" : u.role === "MERCHANT" ? "Merchant" : "Standard User",
+    joinDate: new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+    location: u.city || "Not Specified"
+  }));
 
   const filteredUsers = users.filter(u => 
     (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -46,35 +32,74 @@ export default function AdminUsers() {
     total: users.length,
     active: users.filter(u => u.status === 'Active').length,
     today: users.filter(u => {
-        const joinDate = new Date(u.created_at).toDateString();
-        const today = new Date().toDateString();
-        return joinDate === today;
+        const joinDateString = new Date(u.created_at).toDateString();
+        const todayString = new Date().toDateString();
+        return joinDateString === todayString;
     }).length,
     suspended: users.filter(u => u.status === 'Suspended').length
   };
 
   const handleToggleStatus = async (user: any) => {
+    setIsProcessing(true);
     try {
         const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
         await apiClient(`/admin/users/${user.id}/status`, {
             method: "POST",
             body: JSON.stringify({ status: newStatus })
         });
-        loadData();
+        
+        // Update local context instantly
+        const updatedRawUsers = data.users.map((u: any) => 
+            u.id === user.id ? { ...u, is_verified: newStatus === 'Active' } : u
+        );
+        updateData('users', updatedRawUsers);
+        
         setIsActionModalOpen(false);
     } catch (error: any) {
         alert("Status update failed: " + error.message);
+    } finally {
+        setIsProcessing(false);
     }
   };
+
+  if (isLoading) return <AdminSkeleton />;
 
   const handleDeleteUser = async (id: string) => {
     if (!confirm("Permanently delete this user account?")) return;
     try {
         await apiClient(`/admin/users/${id}`, { method: "DELETE" });
-        loadData();
+        refreshData();
         setIsActionModalOpen(false);
     } catch (error: any) {
         alert("Delete failed: " + error.message);
+    }
+  };
+
+  const handleChangeRole = async (user: any, newRole: string) => {
+    try {
+        await apiClient(`/admin/users/${user.id}/role`, {
+            method: "POST",
+            body: JSON.stringify({ role: newRole })
+        });
+        refreshData();
+        setIsActionModalOpen(false);
+        alert(`User role updated to ${newRole}`);
+    } catch (error: any) {
+        alert("Role update failed: " + error.message);
+    }
+  };
+
+  const handleSendNotification = async (user: any) => {
+    const message = prompt(`Enter system notification for ${user.name}:`);
+    if (!message) return;
+    try {
+        await apiClient(`/admin/users/${user.id}/notify`, {
+            method: "POST",
+            body: JSON.stringify({ message })
+        });
+        alert("Notification sent successfully!");
+    } catch (error: any) {
+        alert("Notification failed: " + error.message);
     }
   };
 
@@ -84,13 +109,7 @@ export default function AdminUsers() {
     setIsAddModalOpen(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="animate-spin text-slate-300" size={40} />
-      </div>
-    );
-  }
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -345,10 +364,23 @@ export default function AdminUsers() {
               {selectedUser?.status === 'Active' ? <UserMinus size={18} /> : <ShieldCheck size={18} />}
               {selectedUser?.status === 'Active' ? 'Suspend User Access' : 'Restore User Access'}
             </button>
-            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <button 
+              onClick={() => {
+                const roles = ['USER', 'MERCHANT', 'ADMIN'];
+                const currentRole = selectedUser.role === 'Administrator' ? 'ADMIN' : selectedUser.role === 'Merchant' ? 'MERCHANT' : 'USER';
+                const nextRole = roles[(roles.indexOf(currentRole) + 1) % roles.length];
+                if (confirm(`Change ${selectedUser.name}'s role from ${currentRole} to ${nextRole}?`)) {
+                  handleChangeRole(selectedUser, nextRole);
+                }
+              }}
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
               <Shield size={18} /> Change Membership Role
             </button>
-            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <button 
+              onClick={() => handleSendNotification(selectedUser)}
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
               <Mail size={18} /> Send System Notification
             </button>
             <div className="my-2 border-t border-slate-100"></div>

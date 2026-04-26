@@ -23,9 +23,8 @@ export default function AdminLogin() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (user.role !== "ADMIN") {
-        throw new Error("Access denied. Admin credentials required.");
-      }
+      // Save session
+      localStorage.setItem("slasham_user", JSON.stringify(user));
 
       navigate("/admin/dashboard");
     } catch (err: any) {
@@ -64,7 +63,7 @@ export default function AdminLogin() {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@slasham.com"
+                  placeholder="admin@example.com"
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold"
                 />
               </div>

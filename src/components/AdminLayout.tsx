@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Store, Tag, Ticket, 
@@ -8,13 +8,14 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
-import { storage } from "../utils/storage";
+import { apiClient } from "../api/client";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const navItems = [
     { name: "Console", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -29,8 +30,31 @@ export default function AdminLayout() {
     { name: "Admin Settings", path: "/admin/settings", icon: Settings },
   ];
 
+  const [adminUser, setAdminUser] = useState<any>(() => {
+    const saved = localStorage.getItem("slasham_user");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const { user } = await apiClient("/admin/me");
+        setAdminUser(user);
+      } catch (e) {
+        console.error("Failed to fetch admin profile");
+      }
+    };
+    fetchMe();
+  }, []);
+
+  const adminName = adminUser?.name || "Admin User";
+  const adminEmail = adminUser?.email || "Administrator";
+  const adminRole = adminUser?.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Master Admin';
+  const adminInitials = adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+
   const handleLogout = () => {
-    storage.removeItem("slasham_user");
+    localStorage.removeItem("slasham_user");
+    localStorage.removeItem("slasham_token");
     navigate("/login");
   };
 
@@ -108,12 +132,12 @@ export default function AdminLayout() {
         {/* Footer info */}
         <div className="p-6 border-t border-slate-100">
           <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-              AU
+            <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs uppercase">
+              {adminInitials}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-slate-900 truncate">Admin User</p>
-              <p className="text-[10px] text-slate-500 font-medium truncate uppercase tracking-widest">Master Admin</p>
+            <div className="flex-1 min-w-0 ml-1">
+              <p className="text-sm font-black text-slate-900 truncate tracking-tight">{adminName}</p>
+              <p className="text-[9px] text-slate-400 font-black truncate uppercase tracking-widest">{adminRole}</p>
             </div>
             <button 
               onClick={handleLogout}
@@ -125,6 +149,19 @@ export default function AdminLayout() {
           </div>
         </div>
       </aside>
+
+      {/* Click-away overlays */}
+      <AnimatePresence>
+        {(showNotifications || showProfileMenu) && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => { setShowNotifications(false); setShowProfileMenu(false); }}
+            className="fixed inset-0 z-60"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -158,19 +195,67 @@ export default function AdminLayout() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl relative transition-all">
-                <Bell size={20} />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); setShowProfileMenu(false); }}
+                  className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl relative transition-all"
+                >
+                  <Bell size={20} />
+                  {showNotifications && (
+                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-4 z-70"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex justify-between items-center mb-4 px-2">
+                        <div className="flex items-center gap-2">
+                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Recent Activity</h3>
+                           <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">2</span>
+                        </div>
+                        <button 
+                          onClick={() => setShowNotifications(false)}
+                          className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
+                          <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ExploreGlide • 02:10 AM</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
+                          <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">IngsTech • 01:32 AM</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => { navigate("/admin/applications"); setShowNotifications(false); }}
+                        className="w-full mt-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors border-t border-slate-50"
+                      >
+                        View all activity
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               
               <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
               
               <div className="relative">
                 <button 
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-600/20"
+                  onClick={(e) => { e.stopPropagation(); setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
+                  className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
                 >
-                  AU
+                  {adminInitials}
                 </button>
                 
                 <AnimatePresence>
@@ -179,22 +264,30 @@ export default function AdminLayout() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-4 w-56 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-60"
+                      className="absolute right-0 mt-4 w-64 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-70"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="px-4 py-3 border-b border-slate-50 mb-2 text-center">
-                        <p className="text-sm font-black text-slate-900">Admin User</p>
-                        <p className="text-[10px] text-slate-500 tracking-widest uppercase">Super Administrator</p>
+                      <div className="px-4 py-4 border-b border-slate-50 mb-2 text-left">
+                        <p className="text-sm font-black text-slate-900 leading-tight">{adminName}</p>
+                        <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-1">{adminRole}</p>
+                        <p className="text-[10px] text-slate-300 font-medium truncate">{adminEmail}</p>
                       </div>
-                      <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                      <button 
+                        onClick={() => { navigate("/admin/settings"); setShowProfileMenu(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors text-left"
+                      >
                         <Settings size={18} /> System Settings
                       </button>
-                      <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                      <button 
+                        onClick={() => { window.open('/#/', '_blank'); setShowProfileMenu(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors text-left"
+                      >
                         <ArrowUpRight size={18} /> View Public Site
                       </button>
                       <div className="my-2 border-t border-slate-50"></div>
                       <button 
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-colors text-left"
                       >
                         <LogOut size={18} /> Logout
                       </button>

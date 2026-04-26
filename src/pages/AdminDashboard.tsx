@@ -1,88 +1,87 @@
-import { Users, Store, Tag, BarChart3, ArrowUpRight, Wallet, ShieldCheck, Download, FileText, PieChart, RefreshCw, CheckCircle2, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { 
+  Users, 
+  Store, 
+  Tag, 
+  Wallet, 
+  RefreshCw, 
+  ShieldCheck, 
+  Download, 
+  FileText, 
+  PieChart, 
+  CheckCircle2, 
+  ShieldAlert,
+  BarChart3
+} from "lucide-react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import AdminModal from "../components/AdminModal";
 
+import AdminSkeleton from "../components/AdminSkeleton";
 
-
-import { apiClient } from "../api/client";
+import { useAdminData } from "../context/AdminContext";
 
 export default function AdminDashboard() {
+  const { data, isLoading, refreshData } = useAdminData();
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<null | 'clean' | 'threat'>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [liveStats, setLiveStats] = useState({ users: 0, businesses: 0, campaigns: 0, revenue: 0 });
-  const [isLoading, setIsLoading] = useState(true);
 
-  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
-  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const stats = {
+    users: data?.users?.length || 0,
+    businesses: data?.merchants?.length || 0,
+    campaigns: data?.deals?.length || 0,
+    revenue: (data?.vouchers || []).reduce((acc: number, v: any) => acc + (v.amount || 0), 0) / 1000000
+  };
 
-  const fetchStats = async () => {
-    try {
-      const [stats, analytics, logs] = await Promise.all([
-        apiClient("/admin/stats"),
-        apiClient("/admin/analytics"),
-        apiClient("/admin/applications") // Use recent applications as recent events for now
-      ]);
+  const analyticsData = data?.analytics?.length > 0 
+    ? data.analytics 
+    : [
+        { name: 'Mon', revenue: 2.4 },
+        { name: 'Tue', revenue: 3.8 },
+        { name: 'Wed', revenue: 5.2 },
+        { name: 'Thu', revenue: 4.9 },
+        { name: 'Fri', revenue: 7.4 },
+        { name: 'Sat', revenue: 9.1 },
+        { name: 'Sun', revenue: 8.5 },
+      ];
 
-      setLiveStats({
-        users: stats.total_users,
-        businesses: stats.total_merchants,
-        campaigns: stats.total_deals,
-        revenue: parseFloat(stats.total_revenue_m)
-      });
-
-      setAnalyticsData(analytics);
-      
-      // Map applications to log format
-      const mappedLogs = logs.slice(0, 3).map((app: any) => ({
+  const recentLogs = data?.auditLogs?.length > 0 
+    ? data.auditLogs.map((log: any) => ({
+        title: log.action || "System Event",
+        user: log.user_name || "System",
+        time: new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: log.severity === 'CRITICAL' ? 'Critical' : log.severity === 'INFO' ? 'Complete' : 'Warning'
+      }))
+    : (data?.applications || []).slice(0, 3).map((app: any) => ({
         title: "New Merchant Application",
-        user: app.business_name,
+        user: app.business_name || "Unknown",
         time: new Date(app.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: app.status === 'PENDING' ? 'Review Required' : 'Processed'
       }));
-      setRecentLogs(mappedLogs);
 
+  const handleRunScan = async () => {
+    setIsScanning(true);
+    setScanResult(null);
+    try {
+        await refreshData();
+        setScanResult('clean');
+        setTimeout(() => setScanResult(null), 5000);
     } catch (error) {
-      console.error("Admin stats fetch failed", error);
+        console.error("Scan failed:", error);
     } finally {
-      setIsLoading(false);
+        setIsScanning(false);
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const stats = [
-    { title: "Total Users", count: liveStats.users.toLocaleString(), icon: <Users size={24} />, trend: "+12%", color: "indigo" },
-    { title: "Businesses", count: liveStats.businesses.toLocaleString(), icon: <Store size={24} />, trend: "+5%", color: "emerald" },
-    { title: "Active Campaigns", count: liveStats.campaigns.toLocaleString(), icon: <Tag size={24} />, trend: "+8%", color: "amber" },
-    { title: "Monthly Revenue", count: `₦${liveStats.revenue.toFixed(1)}M`, icon: <Wallet size={24} />, trend: "+15%", color: "rose" },
-  ];
-
-  const recentEvents = [
-    { title: "New Merchant Application", user: "Zaza Lounge", time: "10 mins ago", status: "Review Required" },
-    { title: "Dispute Raised", user: "John Doe #128", time: "1 hour ago", status: "Critical" },
-    { title: "Campaign Goal Reached", user: "Pizza Hut", time: "2 hours ago", status: "Complete" },
-  ];
-
-  const handleRunScan = () => {
-    setIsScanning(true);
-    setScanResult(null);
-    setTimeout(() => {
-        setIsScanning(false);
-        setScanResult('clean');
-        setTimeout(() => setScanResult(null), 5000);
-    }, 3000);
-  };
-
-  const handleRefreshStats = () => {
+  const handleRefreshStats = async () => {
       setIsRefreshing(true);
-      setTimeout(() => setIsRefreshing(false), 1000);
+      await refreshData();
+      setIsRefreshing(false);
   };
+
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-left">
@@ -103,14 +102,19 @@ export default function AdminDashboard() {
             onClick={() => setIsReportModalOpen(true)}
             className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all"
           >
-            Generate Intelligence Report
+            Generate Report 
           </button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
+        {[
+          { title: "Total Users", count: stats.users.toLocaleString(), icon: <Users size={24} />, color: "amber" },
+          { title: "Businesses", count: stats.businesses.toLocaleString(), icon: <Store size={24} />, color: "indigo" },
+          { title: "Active Campaigns", count: stats.campaigns.toLocaleString(), icon: <Tag size={24} />, color: "rose" },
+          { title: "Monthly Revenue", count: `₦${(stats.revenue / 1).toFixed(1)}M`, icon: <Wallet size={24} />, color: "emerald" },
+        ].map((stat, i) => (
           <motion.div 
             key={i} 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -130,24 +134,21 @@ export default function AdminDashboard() {
               }`}>
                 {stat.icon}
               </div>
-              <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg ${
-                  stat.trend.startsWith('+') ? 
-                  (stat.color === 'emerald' ? 'text-emerald-700 bg-emerald-100/50' : 'text-emerald-600 bg-emerald-50') : 
-                  'text-rose-600 bg-rose-50'
-              }`}>
-                {stat.trend} <ArrowUpRight size={12} />
-              </div>
             </div>
             <h3 className={`relative z-10 text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${
                 stat.color === 'indigo' ? 'text-indigo-500' :
                 stat.color === 'emerald' ? 'text-emerald-500' :
                 stat.color === 'amber' ? 'text-amber-500' : 'text-rose-500'
             }`}>{stat.title}</h3>
-            <p className={`relative z-10 text-4xl font-black tracking-tighter ${
-                stat.color === 'indigo' ? 'text-indigo-700' :
-                stat.color === 'emerald' ? 'text-emerald-700' :
-                stat.color === 'amber' ? 'text-amber-700' : 'text-rose-700'
-            }`}>{stat.count}</p>
+            {isLoading ? (
+               <div className="h-10 w-24 bg-white/40 animate-pulse rounded-xl"></div>
+            ) : (
+               <p className={`relative z-10 text-4xl font-black tracking-tighter ${
+                   stat.color === 'indigo' ? 'text-indigo-700' :
+                   stat.color === 'emerald' ? 'text-emerald-700' :
+                   stat.color === 'amber' ? 'text-amber-700' : 'text-rose-700'
+               }`}>{stat.count}</p>
+            )}
           </motion.div>
         ))}
       </div>
@@ -162,8 +163,8 @@ export default function AdminDashboard() {
                   <BarChart3 size={24} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-black text-slate-900 tracking-tighter">Growth Velocity</h2>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Aggregate Revenue & Traffic</p>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tighter">Slasham Market Growth</h2>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Users & Revenue</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -197,11 +198,11 @@ export default function AdminDashboard() {
         {/* System Monitoring */}
         <div className="space-y-6 flex flex-col">
           <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex-1">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight mb-8">System Telemetry</h2>
+            <h2 className="text-xl font-black text-amber-500 tracking-tight mb-8">System Telemetry</h2>
             <div className="space-y-8">
                <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Edge Server Load</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Load</span>
                     <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-widest">Normal</span>
                   </div>
                   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -211,7 +212,7 @@ export default function AdminDashboard() {
                         className="h-full bg-slate-900"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-bold mt-3">4 Nodes Active • Uptime: 99.992%</p>
+                  <p className="text-[10px] text-slate-400 font-bold mt-3">Active • Partners: 4 | System Uptime: 99.992% </p>
                </div>
 
                 <div className="space-y-6">

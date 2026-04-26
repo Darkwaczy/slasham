@@ -1,38 +1,27 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin, Loader2, Users, CheckCircle } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin, Users, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
+
+import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminBusinesses() {
-  const [businesses, setBusinesses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await apiClient("/admin/merchants");
-      setBusinesses(data.map((m: any) => ({
-        id: m.id,
-        name: m.business_name,
-        owner: m.users?.name || "Owner",
-        category: m.description?.split(',')[0] || "General",
-        rating: 4.8,
-        status: m.is_verified ? 'Verified' : 'Pending',
-        city: m.city || "Lagos",
-        email: m.users?.email,
-        address: m.address
-      })));
-    } catch (error) {
-      console.error("Failed to load merchants:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const { data, isLoading, refreshData, updateData } = useAdminData();
+  const merchants = data?.merchants || [];
+  
+  const businesses = merchants.map((m: any) => ({
+    id: m.id,
+    name: m.business_name,
+    owner: m.users?.name || "Owner",
+    category: m.description?.split(',')[0] || "General",
+    rating: 4.8,
+    status: m.is_verified ? 'Verified' : 'Pending',
+    city: m.city || "Lagos",
+    email: m.users?.email,
+    address: m.address
+  }));
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -58,7 +47,13 @@ export default function AdminBusinesses() {
             method: "POST",
             body: JSON.stringify({ is_verified: newStatus })
         });
-        loadData();
+        
+        // Update local context instantly
+        const updatedMerchants = data.merchants.map((m: any) => 
+            m.id === biz.id ? { ...m, is_verified: newStatus } : m
+        );
+        updateData('merchants', updatedMerchants);
+        
         setIsActionModalOpen(false);
     } catch (error: any) {
         alert("Verification toggle failed: " + error.message);
@@ -109,19 +104,13 @@ export default function AdminBusinesses() {
         setIsActionModalOpen(false);
         setPreviewImage(null);
         alert(`Success: Live deal launched for ${selectedBiz.name}.`);
-        loadData();
+        refreshData();
     } catch (error: any) {
         alert("Launch failed: " + error.message);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="animate-spin text-slate-300" size={40} />
-      </div>
-    );
-  }
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminCoupons() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -11,6 +12,8 @@ export default function AdminCoupons() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -35,12 +38,33 @@ export default function AdminCoupons() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleUpdateStatus = async (_id: string, _newStatus: string) => {
-    // API logic for status update would go here
-    setIsActionModalOpen(false);
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    try {
+        await apiClient(`/admin/vouchers/${id}/status`, {
+            method: "POST",
+            body: JSON.stringify({ status: newStatus })
+        });
+        loadData();
+        setIsActionModalOpen(false);
+    } catch (error: any) {
+        alert("Status update failed: " + error.message);
+    }
   };
 
-  if (isLoading) return null; // Or a loader
+  const handleOpenAudit = () => {
+    // For demo, we'll map current vouchers into a "History" view
+    const history = coupons.slice(0, 10).map(c => ({
+       id: c.id,
+       action: c.status === 'REDEEMED' ? 'Redemption Finalized' : 'Voucher Generated',
+       user: c.users?.email || 'System Account',
+       time: new Date(c.updated_at || c.created_at).toLocaleString(),
+       type: c.status
+    }));
+    setAuditLogs(history);
+    setIsAuditModalOpen(true);
+  };
+
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -50,7 +74,10 @@ export default function AdminCoupons() {
           <p className="text-slate-500 font-medium">Track and audit every generated discount code</p>
         </div>
         <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-xl shadow-emerald-500/10 hover:scale-105 transition-all">
+            <button 
+              onClick={handleOpenAudit}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-xl shadow-emerald-500/10 hover:scale-105 transition-all active:scale-95"
+            >
                 Audit History
             </button>
         </div>
@@ -59,28 +86,36 @@ export default function AdminCoupons() {
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { 
-            label: "Total Generated", count: "12,402", pct: "100%",
+            label: "Total Generated", 
+            count: coupons.length.toLocaleString(), 
+            pct: "100%",
             icon: Ticket,
             bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
             textClass: "text-indigo-700", labelClass: "text-indigo-500", subClass: "text-indigo-600/70",
             iconBg: "bg-white/60", iconColor: "text-indigo-600"
           },
           { 
-            label: "Total Redeemed", count: "8,291", pct: "66.8%",
+            label: "Total Redeemed", 
+            count: coupons.filter(c => c.status === 'REDEEMED').length.toLocaleString(), 
+            pct: coupons.length > 0 ? `${((coupons.filter(c => c.status === 'REDEEMED').length / coupons.length) * 100).toFixed(1)}%` : "0%",
             icon: CheckCircle2,
             bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
             textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
             iconBg: "bg-white/60", iconColor: "text-emerald-600"
           },
           { 
-            label: "Currently Active", count: "3,111", pct: "25.1%",
+            label: "Currently Active", 
+            count: coupons.filter(c => c.status === 'ACTIVE').length.toLocaleString(), 
+            pct: coupons.length > 0 ? `${((coupons.filter(c => c.status === 'ACTIVE').length / coupons.length) * 100).toFixed(1)}%` : "0%",
             icon: Clock,
             bgClass: "bg-amber-50", borderClass: "border-amber-100", 
             textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
             iconBg: "bg-white/60", iconColor: "text-amber-600"
           },
           { 
-            label: "Expired/Revoked", count: "1,000", pct: "8.1%",
+            label: "Expired/Revoked", 
+            count: coupons.filter(c => c.status === 'EXPIRED' || c.status === 'CANCELLED').length.toLocaleString(), 
+            pct: coupons.length > 0 ? `${((coupons.filter(c => c.status === 'EXPIRED' || c.status === 'CANCELLED').length / coupons.length) * 100).toFixed(1)}%` : "0%",
             icon: Ban,
             bgClass: "bg-rose-50", borderClass: "border-rose-100", 
             textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
@@ -249,6 +284,34 @@ export default function AdminCoupons() {
                     </button>
                  </div>
              </div>
+        </div>
+      </AdminModal>
+
+      {/* Global Audit Modal */}
+      <AdminModal
+        isOpen={isAuditModalOpen}
+        onClose={() => setIsAuditModalOpen(false)}
+        title="Voucher Audit Trail"
+        description="Chronological log of all ledger activities and state changes."
+      >
+        <div className="space-y-6 pt-6 mb-8 max-h-[60vh] overflow-y-auto px-2">
+            {auditLogs.map((log, i) => (
+                <div key={i} className="flex gap-4 relative pb-6 last:pb-0">
+                    {i !== auditLogs.length - 1 && <div className="absolute left-5 top-10 bottom-0 w-0.5 bg-slate-100" />}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ${
+                        log.type === 'REDEEMED' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
+                    }`}>
+                        <Ticket size={18} />
+                    </div>
+                    <div className="flex-1 pt-1">
+                        <div className="flex justify-between items-start mb-1">
+                            <p className="text-sm font-black text-slate-900 leading-none">{log.action}</p>
+                            <span className="text-[10px] font-bold text-slate-400">{log.time}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium">Action performed by <span className="text-indigo-600 font-bold">{log.user}</span></p>
+                    </div>
+                </div>
+            ))}
         </div>
       </AdminModal>
     </div>

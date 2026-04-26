@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, ShieldCheck, Zap, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, ShieldCheck, Sparkles, Bell } from "lucide-react";
 import { apiClient } from "../api/client";
 
 export default function Auth() {
@@ -61,7 +61,7 @@ export default function Auth() {
 
     try {
       if (isLoginPage) {
-        const { user } = await apiClient("/auth/login", {
+        const { user, token } = await apiClient("/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
@@ -72,8 +72,12 @@ export default function Auth() {
             return;
         }
 
+        // Save session
+        localStorage.setItem("slasham_user", JSON.stringify(user));
+        if (token) localStorage.setItem("slasham_token", token);
+
         setSuccess(true);
-        setTimeout(() => navigate("/user/dashboard"), 1500);
+        setTimeout(() => navigate(user.role === 'ADMIN' ? "/admin/dashboard" : "/user/dashboard"), 1500);
       } else {
         await apiClient("/auth/register", {
           method: "POST",
@@ -95,16 +99,14 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      await apiClient("/auth/verify-otp", {
+      const { user, token } = await apiClient("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ email, code: otpCode }),
       });
 
-      // After verification, log them in
-      await apiClient("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      // Save session
+      localStorage.setItem("slasham_user", JSON.stringify(user));
+      if (token) localStorage.setItem("slasham_token", token);
 
       setSuccess(true);
       setTimeout(() => navigate("/user/dashboard"), 1500);
@@ -333,13 +335,18 @@ export default function Auth() {
             </AnimatePresence>
             
             <div className="mt-12 pt-8 border-t border-slate-50 flex items-center justify-center gap-8 opacity-50 grayscale">
-              <div className="flex items-center gap-2">
-                <Zap size={16} />
-                <span className="text-xs font-bold uppercase tracking-widest">Fast</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles size={16} />
-                <span className="text-xs font-bold uppercase tracking-widest">Premium</span>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => alert("Recent activity: No new critical alerts.")}
+                  className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl relative transition-all"
+                >
+                  <Bell size={20} />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                </button>
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} />
+                  <span className="text-xs font-bold uppercase tracking-widest">Premium</span>
+                </div>
               </div>
             </div>
           </div>

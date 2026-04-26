@@ -1,43 +1,66 @@
 import { Save, Shield, Percent, Globe, Database, Server, Check, AlertCircle, RefreshCw, Megaphone } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
-import { getAdminSettings, saveAdminSettings, AdminSettings as IAdminType } from "../../utils/adminState";
+import { apiClient } from "../../api/client";
+import AdminSkeleton from "../../components/AdminSkeleton";
+
+import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminSettings() {
+  const { data, isLoading, updateData } = useAdminData();
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<null | 'success' | 'error'>(null);
-  const [settings, setSettings] = useState<IAdminType>(getAdminSettings());
+  
+  // Local state for editing before save
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
-    // Initial load
-    setSettings(getAdminSettings());
-  }, []);
+    if (data?.settings) {
+        setSettings(data.settings);
+    }
+  }, [data?.settings]);
 
-  const handleSave = () => {
+  if (isLoading || !settings) return <AdminSkeleton />;
+
+  const handleSave = async () => {
     setIsSaving(true);
-    // Simulate compilation
-    setTimeout(() => {
-      saveAdminSettings(settings);
+    try {
+      await apiClient("/admin/settings", {
+        method: "POST",
+        body: JSON.stringify({ config: settings })
+      });
+      
+      // Update global context so other pages see the changes
+      updateData('settings', settings);
+      
       setIsSaving(false);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(null), 3000);
-    }, 1500);
+    } catch (error) {
+      setIsSaving(false);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 3000);
+    }
   };
 
-  const toggleSetting = (key: keyof IAdminType) => {
-    if (key === 'promoBanner') {
-        setSettings(prev => ({ ...prev, promoBanner: { ...prev.promoBanner, enabled: !prev.promoBanner.enabled } }));
+  const toggleSetting = (id: string) => {
+    if (id.includes('.')) {
+        const [parent, child] = id.split('.');
+        setSettings((prev: any) => ({
+            ...prev,
+            [parent]: { ...prev[parent], [child]: !prev[parent][child] }
+        }));
     } else {
-        setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+        setSettings((prev: any) => ({ ...prev, [id]: !prev[id] }));
     }
   };
 
   const updateText = (key: string, value: string) => {
     if (key.startsWith('promoBanner.')) {
         const field = key.split('.')[1];
-        setSettings(prev => ({ ...prev, promoBanner: { ...prev.promoBanner, [field]: value } }));
+        setSettings((prev: any) => ({ ...prev, promoBanner: { ...prev.promoBanner, [field]: value } }));
     } else {
-        setSettings(prev => ({ ...prev, [key]: value }));
+        setSettings((prev: any) => ({ ...prev, [key]: value }));
     }
   };
 

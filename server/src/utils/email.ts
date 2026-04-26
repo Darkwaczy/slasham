@@ -9,7 +9,8 @@ import {
   merchantReviewAlertTemplate,
   merchantPurchaseAlertTemplate,
   adminDisputeAlertTemplate,
-  otpTemplate
+  otpTemplate,
+  merchantRejectionTemplate
 } from './emailTemplates';
 import { getEnv } from '../env';
 
@@ -97,9 +98,17 @@ export const sendMerchantPurchaseAlert = async (email: string, merchantName: str
 
 export const sendAdminDisputeAlert = async (dealTitle: string, reason: string, customerEmail: string) => {
   return sendEmail({
-    to: 'admin@slasham.com', // Replace with admin email
+    to: process.env.ADMIN_EMAIL || 'admin@example.com', // Dynamically loads from ENV
     subject: 'URGENT: New Transaction Dispute ⚠️',
     html: adminDisputeAlertTemplate(dealTitle, reason, customerEmail)
+  });
+};
+
+export const sendRejectionEmail = async (email: string, name: string, reason: string) => {
+  return sendEmail({
+    to: email,
+    subject: 'Update on your Slasham Partner Application',
+    html: merchantRejectionTemplate(name, reason)
   });
 };
 

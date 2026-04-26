@@ -14,8 +14,6 @@ import {
   Filter,
   User,
   Zap,
-  Phone,
-  Globe,
   Loader2,
   AlertCircle,
   MessageSquare
@@ -23,6 +21,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
 import AdminModal from "../../components/AdminModal";
+import AdminSkeleton from "../../components/AdminSkeleton";
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -95,6 +94,8 @@ export default function AdminApplications() {
     
     return bizName.includes(search) || contact.includes(search) || email.includes(search);
   });
+
+  if (isLoading) return <AdminSkeleton />;
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -364,7 +365,7 @@ export default function AdminApplications() {
             </div>
 
             {/* Action Buttons */}
-            {selectedApp.status === 'PENDING' && (
+            {(selectedApp.status === 'PENDING' || selectedApp.status === 'REJECTED') && (
               <div className="pt-10 flex gap-4 border-t border-slate-100">
                 <button 
                   onClick={() => setIsRejectModalOpen(true)}

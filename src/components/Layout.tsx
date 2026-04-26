@@ -8,7 +8,6 @@ import {
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
-import { getAdminSettings, AdminSettings } from "../utils/adminState";
 import { storage } from "../utils/storage";
 import { Logo } from "./Logo";
 
@@ -19,17 +18,22 @@ export default function Layout() {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [footerExpandedSection, setFooterExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [adminSettings, setAdminSettings] = useState<AdminSettings>(getAdminSettings());
+  const [adminSettings, setAdminSettings] = useState<any>(null);
   const location = useLocation();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    const handleUpdate = () => {
-      setAdminSettings(getAdminSettings());
+    const fetchSettings = async () => {
+      try {
+        const { apiClient } = await import("../api/client");
+        const data = await apiClient("/admin/settings");
+        setAdminSettings(data);
+      } catch (error) {
+        console.error("Failed to sync settings:", error);
+      }
     };
-    window.addEventListener('adminSettingsUpdate', handleUpdate);
-    return () => window.removeEventListener('adminSettingsUpdate', handleUpdate);
-  }, []);
+    fetchSettings();
+  }, [location.pathname]); // Re-sync on navigation to keep it fresh
 
   useEffect(() => {
     const storedUser = storage.getItem("slasham_user");
@@ -110,6 +114,8 @@ export default function Layout() {
       ]
     }
   ];
+
+  if (!adminSettings) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-slate-900 selection:bg-teal-100 selection:text-teal-900">
