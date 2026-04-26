@@ -110,19 +110,7 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const [
-      { data: profiles, count: userCount },
-      { data: merchants, count: merchantCount },
-      { data: apps, count: appCount },
-      { data: deals, count: dealCount },
-      { data: requests, count: requestCount },
-      { data: vouchers, count: voucherCount },
-      { data: reports, count: reportCount },
-      { data: reviews, count: reviewCount },
-      { data: systemSettings },
-      { data: auditLogs },
-      { data: analytics }
-    ]: any[] = await Promise.all([
+    const results: any = await Promise.all([
       supabase.from("users").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
       supabase.from("merchants").select("*, users(email, name)", { count: 'exact' }).limit(50),
       supabase.from("merchant_applications").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
@@ -135,6 +123,20 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20),
       supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30)
     ]);
+
+    const [
+      { data: profiles, count: userCount },
+      { data: merchants, count: merchantCount },
+      { data: apps, count: appCount },
+      { data: deals, count: dealCount },
+      { data: requests, count: requestCount },
+      { data: vouchers, count: voucherCount },
+      { data: reports, count: reportCount },
+      { data: reviews, count: reviewCount },
+      { data: systemSettings },
+      { data: auditLogs },
+      { data: analytics }
+    ] = results;
 
     // Calculate total revenue from all vouchers
     const { data: voucherRevenue } = await supabase.from("vouchers").select("amount");
