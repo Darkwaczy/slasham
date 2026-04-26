@@ -14,6 +14,17 @@ interface AdminContextType {
     auditLogs: any[];
     analytics: any[];
     settings: any;
+    counts?: {
+      users: number;
+      merchants: number;
+      applications: number;
+      deals: number;
+      requests: number;
+      vouchers: number;
+      reports: number;
+      reviews: number;
+      total_revenue: number;
+    };
   };
   isLoading: boolean;
   isRefreshing: boolean;
@@ -46,6 +57,17 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         enforce2FA: false,
         rateLimit: "100/min",
         sessionTimeout: "24h"
+    },
+    counts: {
+        users: 0,
+        merchants: 0,
+        applications: 0,
+        deals: 0,
+        requests: 0,
+        vouchers: 0,
+        reports: 0,
+        reviews: 0,
+        total_revenue: 0
     }
   });
   const [isLoading, setIsLoading] = useState(true);
