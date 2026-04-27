@@ -196,3 +196,17 @@ export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, cus
   <a href="https://slasham.com/#/admin/reports" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Review Dispute</a>
 `);
 
+export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle: string, status: string, notes?: string) => layout(`
+  <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">
+    Campaign ${status === 'APPROVED' ? 'Approved! 🚀' : 'Update 📥'}
+  </h1>
+  <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${merchantName}, your campaign request for <strong>${campaignTitle}</strong> has been ${status.toLowerCase()}.</p>
+  
+  <div style="background: ${status === 'APPROVED' ? '#f0fdf4' : '#fff1f2'}; border-radius: 24px; padding: 32px; margin-bottom: 40px;">
+    <p style="font-size: 16px; color: ${status === 'APPROVED' ? '#166534' : '#be123c'}; font-weight: 700; margin-bottom: 12px;">Status: ${status}</p>
+    ${notes ? `<p style="font-size: 14px; color: ${status === 'APPROVED' ? '#166534' : '#be123c'}; opacity: 0.8; margin: 0;"><strong>Admin Notes:</strong> ${notes}</p>` : ''}
+  </div>
+
+  <a href="https://slasham.com/#/merchant/campaigns" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">Go to My Campaigns</a>
+`);
+

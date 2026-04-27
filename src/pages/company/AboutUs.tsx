@@ -1,4 +1,6 @@
 import { motion, useScroll, useTransform } from "motion/react";
+import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 import { Target, Users, Award, Zap, Globe, Sparkles, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -6,6 +8,23 @@ export default function AboutUs() {
   const { scrollYProgress } = useScroll();
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const [partners, setPartners] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const data = await apiClient("/merchants/public");
+        setPartners(data.map((p: any) => ({
+          name: p.business_name,
+          city: p.city,
+          image: p.logo_url || p.banner_url || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80"
+        })));
+      } catch (error) {
+        console.error("Failed to fetch partners", error);
+      }
+    };
+    fetchPartners();
+  }, []);
 
   const IMPACT_STATS = [
     { label: "Active Users", value: "50K+", sub: "Verified Savvy Shoppers", desc: "A growing community of 'Slashers' saving daily.", icon: <Users size={20} /> },
@@ -168,23 +187,7 @@ export default function AboutUs() {
 
           <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
-                    {[
-                        { name: "Oasis Wellness", city: "Lagos", image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80" },
-                        { name: "Iya Basira", city: "Abuja", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80" },
-                        { name: "Skyline Lounge", city: "Abuja", image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&q=80" },
-                        { name: "Lagoon Cruise", city: "Lagos", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80" },
-                        { name: "Suya Spot", city: "Abuja", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80" },
-                        { name: "Glow Up Studio", city: "Lagos", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&q=80" },
-                        { name: "Afrobeat Live", city: "Lagos", image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80" },
-                        { name: "FitLife Gym", city: "Lagos", image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80" },
-                        { name: "Lekki Surf", city: "Lagos", image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&q=80" },
-                        { name: "Abuja Paintball", city: "Abuja", image: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=80" },
-                        { name: "Eko Brunch", city: "Lagos", image: "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=600&q=80" },
-                        { name: "Maitama Tennis", city: "Abuja", image: "https://images.unsplash.com/photo-1595435063138-085e791244bb?w=600&q=80" },
-                        { name: "Zuma Tours", city: "Abuja", image: "https://images.unsplash.com/photo-1533038590840-1cde6e668a91?w=600&q=80" },
-                        { name: "Ikeja Grill", city: "Lagos", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80" },
-                        { name: "Yoga Hub", city: "Lagos", image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80" }
-                    ].map((partner, i) => (
+                    {partners.length > 0 ? partners.map((partner, i) => (
                         <motion.div 
                           key={i} 
                           whileHover={{ y: -8, scale: 1.02 }}
@@ -200,7 +203,11 @@ export default function AboutUs() {
                                 </div>
                             </div>
                         </motion.div>
-                    ))}
+                    )) : (
+                      <div className="col-span-full py-20 text-center">
+                        <p className="text-slate-400 font-bold uppercase tracking-widest">Our network is growing every day.</p>
+                      </div>
+                    )}
                 </div>
           </div>
 

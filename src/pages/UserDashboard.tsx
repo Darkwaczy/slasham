@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
+import UserSettings from "./user/Settings";
 
 export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -420,13 +421,8 @@ export default function UserDashboard() {
                    <motion.div 
                      initial={{ opacity: 0 }}
                      animate={{ opacity: 1 }}
-                     className="flex flex-col items-center justify-center py-20 bg-white rounded-[3rem] border border-slate-100"
                    >
-                      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
-                         <Settings size={40} />
-                      </div>
-                      <h4 className="text-2xl font-black text-slate-900 mb-2">Settings Coming Soon</h4>
-                      <p className="text-slate-500 max-w-xs text-center font-medium">Profile management and preferences will be available here.</p>
+                      <UserSettings />
                    </motion.div>
                  )}
                </AnimatePresence>

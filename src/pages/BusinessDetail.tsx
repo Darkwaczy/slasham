@@ -18,85 +18,36 @@ import {
 import { useState, useEffect } from "react";
 import { apiClient } from "../api/client";
 
-const businessInfo: Record<string, any> = {
-  "rsvp-lagos": {
-    name: "RSVP Lagos",
-    type: "Upscale Dining",
-    location: "Victoria Island, Lagos",
-    rating: 4.8,
-    reviews: 1240,
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=800&q=60",
-    description: "RSVP is a New American restaurant and bar in the heart of Victoria Island. Inspired by the prohibition era, RSVP offers a unique dining experience with a focus on fresh ingredients and craft cocktails.",
-    openingHours: "12:00 PM - 11:00 PM",
-    phone: "+234 800 RSVP LAGOS",
-    website: "www.rsvplagos.com",
-    features: ["Outdoor Seating", "Craft Cocktails", "Live Music", "Valet Parking"]
-  },
-  "hard-rock-cafe": {
-    name: "Hard Rock Cafe",
-    type: "Entertainment",
-    location: "Victoria Island, Lagos",
-    rating: 4.6,
-    reviews: 3500,
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=60",
-    description: "Hard Rock Cafe Lagos is the ultimate destination for fans of music, food, and great times. Located on the beach, it offers a legendary dining experience with rock 'n' roll memorabilia.",
-    openingHours: "11:00 AM - 1:00 AM",
-    phone: "+234 800 HARD ROCK",
-    website: "www.hardrockcafe.com/lagos",
-    features: ["Beachfront", "Live Music", "Souvenir Shop", "Kid Friendly"]
-  },
-  "yellow-chilli": {
-    name: "The Yellow Chilli",
-    type: "Gourmet Nigerian",
-    location: "Ikoyi, Lagos",
-    rating: 4.7,
-    reviews: 850,
-    image: "https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?auto=format&fit=crop&w=800&q=60",
-    description: "The Yellow Chilli is one of Nigeria's finest gourmet restaurants. We offer a unique blend of traditional Nigerian dishes with a modern twist, served in an elegant and sophisticated environment.",
-    openingHours: "11:00 AM - 10:00 PM",
-    phone: "+234 800 YELLOW CHILLI",
-    website: "www.yellowchilling.com",
-    features: ["Gourmet Menu", "Private Dining", "Authentic Flavors", "Catering"]
-  },
-  "nike-art-gallery": {
-    name: "Nike Art Gallery",
-    type: "Cultural Hub",
-    location: "Lekki, Lagos",
-    rating: 4.9,
-    reviews: 5200,
-    image: "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=800&q=60",
-    description: "Nike Art Gallery is the largest of its kind in West Africa. Owned by Nike Davies-Okundaye, the gallery houses over 8,000 diverse artworks from various Nigerian artists.",
-    openingHours: "10:00 AM - 6:00 PM",
-    phone: "+234 800 NIKE ART",
-    website: "www.nikeart.com",
-    features: ["Art Tours", "Workshops", "Gift Shop", "Cultural Events"]
-  },
-  "oasis-wellness": {
-    name: "Oasis Wellness",
-    type: "Spa & Spa",
-    location: "Maitama, Abuja",
-    rating: 4.8,
-    reviews: 620,
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=60",
-    description: "Oasis Wellness is a sanctuary of peace and tranquility in the heart of Abuja. We offer a wide range of spa treatments designed to rejuvenate your mind, body, and soul.",
-    openingHours: "9:00 AM - 8:00 PM",
-    phone: "+234 800 OASIS SPA",
-    website: "www.oasiswellness.ng",
-    features: ["Massage Therapy", "Facials", "Sauna", "Relaxation Lounge"]
-  }
-};
-
 export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
+  const [business, setBusiness] = useState<any>(null);
   const [deals, setDeals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const business = id ? businessInfo[id] : null;
 
   useEffect(() => {
-    const fetchDeals = async () => {
+    const fetchData = async () => {
+      if (!id) return;
+      setIsLoading(true);
       try {
-        const data = await apiClient("/deals");
-        setDeals(data.map((d: any) => ({
+        // 1. Fetch Merchant Details
+        const merchant = await apiClient(`/merchants/public/${id}`);
+        setBusiness({
+          name: merchant.business_name,
+          type: merchant.category || "Verified Partner",
+          location: merchant.address || merchant.city,
+          rating: 4.8, // Fallback for now as reviews table might be empty
+          reviews: 0,
+          image: merchant.banner_url || "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b",
+          description: merchant.description || "No description provided.",
+          openingHours: "Open Daily",
+          phone: merchant.phone || "Not provided",
+          website: merchant.website || "No website",
+          features: ["Verified Partner", "Secure Payments"]
+        });
+
+        // 2. Fetch Merchant's Deals
+        const dealsData = await apiClient(`/deals?merchant_id=${merchant.id}`);
+        setDeals(dealsData.map((d: any) => ({
           id: d.id,
           title: d.title,
           price: `₦${d.discount_price.toLocaleString()}`,
@@ -106,13 +57,23 @@ export default function BusinessDetail() {
           tag: d.category
         })));
       } catch (error) {
-        console.error("Failed to fetch deals for business", error);
+        console.error("Failed to fetch business detail", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchDeals();
-  }, []);
+    fetchData();
+  }, [id]);
+
+  const businessDeals = deals;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-emerald-500" size={40} />
+      </div>
+    );
+  }
 
   if (!business) {
     return (
@@ -125,19 +86,8 @@ export default function BusinessDetail() {
     );
   }
 
-  // Filter deals for this business (using name matching for mock data)
-  const businessDeals = deals.filter(deal => 
-    deal.title.toLowerCase().includes(business.name.toLowerCase()) ||
-    business.name.toLowerCase().includes(deal.title.toLowerCase())
-  );
-
   return (
     <div className="bg-white min-h-screen">
-      {isLoading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-100 flex items-center justify-center">
-            <Loader2 className="animate-spin text-emerald-500" size={40} />
-        </div>
-      )}
       {/* Hero Header */}
       <div className="relative h-[40vh] md:h-[60vh] overflow-hidden">
         <img 

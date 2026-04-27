@@ -5,7 +5,7 @@
 
 import { AdminProvider } from "./context/AdminContext";
 
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { useEffect, lazy, Suspense } from "react";
@@ -93,6 +93,23 @@ const LoadingFallback = () => (
     </div>
 );
 
+function NotFound() {
+  return (
+    <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-4xl flex items-center justify-center mb-8 animate-bounce">
+        <span className="text-4xl font-black">404</span>
+      </div>
+      <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Lost in the sauce?</h1>
+      <p className="text-slate-500 max-w-md font-medium leading-relaxed mb-10">
+        We couldn't find the page you're looking for. It might have moved, or the link is just broken.
+      </p>
+      <Link to="/" className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all">
+        Back to Safety
+      </Link>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -142,7 +159,7 @@ export default function App() {
             <Route path="cities/lagos" element={<Lagos />} />
             <Route path="cities/port-harcourt" element={<PortHarcourt />} />
 
-            <Route path="*" element={<div className="p-20 text-center text-2xl">Coming Soon</div>} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* User Dashboard Routes (No Global Header/Footer) */}

@@ -176,7 +176,7 @@ router.post("/report", requireAuth, async (req, res) => {
     // Trigger Admin Alert Email
     try {
         const { data: user } = await supabase.from("users").select("email").eq("id", req.user.id).single();
-        sendAdminDisputeAlert(reason, description || "No detail provided", user?.email || "Unknown User").catch(e => console.error("BG Email Error:", e));
+        sendAdminDisputeAlert("User Dispute", reason || "No detail provided", user?.email || "Unknown User").catch(e => console.error("BG Email Error:", e));
     } catch (emailErr) {
         console.error("Admin dispute alert failed to send:", emailErr);
     }

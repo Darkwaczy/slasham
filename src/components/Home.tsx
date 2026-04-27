@@ -141,7 +141,7 @@ export default function Home() {
                   </div>
                   <div className="hidden md:flex items-center gap-2 px-4 py-3 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest" style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
                     <span className="w-2 h-2 rounded-full bg-[#3EB28F] animate-pulse shadow-[0_0_8px_#3EB28F]" />
-                    1,240+ people browsing now
+                    {Math.floor(Math.random() * (1500 - 400 + 1) + 400).toLocaleString()}+ people browsing now
                   </div>
                 </motion.div>
               </div>

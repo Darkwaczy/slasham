@@ -5,6 +5,61 @@ import { sendMerchantApplicationReceived } from "../utils/email";
 
 const router = Router();
 
+// Get all verified merchants (Public)
+router.get("/public", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data, error } = await supabase
+      .from("merchants")
+      .select("id, business_name, city, logo_url, banner_url, category")
+      .eq("status", "Active")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get a public merchant profile by ID
+router.get("/public/:id", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { id } = req.params;
+    let query = supabase.from("merchants").select("*");
+    
+    // Check if ID is a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    
+    if (isUUID) {
+      query = query.eq("id", id);
+    } else {
+      // Treat as business name slug (convert rsvp-lagos to RSVP Lagos-ish)
+      // For now, exact match on business_name or ilike
+      query = query.ilike("business_name", id.replace(/-/g, " "));
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return res.status(404).json({ error: "Merchant not found" });
+      }
+      throw error;
+    }
+
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get a merchant profile by user ID
 router.get("/my-profile", requireAuth, async (req, res) => {
   try {

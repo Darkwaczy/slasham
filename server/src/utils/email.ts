@@ -11,7 +11,8 @@ import {
   adminDisputeAlertTemplate,
   otpTemplate,
   merchantRejectionTemplate,
-  merchantApplicationReceivedTemplate
+  merchantApplicationReceivedTemplate,
+  campaignStatusUpdateTemplate
 } from './emailTemplates';
 import { getEnv } from '../env';
 import { getSupabaseAdmin } from '../supabase';
@@ -151,5 +152,13 @@ export const sendOTP = async (email: string, name: string, code: string) => {
     to: email,
     subject: `Your Slasham Verification Code 🛡️`,
     html
+  });
+};
+
+export const sendCampaignStatusUpdate = async (email: string, merchantName: string, campaignTitle: string, status: string, notes?: string) => {
+  return sendEmail({
+    to: email,
+    subject: `Campaign ${status}: ${campaignTitle}`,
+    html: campaignStatusUpdateTemplate(merchantName, campaignTitle, status, notes)
   });
 };

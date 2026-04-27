@@ -120,7 +120,7 @@ export default function UserSettings() {
                 <div className="flex items-center gap-8 pb-10 border-b border-slate-50">
                    <div className="relative group">
                       <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
-                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=200" alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&background=10b981&color=fff&size=200`} alt="Avatar" className="w-full h-full object-cover" />
                       </div>
                       <button className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
                         <Camera size={16} />

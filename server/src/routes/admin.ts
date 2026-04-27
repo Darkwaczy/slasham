@@ -341,10 +341,29 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
       .from("campaign_requests")
       .update({ status, admin_notes })
       .eq("id", id)
-      .select()
+      .select(`
+        *,
+        merchants ( 
+          business_name,
+          email
+        )
+      `)
       .single();
 
     if (error) throw error;
+
+    // Trigger Email Notification (Non-blocking)
+    if (data.merchants?.email) {
+      const { sendCampaignStatusUpdate } = await import("../utils/email.js");
+      sendCampaignStatusUpdate(
+        data.merchants.email,
+        data.merchants.business_name,
+        data.title,
+        status,
+        admin_notes
+      ).catch((err: any) => console.error("Failed to send campaign status email:", err));
+    }
+
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

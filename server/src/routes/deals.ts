@@ -18,9 +18,9 @@ router.get("/", async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const { category, search } = req.query;
+    const { category, search, merchant_id } = req.query;
 
-    const cacheKey = `deals_feed_${category || 'all'}_${search || 'none'}`;
+    const cacheKey = `deals_feed_${category || 'all'}_${search || 'none'}_${merchant_id || 'all'}`;
     const cached = apiCache[cacheKey];
     if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
       return res.json(cached.data);
@@ -44,6 +44,9 @@ router.get("/", async (req, res) => {
     }
     if (search) {
       query = query.ilike("title", `%${search}%`);
+    }
+    if (merchant_id) {
+      query = query.eq("merchant_id", merchant_id);
     }
 
     const { data, error } = await query.order("created_at", { ascending: false });
