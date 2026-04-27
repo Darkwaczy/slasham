@@ -18,14 +18,17 @@ export default function MerchantLogin() {
     setIsLoading(true);
 
     try {
-      const { user } = await apiClient("/auth/login", {
+      const { user, token } = await apiClient("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
 
-      if (user.role !== "MERCHANT") {
+      if (user.role !== "MERCHANT" && user.role !== "ADMIN") {
         throw new Error("Access denied. Merchant credentials required.");
       }
+
+      localStorage.setItem("slasham_user", JSON.stringify(user));
+      if (token) localStorage.setItem("slasham_token", token);
 
       navigate("/merchant/dashboard");
     } catch (err: any) {

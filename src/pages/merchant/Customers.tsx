@@ -1,14 +1,41 @@
 import { Search, Clock } from "lucide-react";
 import { motion } from "motion/react";
-
-const customers = [
-  { id: "CUST-001", name: "Adebayo Tunde", email: "tunde@example.com", visits: "12", spent: "₦42k", lastVisit: "2 hours ago", status: "Gold Member" },
-  { id: "CUST-002", name: "Sarah J.", email: "sarah@example.com", visits: "5", spent: "₦18k", lastVisit: "Yesterday", status: "Member" },
-  { id: "CUST-003", name: "Mike J.", email: "mike@example.com", visits: "2", spent: "₦6.5k", lastVisit: "3 Days ago", status: "Member" },
-  { id: "CUST-004", name: "Emily B.", email: "emily@example.com", visits: "24", spent: "₦85k", lastVisit: "Just now", status: "Platinum" },
-];
+import { useState, useEffect } from "react";
+import { apiClient } from "../../api/client";
 
 export default function MerchantCustomers() {
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const data = await apiClient("/merchants/my-customers");
+        setCustomers(data);
+      } catch (error) {
+        console.error("Failed to fetch customers", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Customer CRM</h1>
+            <p className="text-slate-500 font-medium">Build loyalty and track your best customers</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
+          <div className="text-center text-slate-500">Loading customers...</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -49,7 +76,7 @@ export default function MerchantCustomers() {
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-xs">
-                        {c.name.split(' ').map(n => n[0]).join('')}
+                        {c.name.split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-slate-900 leading-none mb-1">{c.name}</span>

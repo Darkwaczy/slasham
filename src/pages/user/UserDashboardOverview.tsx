@@ -8,24 +8,23 @@ import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/client";
+import { useUser } from "../../context/UserContext";
 
 export default function UserDashboardOverview() {
   const [vouchers, setVouchers] = useState<any[]>([]);
-  const [userData, setUserData] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>({ points: 0, total_savings: 0 });
   const [recommendedDeals, setRecommendedDeals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading: userLoading } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profile, voucherList, stats, deals] = await Promise.all([
-          apiClient("/auth/me"),
+        const [voucherList, stats, deals] = await Promise.all([
           apiClient("/vouchers/my-vouchers"),
           apiClient("/user/stats"),
           apiClient("/deals")
         ]);
-        setUserData(profile);
         setVouchers(voucherList);
         setUserStats(stats);
         setRecommendedDeals(deals);
@@ -35,8 +34,13 @@ export default function UserDashboardOverview() {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    if (!userLoading) {
+      fetchData();
+    }
+  }, [userLoading]);
+
+  const isPageLoading = userLoading || isLoading;
 
   const activeCount = vouchers.filter(v => v.status === "ACTIVE").length;
   const expiringSoon = vouchers.find(v => v.status === "ACTIVE"); 
@@ -74,7 +78,7 @@ export default function UserDashboardOverview() {
     };
   });
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <div className="py-40 flex flex-col items-center justify-center gap-4">
           <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -106,7 +110,7 @@ export default function UserDashboardOverview() {
               Tier: Standard Member
             </motion.div>
 
-            <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tighter leading-none">Welcome, <span className="text-amber-500">{userData?.name?.split(' ')[0] || "Member"}!</span></h1>
+            <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tighter leading-none">Welcome, <span className="text-amber-500">{user?.name?.split(' ')[0] || "Member"}!</span></h1>
             <p className="text-slate-500 text-lg max-w-xl leading-relaxed font-medium">
               You've saved <span className="text-emerald-600 font-black underline decoration-emerald-600/40 decoration-4 underline-offset-4">₦{(userStats?.total_savings || 0).toLocaleString()}</span> this month. You're in the top 5% of smart spenders in Lagos!
             </p>

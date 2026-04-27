@@ -24,7 +24,11 @@ export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [merchantData, setMerchantData] = useState<any>(null);
+  const [merchantData, setMerchantData] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    const saved = localStorage.getItem("slasham_user");
+    return saved ? JSON.parse(saved) : null;
+  });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,7 +41,28 @@ export default function MerchantLayout() {
         console.error("Failed to load merchant profile", error);
       }
     };
+    
+    const loadNotifications = async () => {
+        try {
+            const data = await apiClient("/merchants/notifications");
+            // Map types for UI
+            const mapped = data.map((n: any) => ({
+                ...n,
+                type: n.priority === 'high' ? 'error' : 'success', // For icon colors
+                createdAt: n.timestamp
+            }));
+            setNotifications(mapped);
+        } catch (error) {
+            console.error("Failed to load notifications", error);
+        }
+    };
+
     loadMerchant();
+    loadNotifications();
+    
+    // Poll for notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -49,6 +74,15 @@ export default function MerchantLayout() {
     } catch (error) {
         // Fallback for UI if logout fails
         navigate("/login");
+    }
+  };
+
+  const handleMarkRead = async (id: string) => {
+    try {
+        await apiClient(`/merchants/notifications/${id}/read`, { method: "POST" });
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (error) {
+        console.error("Failed to mark notification as read", error);
     }
   };
 
@@ -201,7 +235,11 @@ export default function MerchantLayout() {
                           <div className="p-10 text-center text-slate-400 italic text-sm">No new intelligence data...</div>
                         ) : (
                           notifications.map((n) => (
-                            <div key={n.id} className={`p-5 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-4 ${n.read ? 'opacity-60' : ''}`}>
+                            <div 
+                              key={n.id} 
+                              onClick={() => !n.read && handleMarkRead(n.id)}
+                              className={`p-5 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-4 cursor-pointer ${n.read ? 'opacity-60' : ''}`}
+                            >
                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
                                  n.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 
                                  n.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'
@@ -211,7 +249,10 @@ export default function MerchantLayout() {
                                <div>
                                   <p className="text-sm font-black text-slate-900 leading-tight mb-1">{n.title}</p>
                                   <p className="text-xs text-slate-500 font-medium leading-relaxed">{n.message}</p>
-                                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-2">{new Date(n.createdAt).toLocaleTimeString()}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{new Date(n.createdAt).toLocaleTimeString()}</p>
+                                    {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                                  </div>
                                </div>
                             </div>
                           ))

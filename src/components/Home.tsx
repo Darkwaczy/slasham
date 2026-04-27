@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { MapPin, Zap, ArrowRight, TrendingUp, Timer, ChevronDown, Utensils, Moon, Plane, ShoppingBag, Briefcase, Sparkles } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { SUPPORTED_LOCATIONS } from "../utils/locations";
-import DealCard from "./DealCard";
 import { apiClient } from "../api/client";
+
+// Lazy load DealCard for better performance
+const DealCard = lazy(() => import("./DealCard"));
 
 export default function Home() {
   const { city, setCity } = useOutletContext<{ city: string; setCity: (c: string) => void }>();
@@ -17,7 +19,8 @@ export default function Home() {
   useEffect(() => {
     const fetchDeals = async () => {
       try {
-        const data = await apiClient("/deals");
+        setIsLoading(true);
+        const data = await apiClient("/deals/home");
         const formattedDeals = data.map((d: any) => ({
           id: d.id,
           title: d.title,
@@ -52,6 +55,17 @@ export default function Home() {
         ]);
       } catch (error) {
         console.error("Home deals fetch failed:", error);
+        // Set fallback data for instant loading
+        setAllDeals([]);
+        setAdBanners([
+          {
+            image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80",
+            title: "DISCOVER PREMIUM DEALS",
+            subtitle: "Exclusive Verified Offers",
+            code: "WELCOME",
+            badge: "✨ MARKETPLACE"
+          }
+        ]);
       } finally {
         setIsLoading(false);
       }
@@ -286,9 +300,11 @@ export default function Home() {
               </div>
             ) : (
               <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                 {trendingDeals.map((deal, index) => (
-                   <DealCard key={deal.id} id={deal.id} title={deal.title} price={deal.price} original={deal.original} image={deal.image} category={deal.category} location={deal.location} expiryDate={deal.expiryDate} totalQuantity={deal.totalQuantity} soldQuantity={deal.soldQuantity} dealExplanation={deal.dealExplanation} index={index} />
-                 ))}
+                 <Suspense fallback={<div className="w-full h-80 bg-slate-100 rounded-xl animate-pulse" />}>
+                   {trendingDeals.map((deal, index) => (
+                     <DealCard key={deal.id} id={deal.id} title={deal.title} price={deal.price} original={deal.original} image={deal.image} category={deal.category} location={deal.location} expiryDate={deal.expiryDate} totalQuantity={deal.totalQuantity} soldQuantity={deal.soldQuantity} dealExplanation={deal.dealExplanation} index={index} />
+                   ))}
+                 </Suspense>
               </motion.div>
             )}
           </div>
@@ -331,9 +347,11 @@ export default function Home() {
                </div>
 
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                  {filteredDeals.slice(0, 36).map((p, i) => (
-                    <DealCard key={p.id} id={p.id} title={p.title} price={p.price} original={p.original} image={p.image} category={p.category} location={p.location} expiryDate={p.expiryDate} totalQuantity={p.totalQuantity} soldQuantity={p.soldQuantity} dealExplanation={p.dealExplanation} index={i} />
-                  ))}
+                  <Suspense fallback={<div className="w-full h-80 bg-slate-100 rounded-xl animate-pulse" />}>
+                    {filteredDeals.slice(0, 36).map((p, i) => (
+                      <DealCard key={p.id} id={p.id} title={p.title} price={p.price} original={p.original} image={p.image} category={p.category} location={p.location} expiryDate={p.expiryDate} totalQuantity={p.totalQuantity} soldQuantity={p.soldQuantity} dealExplanation={p.dealExplanation} index={i} />
+                    ))}
+                  </Suspense>
                </div>
             </div>
         </div>

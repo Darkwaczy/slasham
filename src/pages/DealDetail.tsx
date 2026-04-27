@@ -6,15 +6,9 @@ import gsap from "gsap";
 import { apiClient } from "../api/client";
 import CouponAgreementModal from "../components/CouponAgreementModal";
 import CelebrationModal from "../components/CelebrationModal";
+import AuthModal from "../components/AuthModal";
 
-const REVIEWS = [
-  { name: "Aisha M.", rating: 5, text: "Absolutely incredible experience! The food was top-notch and the discount made it even sweeter.", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=64&q=80" },
-  { name: "Chidi O.", rating: 4, text: "Great ambiance and very seamless redemption process. Will definitely be coming back.", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&q=80" },
-  { name: "Sarah J.", rating: 5, text: "The massage was divine. Best spa deal I've ever gotten in Lagos. Total value for money!", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=64&q=80" },
-  { name: "Ngozi E.", rating: 5, text: "Loved the interior decor. The discount worked perfectly without any hassle at the counter.", avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=64&q=80" },
-  { name: "David S.", rating: 5, text: "My girlfriend loved the surprise dinner. Thanks Slasham for the plug! Highly recommended.", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=64&q=80" },
-  { name: "Tunde W.", rating: 4, text: "Solid deal. The food was great and the staff were very familiar with the Slasham protocol.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=64&q=80" }
-];
+
 
 export default function DealDetail() {
   const { id } = useParams();
@@ -23,6 +17,7 @@ export default function DealDetail() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [deal, setDeal] = useState<any>(null);
   const [countdown, setCountdown] = useState<string>("");
   const [isSaved, setIsSaved] = useState(false);
@@ -30,8 +25,10 @@ export default function DealDetail() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewMedia, setReviewMedia] = useState<any[]>([]);
+  const [dealReviews, setDealReviews] = useState<any[]>([]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -59,7 +56,6 @@ export default function DealDetail() {
     const fetchDeal = async () => {
       try {
         const d = await apiClient(`/deals/${id}`);
-        // Map backend deal to frontend shape
         setDeal({
           id: d.id,
           title: d.title,
@@ -69,6 +65,7 @@ export default function DealDetail() {
           category: d.category,
           location: d.merchants?.city || "Lagos",
           companyName: d.merchants?.business_name,
+          merchantId: d.merchant_id,
           description: d.description,
           expiryDate: d.expiry_date,
           totalQuantity: d.total_quantity,
@@ -81,11 +78,42 @@ export default function DealDetail() {
         console.error("Failed to fetch deal:", error);
       }
     };
+    const fetchReviews = async () => {
+      try {
+        const r = await apiClient(`/deals/${id}/reviews`);
+        setDealReviews(r || []);
+      } catch (e) {
+        console.error("Failed to fetch reviews:", e);
+      }
+    };
     fetchDeal();
+    fetchReviews();
   }, [id]);
 
   useEffect(() => {
     if (deal) {
+      // SEO Optimization
+      document.title = `${deal.title} | Slasham Marketplace`;
+      
+      const updateMeta = (selector: string, attr: string, content: string) => {
+        let el = document.querySelector(selector);
+        if (!el) {
+          el = document.createElement('meta');
+          if (selector.startsWith('meta[name')) {
+            el.setAttribute('name', selector.split('"')[1]);
+          } else {
+            el.setAttribute('property', selector.split('"')[1]);
+          }
+          document.head.appendChild(el);
+        }
+        el.setAttribute(attr, content);
+      };
+
+      updateMeta('meta[name="description"]', 'content', `${deal.title} at ${deal.companyName}. Save big on Slasham Marketplace. Limited quantities available!`);
+      updateMeta('meta[property="og:title"]', 'content', deal.title);
+      updateMeta('meta[property="og:description"]', 'content', deal.description?.slice(0, 150) || '');
+      updateMeta('meta[property="og:image"]', 'content', deal.image);
+
       gsap.fromTo(
         ".deal-content-animate > *",
         { y: 30, opacity: 0 },
@@ -132,6 +160,20 @@ export default function DealDetail() {
 
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
+    
+    // Modern Logic Flow: Check if user is logged in AFTER celebration
+    const isLoggedIn = !!localStorage.getItem("slasham_user");
+    
+    if (isLoggedIn) {
+      setShowPaymentModal(true);
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    // Proceed to payment now that they are logged in
     setShowPaymentModal(true);
   };
 
@@ -153,15 +195,56 @@ export default function DealDetail() {
     }
   };
 
-  const handleReviewSubmit = () => {
+  const handleReviewSubmit = async () => {
+    if (!reviewRating) return;
     setIsSubmittingReview(true);
-    setTimeout(() => {
-      setIsSubmittingReview(false);
+    try {
+      // 1. Upload media files if any
+      const uploadedMedia = [];
+      for (const media of reviewMedia) {
+        if (media.file) {
+          const formData = new FormData();
+          formData.append('image', media.file);
+          formData.append('bucket', 'review-media');
+          
+          try {
+            const res = await apiClient("/upload/image", {
+              method: "POST",
+              body: formData
+            });
+            uploadedMedia.push({
+              url: res.url,
+              type: media.type
+            });
+          } catch (uploadErr) {
+            console.error("Failed to upload review media:", uploadErr);
+          }
+        }
+      }
+
+      // 2. Submit review with media URLs
+      await apiClient("/user/reviews", {
+        method: "POST",
+        body: JSON.stringify({
+          deal_id: id,
+          merchant_id: deal.merchantId,
+          rating: reviewRating,
+          comment: reviewComment,
+          media: uploadedMedia
+        })
+      });
+      // Refresh reviews
+      const updated = await apiClient(`/deals/${id}/reviews`);
+      setDealReviews(updated || []);
       setShowReviewModal(false);
       setReviewRating(0);
+      setReviewComment("");
       setReviewMedia([]);
-      alert("Review submitted successfully!");
-    }, 2000);
+    } catch (err: any) {
+      alert("Failed to submit review: " + err.message);
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,7 +253,8 @@ export default function DealDetail() {
       const newMedia = Array.from(files).map(file => ({
         url: URL.createObjectURL(file),
         type: file.type.startsWith('video') ? 'video' : 'image',
-        name: file.name
+        name: file.name,
+        file: file // Store the actual file object for uploading
       }));
       setReviewMedia([...reviewMedia, ...newMedia]);
     }
@@ -243,7 +327,11 @@ export default function DealDetail() {
                     <MapPin size={18} /> {deal.location || "Lekki Phase 1, Lagos"}
                  </div>
                  <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
-                    <Star size={18} className="fill-amber-400" /> 4.8 <span className="text-slate-400">(120 Reviews)</span>
+                    <Star size={18} className="fill-amber-400" />
+                    {dealReviews.length > 0
+                      ? (dealReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / dealReviews.length).toFixed(1)
+                      : "New"}
+                    <span className="text-slate-400">({dealReviews.length} Reviews)</span>
                  </div>
                </div>
                <div className="flex items-center gap-3 shrink-0">
@@ -563,11 +651,18 @@ export default function DealDetail() {
 
       {/* 5-Second Celebration before payment */}
       {showCelebration && (
-        <CelebrationModal
+        <CelebrationModal 
           deal={deal}
           onComplete={handleCelebrationComplete}
         />
       )}
+
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+        dealTitle={deal?.title || "Exclusive Deal"}
+      />
 
       {/* Payment Modal Mockup */}
       <AnimatePresence>
@@ -707,6 +802,8 @@ export default function DealDetail() {
                       <textarea 
                         className="w-full h-40 p-6 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-medium text-slate-600 placeholder:text-slate-300 resize-none"
                         placeholder="What did you like about this deal? How was the service?"
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
                       />
                    </div>
 
@@ -836,59 +933,70 @@ export default function DealDetail() {
       <div id="reviews" className="pt-24 border-t border-slate-200 space-y-16 scroll-mt-32">
         <div className="bg-white rounded-3xl p-10 md:p-16 border border-slate-100 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-50 rounded-full blur-3xl opacity-20 group-hover:scale-125 transition-transform duration-1000" />
-          <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
-            <div>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">Verified Reviews</h2>
-              <p className="text-slate-400 font-medium mb-10 leading-relaxed max-w-sm">Authentic feedback from real users who redeemed this offer at {deal.companyName || deal.title.split("'")[0]}.</p>
-              
-              <div className="flex items-end gap-6 mb-12">
-                <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">4.8</span>
-                <div className="pb-2">
-                  <div className="flex text-amber-400 gap-1 mb-2">
-                    <Star size={20} className="fill-current" />
-                    <Star size={20} className="fill-current" />
-                    <Star size={20} className="fill-current" />
-                    <Star size={20} className="fill-current" />
-                    <Star size={20} className="text-slate-100 fill-slate-100" />
+          {(() => {
+            const avgRating = dealReviews.length > 0
+              ? dealReviews.reduce((s: number, r: any) => s + r.rating, 0) / dealReviews.length
+              : 0;
+            const starBars = [5, 4, 3, 2, 1].map(s => ({
+              s,
+              p: dealReviews.length > 0
+                ? Math.round((dealReviews.filter((r: any) => r.rating === s).length / dealReviews.length) * 100)
+                : 0
+            }));
+            return (
+              <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
+                <div>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">Verified Reviews</h2>
+                  <p className="text-slate-400 font-medium mb-10 leading-relaxed max-w-sm">Authentic feedback from real users who redeemed this offer at {deal.companyName || deal.title.split("'")[0]}.</p>
+                  
+                  <div className="flex items-end gap-6 mb-12">
+                    <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                      {avgRating > 0 ? avgRating.toFixed(1) : "New"}
+                    </span>
+                    <div className="pb-2">
+                      <div className="flex text-amber-400 gap-1 mb-2">
+                        {[...Array(5)].map((_, j) => (
+                          <Star key={j} size={20} className={j < Math.round(avgRating) ? "fill-current" : "text-slate-100 fill-slate-100"} />
+                        ))}
+                      </div>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Based on {dealReviews.length} verified reviews</p>
+                    </div>
                   </div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Based on 120 verified reviews</p>
+
+                  <button 
+                    onClick={() => setShowReviewModal(true)}
+                    className="flex items-center gap-3 bg-emerald-500 text-white px-8 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black transition-all shadow-xl shadow-emerald-500/10 active:scale-95"
+                  >
+                    <MessageSquare size={16} /> Write a Review
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {starBars.map((bar) => (
+                    <div key={bar.s} className="flex items-center gap-6">
+                      <div className="w-12 text-xs font-black text-slate-400 flex items-center gap-1.5 uppercase">
+                        {bar.s} <Star size={12} className="fill-slate-300 text-slate-300" />
+                      </div>
+                      <div className="flex-1 h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${bar.p}%` }} />
+                      </div>
+                      <div className="w-8 text-xs font-black text-slate-900 text-right">{bar.p}%</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <button 
-                onClick={() => setShowReviewModal(true)}
-                className="flex items-center gap-3 bg-emerald-500 text-white px-8 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black transition-all shadow-xl shadow-emerald-500/10 active:scale-95"
-              >
-                <MessageSquare size={16} /> Write a Review
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { s: 5, p: 85 },
-                { s: 4, p: 10 },
-                { s: 3, p: 3 },
-                { s: 2, p: 1 },
-                { s: 1, p: 1 },
-              ].map((bar) => (
-                <div key={bar.s} className="flex items-center gap-6">
-                  <div className="w-12 text-xs font-black text-slate-400 flex items-center gap-1.5 uppercase">
-                    {bar.s} <Star size={12} className="fill-slate-300 text-slate-300" />
-                  </div>
-                  <div className="flex-1 h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${bar.p}%` }} />
-                  </div>
-                  <div className="w-8 text-xs font-black text-slate-900 text-right">{bar.p}%</div>
-                </div>
-              ))}
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-          {REVIEWS.map((review, i) => (
+          {dealReviews.length === 0 ? (
+            <div className="col-span-3 text-center py-20 text-slate-400 font-bold">
+              No reviews yet. Be the first to share your experience!
+            </div>
+          ) : dealReviews.map((review: any, i: number) => (
             <motion.div 
-               key={i} 
+               key={review.id || i} 
                initial={{ opacity: 0, y: 20 }}
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
@@ -896,15 +1004,17 @@ export default function DealDetail() {
                className="bg-white p-10 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
             >
                <div className="flex items-center gap-4 mb-8">
-                  <img src={review.avatar} className="w-12 h-12 rounded-2xl object-cover ring-4 ring-slate-50 shadow-lg group-hover:scale-110 transition-transform" alt="" />
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-lg">
+                    {(review.users?.name || "U")[0].toUpperCase()}
+                  </div>
                   <div>
-                    <p className="text-sm font-black text-slate-900 tracking-tight">{review.name}</p>
+                    <p className="text-sm font-black text-slate-900 tracking-tight">{review.users?.name || "Anonymous"}</p>
                     <div className="flex text-amber-400 gap-0.5">
                        {[...Array(5)].map((_, j) => <Star key={j} size={10} className={j < review.rating ? "fill-amber-400" : "text-slate-200 fill-slate-200"} />)}
                     </div>
                   </div>
                </div>
-               <p className="text-slate-600 font-medium leading-relaxed italic">"{review.text}"</p>
+               <p className="text-slate-600 font-medium leading-relaxed italic">"{review.comment || "Great experience!"}"</p>
             </motion.div>
           ))}
         </div>

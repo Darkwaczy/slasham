@@ -1,4 +1,4 @@
-import { Star, Quote, RefreshCw, Send, MessageCircle } from "lucide-react";
+import { Star, Quote, RefreshCw, Send, MessageCircle, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/client";
@@ -157,6 +157,3 @@ export default function MerchantReviews() {
   );
 }
 
-function CheckCircle2({ size }: { size: number }) {
-  return <Star size={size} className="fill-emerald-500 text-emerald-500" />;
-}

@@ -41,6 +41,44 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Lightning-fast home page deals (limited, optimized)
+router.get("/home", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    // Only fetch 12 deals for home page - minimal data needed
+    const { data, error } = await supabase
+      .from("deals")
+      .select(`
+        id,
+        title,
+        discount_price,
+        original_price,
+        images,
+        category,
+        expiry_date,
+        total_quantity,
+        sold_quantity,
+        deal_explanation,
+        merchants (
+          business_name,
+          city
+        )
+      `)
+      .eq("is_active", true)
+      .gt("expiry_date", new Date().toISOString())
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error: any) {
+    console.error("Home deals fetch failed:", error);
+    res.json([]); // Return empty array on error for instant loading
+  }
+});
+
 // Get a single deal
 router.get("/:id", async (req, res) => {
   try {
@@ -64,6 +102,28 @@ router.get("/:id", async (req, res) => {
     if (error) throw error;
     if (!data) return res.status(404).json({ error: "Deal not found" });
 
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get reviews for a specific deal
+router.get("/:id/reviews", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data, error } = await supabase
+      .from("reviews")
+      .select(`
+        *,
+        users(name)
+      `)
+      .eq("deal_id", req.params.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

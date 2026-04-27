@@ -8,14 +8,25 @@ import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
 import { storage } from "../utils/storage";
 import { apiClient } from "../api/client";
+import { UserProvider, useUser } from "../context/UserContext";
 
 export default function UserLayout() {
+  return (
+    <UserProvider>
+      <UserLayoutContent />
+    </UserProvider>
+  );
+}
+
+function UserLayoutContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const { user, isLoading } = useUser();
 
   const getInitials = (name: string) => {
     if (!name) return "?";
@@ -29,17 +40,39 @@ export default function UserLayout() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const data = await apiClient.get("/user/notifications");
+      setNotifications(data || []);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await apiClient("/auth/me");
-        setUserData(data);
-      } catch (err) {
-        console.error("Failed to fetch user for layout", err);
-      }
-    };
-    fetchUser();
+    if (showNotifications) {
+      fetchNotifications();
+    }
+  }, [showNotifications]);
+
+  useEffect(() => {
+    // Prefetch the most common user pages so route switches feel faster.
+    import("../pages/user/Settings");
+    import("../pages/user/MyCoupons");
+    import("../pages/user/SavedDeals");
+    import("../pages/user/OrdersPayments");
+    import("../pages/user/Reviews");
+    import("../pages/user/RewardsReferrals");
   }, []);
+
+  const markAsRead = async (id: string) => {
+    try {
+      await apiClient.post(`/user/notifications/${id}/read`);
+      setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (err) {
+      console.error("Failed to mark read", err);
+    }
+  };
 
   const navItems = [
     { name: "Overview", path: "/user/dashboard", icon: LayoutDashboard },
@@ -136,10 +169,10 @@ export default function UserLayout() {
         <div className="p-6 border-t border-slate-100">
           <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer relative">
             <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shadow-inner ring-2 ring-white">
-              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || "User")}&background=10b981&color=fff`} alt="User" />
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=10b981&color=fff`} alt="User" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-slate-900 truncate">{userData?.name || "Member"}</p>
+              <p className="text-sm font-black text-slate-900 truncate">{user?.name || "Member"}</p>
               <p className="text-xs text-slate-500 truncate">Standard Plan</p>
             </div>
             <button 
@@ -189,15 +222,82 @@ export default function UserLayout() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button 
-                onClick={() => navigate("/user/notifications")}
-                className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-2xl relative transition-all group"
-              >
-                <Bell size={20} className="group-hover:rotate-12 transition-transform" />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    setShowProfileMenu(false);
+                  }}
+                  className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-2xl relative transition-all group"
+                >
+                  <Bell size={20} className="group-hover:rotate-12 transition-transform" />
+                  {notifications.some(n => !n.is_read) && (
+                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-60"
+                    >
+                      <div className="p-5 border-b border-slate-50 flex items-center justify-between">
+                        <h3 className="font-black text-slate-900">Notifications</h3>
+                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">
+                          {notifications.filter(n => !n.is_read).length} New
+                        </span>
+                      </div>
+                      
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="p-10 text-center">
+                            <Bell className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+                            <p className="text-xs text-slate-400 font-bold">All caught up!</p>
+                          </div>
+                        ) : (
+                          notifications.map((n) => (
+                            <div 
+                              key={n.id}
+                              onClick={() => markAsRead(n.id)}
+                              className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group ${!n.is_read ? 'bg-emerald-50/20' : ''}`}
+                            >
+                              <div className="flex gap-3">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                  n.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : 
+                                  n.type === 'PROMO' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'
+                                }`}>
+                                  <Bell size={14} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-black text-slate-900 mb-0.5">{n.title}</p>
+                                  <p className="text-[11px] text-slate-500 leading-tight line-clamp-2">{n.message}</p>
+                                  <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wider">
+                                    {new Date(n.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shadow-lg shadow-emerald-500/50"></div>}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      
+                      <button 
+                        onClick={() => { navigate("/user/notifications"); setShowNotifications(false); }}
+                        className="w-full p-4 text-[11px] font-black text-slate-400 hover:text-emerald-500 text-center uppercase tracking-widest border-t border-slate-50 transition-colors"
+                      >
+                        View all notifications
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               
               <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+
               
               <div className="relative">
                 <button 
@@ -205,7 +305,7 @@ export default function UserLayout() {
                   className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
                 >
                   <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-500/20">
-                    {getInitials(userData?.name || "")}
+                    {getInitials(user?.name || "")}
                   </div>
                 </button>
                 
@@ -218,7 +318,7 @@ export default function UserLayout() {
                       className="absolute right-0 mt-4 w-56 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-60"
                     >
                       <div className="px-4 py-3 border-b border-slate-50 mb-2">
-                        <p className="text-sm font-black text-slate-900">{userData?.name || "Member"}</p>
+                        <p className="text-sm font-black text-slate-900">{user?.name || "Member"}</p>
                         <p className="text-xs text-slate-500">Member since 2026</p>
                       </div>
                       <button 

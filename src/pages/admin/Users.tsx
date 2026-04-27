@@ -1,19 +1,38 @@
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus, Users } from "lucide-react";
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, MapPin, Trash2, ShieldCheck, UserMinus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
 import AdminSkeleton from "../../components/AdminSkeleton";
 import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminUsers() {
-  const { data, isLoading, refreshData, updateData } = useAdminData();
+  const { data, isLoading, updateData, fetchEntity } = useAdminData();
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [, setIsProcessing] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const fetchUsers = async () => {
+    try {
+      await fetchEntity('users', currentPage, pageSize, searchQuery);
+      if (isInitialLoad) setIsInitialLoad(false);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchUsers();
+    }, 300); // Debounce search
+    return () => clearTimeout(timer);
+  }, [currentPage, searchQuery]);
 
   const users = (data?.users || []).map((u: any) => ({
     ...u,
@@ -23,21 +42,8 @@ export default function AdminUsers() {
     location: u.city || "Not Specified"
   }));
 
-  const filteredUsers = users.filter(u => 
-    (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (u.email || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const stats = {
-    total: users.length,
-    active: users.filter(u => u.status === 'Active').length,
-    today: users.filter(u => {
-        const joinDateString = new Date(u.created_at).toDateString();
-        const todayString = new Date().toDateString();
-        return joinDateString === todayString;
-    }).length,
-    suspended: users.filter(u => u.status === 'Suspended').length
-  };
+  const totalUsers = data?.counts?.users || users.length;
+  const totalPages = Math.ceil(totalUsers / pageSize);
 
   const handleToggleStatus = async (user: any) => {
     setIsProcessing(true);
@@ -62,13 +68,11 @@ export default function AdminUsers() {
     }
   };
 
-  if (isLoading) return <AdminSkeleton />;
-
   const handleDeleteUser = async (id: string) => {
     if (!confirm("Permanently delete this user account?")) return;
     try {
         await apiClient(`/admin/users/${id}`, { method: "DELETE" });
-        refreshData();
+        fetchUsers();
         setIsActionModalOpen(false);
     } catch (error: any) {
         alert("Delete failed: " + error.message);
@@ -81,7 +85,7 @@ export default function AdminUsers() {
             method: "POST",
             body: JSON.stringify({ role: newRole })
         });
-        refreshData();
+        fetchUsers();
         setIsActionModalOpen(false);
         alert(`User role updated to ${newRole}`);
     } catch (error: any) {
@@ -103,13 +107,7 @@ export default function AdminUsers() {
     }
   };
 
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Manual user creation is restricted. Users must register via the standard auth flow.");
-    setIsAddModalOpen(false);
-  };
-
-  if (isLoading) return <AdminSkeleton />;
+  if (isLoading && isInitialLoad) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -127,50 +125,6 @@ export default function AdminUsers() {
         </button>
       </div>
 
-      {/* Stats Quick View */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { 
-            label: "Total Users", count: stats.total, 
-            icon: Users,
-            bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
-            textClass: "text-indigo-700", labelClass: "text-indigo-500",
-            iconBg: "bg-white/60", iconColor: "text-indigo-600"
-          },
-          { 
-            label: "Active Now", count: stats.active, 
-            icon: ShieldCheck,
-            bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
-            textClass: "text-emerald-700", labelClass: "text-emerald-500",
-            iconBg: "bg-white/60", iconColor: "text-emerald-600"
-          },
-          { 
-            label: "New Today", count: stats.today, 
-            icon: UserPlus,
-            bgClass: "bg-sky-50", borderClass: "border-sky-100", 
-            textClass: "text-sky-700", labelClass: "text-sky-500",
-            iconBg: "bg-white/60", iconColor: "text-sky-600"
-          },
-          { 
-            label: "Suspended", count: stats.suspended, 
-            icon: UserMinus,
-            bgClass: "bg-rose-50", borderClass: "border-rose-100", 
-            textClass: "text-rose-700", labelClass: "text-rose-500",
-            iconBg: "bg-white/60", iconColor: "text-rose-600"
-          },
-        ].map((stat, i) => (
-          <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
-            <div className="flex justify-between items-start mb-4">
-              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
-              <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
-                <stat.icon size={20} />
-              </div>
-            </div>
-            <p className={`text-4xl font-black ${stat.textClass} tracking-tight`}>{stat.count}</p>
-          </div>
-        ))}
-      </div>
-
       {/* Table Section */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30">
@@ -180,7 +134,10 @@ export default function AdminUsers() {
               type="text" 
               placeholder="Search by name or email..." 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // Reset to first page on search
+              }}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-slate-900 transition-all font-medium"
             />
           </div>
@@ -207,7 +164,7 @@ export default function AdminUsers() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               <AnimatePresence mode="popLayout">
-                {filteredUsers.map((user, idx) => (
+                {users.map((user, idx) => (
                   <motion.tr 
                     key={user.id}
                     layout
@@ -220,7 +177,7 @@ export default function AdminUsers() {
                     <td className="px-8 py-5 text-nowrap">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm">
-                          {user.name.charAt(0)}
+                          {user.name?.charAt(0) || "U"}
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 mb-0.5">{user.name}</p>
@@ -268,7 +225,7 @@ export default function AdminUsers() {
               </AnimatePresence>
             </tbody>
           </table>
-          {filteredUsers.length === 0 && (
+          {users.length === 0 && !isLoading && (
             <div className="py-20 text-center">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search size={24} className="text-slate-300" />
@@ -279,10 +236,22 @@ export default function AdminUsers() {
         </div>
 
         <div className="p-6 bg-slate-50/30 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-          <p>Showing {filteredUsers.length} of {users.length} users</p>
+          <p>Page {currentPage} of {Math.max(1, totalPages)} • Total {totalUsers} Users</p>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors">Prev</button>
-            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors">Next</button>
+            <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+            >
+                Prev
+            </button>
+            <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+            >
+                Next
+            </button>
           </div>
         </div>
       </div>
@@ -294,7 +263,7 @@ export default function AdminUsers() {
         title="Add New User"
         description="Onboard a new member to the Slasham platform manually."
       >
-        <form onSubmit={handleAddUser} className="space-y-6 pt-4">
+        <form onSubmit={(e) => { e.preventDefault(); setIsAddModalOpen(false); }} className="space-y-6 pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</label>
@@ -344,7 +313,7 @@ export default function AdminUsers() {
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
              <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl font-bold">
-               {selectedUser?.name.charAt(0)}
+               {selectedUser?.name?.charAt(0) || "U"}
              </div>
              <div>
                <p className="font-black text-slate-900">{selectedUser?.name}</p>

@@ -6,7 +6,7 @@ const BASE_URL = isLocalhost ? 'http://localhost:5000/api' : '/api';
  * A tiny wrapper around native fetch to automatically
  * prepend the API base URL and always include secure cookies.
  */
-export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
+const apiClientFn = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
   const headers: Record<string, string> = {
@@ -41,3 +41,21 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
 
   return response.json();
 };
+
+// Formally type the helper methods
+interface ApiClient {
+  (endpoint: string, options?: RequestInit): Promise<any>;
+  get: (endpoint: string, options?: RequestInit) => Promise<any>;
+  post: (endpoint: string, body?: any, options?: RequestInit) => Promise<any>;
+  patch: (endpoint: string, body?: any, options?: RequestInit) => Promise<any>;
+  delete: (endpoint: string, options?: RequestInit) => Promise<any>;
+}
+
+const api = apiClientFn as ApiClient;
+
+api.get = (endpoint: string, options?: RequestInit) => api(endpoint, { ...options, method: 'GET' });
+api.post = (endpoint: string, body?: any, options?: RequestInit) => api(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) });
+api.patch = (endpoint: string, body?: any, options?: RequestInit) => api(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
+api.delete = (endpoint: string, options?: RequestInit) => api(endpoint, { ...options, method: 'DELETE' });
+
+export { api as apiClient };

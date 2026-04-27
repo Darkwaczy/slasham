@@ -43,6 +43,7 @@ export default function MerchantApply() {
     instagram_handle: "",
     monthly_customers: "0-500",
     avg_transaction_value: "",
+    monthly_ad_spend: "",
     primary_goal: "Increase Foot Traffic",
     operating_hours: "",
     description: ""
@@ -62,10 +63,53 @@ export default function MerchantApply() {
     setIsSubmitting(true);
     setError(null);
 
+    // Validate required fields
+    if (!formData.business_name.trim()) {
+      setError("Business name is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (!formData.contact_name.trim()) {
+      setError("Contact person name is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+
     if (!validatePhone(formData.phone)) {
       setError("Please enter a valid phone number (e.g. +234 812 345 6789)");
       setIsSubmitting(false);
-      window.scrollTo(0, 500);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setError("Valid email address is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (!formData.avg_transaction_value.trim()) {
+      setError("Average transaction value is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      setError("Physical address is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      setError("Business description is required");
+      setIsSubmitting(false);
+      window.scrollTo(0, 0);
       return;
     }
 
@@ -78,6 +122,7 @@ export default function MerchantApply() {
       window.scrollTo(0, 0);
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
+      window.scrollTo(0, 0);
     } finally {
       setIsSubmitting(false);
     }
@@ -335,6 +380,20 @@ export default function MerchantApply() {
                       value={formData.avg_transaction_value}
                       onChange={handleChange}
                       placeholder="e.g. 15,000"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Monthly Ad Spend (₦) <span className="text-slate-300 font-normal">- Optional</span></label>
+                  <div className="relative group">
+                    <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                    <input 
+                      name="monthly_ad_spend"
+                      value={formData.monthly_ad_spend}
+                      onChange={handleChange}
+                      placeholder="e.g. 50,000"
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold"
                     />
                   </div>

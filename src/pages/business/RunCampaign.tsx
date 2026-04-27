@@ -1,5 +1,4 @@
-import React from "react";
-import { TrendingUp, Target, Users, Zap, BarChart3, Rocket, ShieldCheck } from "lucide-react";
+import { TrendingUp, Target, Zap, BarChart3, Rocket, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function RunCampaign() {

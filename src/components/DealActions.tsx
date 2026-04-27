@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Heart, Share2 } from "lucide-react";
 
-interface FavoriteButtonProps {
-  dealId: number;
-}
+interface FavoriteButtonProps {}
 
-export function FavoriteButton({ dealId }: FavoriteButtonProps) {
+export function FavoriteButton({}: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const toggleFavorite = () => {

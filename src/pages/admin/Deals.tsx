@@ -1,21 +1,25 @@
-import { Search, Clock, CheckCircle2, FileText, ChevronRight, Tag, Trash2, RefreshCw, TrendingUp, Image as ImageIcon, Edit3, Save, Zap } from "lucide-react";
+import { Search, Clock, CheckCircle2, FileText, ChevronRight, Tag, Trash2, RefreshCw, Image as ImageIcon, Edit3, Save } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
 import AdminSkeleton from "../../components/AdminSkeleton";
+import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminDeals() {
-  const [deals, setDeals] = useState<any[]>([]);
+  const { data, isLoading, fetchEntity } = useAdminData();
   const [requests, setRequests] = useState<any[]>([]);
   const [ads, setAds] = useState<any[]>([]);
   const [activeTab, setActiveTab ] = useState<'inventory' | 'requests' | 'ads'>('inventory');
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // Placement States for Approval
   const [slashamPrice, setSlashamPrice] = useState("");
@@ -26,22 +30,18 @@ export default function AdminDeals() {
   // Ad Editing States
   const [editingAd, setEditingAd] = useState<any | null>(null);
 
-  const loadData = async () => {
-    setIsRefreshing(true);
+  const loadData = async (showRefreshing = true) => {
+    if (showRefreshing) setIsRefreshing(true);
     try {
-      const [dealsList, requestsList, billboardsList] = await Promise.all([
-        apiClient("/deals"),
+      const [, requestsList, billboardsList] = await Promise.all([
+        fetchEntity('deals', currentPage, pageSize, searchQuery),
         apiClient("/admin/requests"),
         apiClient("/admin/billboards")
       ]);
       
-      setDeals(dealsList.map((d: any) => ({
-        ...d,
-        merchant: d.merchants?.business_name || "Merchant Partner",
-        status: "Active"
-      })));
       setRequests(requestsList);
       setAds(billboardsList);
+      if (isInitialLoad) setIsInitialLoad(false);
     } catch (error) {
       console.error("Failed to load admin data:", error);
     } finally {
@@ -50,10 +50,20 @@ export default function AdminDeals() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const timer = setTimeout(() => {
+        loadData(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchQuery]);
 
-  if (isRefreshing && deals.length === 0) return <AdminSkeleton />;
+  const deals = (data?.deals || []).map((d: any) => ({
+    ...d,
+    merchant: d.merchants?.business_name || "Merchant Partner",
+    status: "Active"
+  }));
+
+  const totalDeals = data?.counts?.deals || deals.length;
+  const totalPages = Math.ceil(totalDeals / pageSize);
 
   const handleApprove = async (req: any) => {
     if (!slashamPrice.trim()) {
@@ -122,14 +132,14 @@ export default function AdminDeals() {
     }
   };
 
-  const filteredDeals = (deals || []).filter(d => {
-    const matchesSearch = d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (d.merchant && d.merchant.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredDeals = deals.filter(d => {
     const matchesStatus = statusFilter === "All" || d.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesStatus;
   });
 
   const pendingRequests = requests.filter(r => r.status === 'PENDING');
+
+  if (isLoading && isInitialLoad) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -140,7 +150,7 @@ export default function AdminDeals() {
         </div>
         <div className="flex items-center gap-4">
           <button 
-            onClick={loadData}
+            onClick={() => loadData()}
             className={`p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm ${isRefreshing ? 'animate-spin' : ''}`}
           >
             <RefreshCw size={20} />
@@ -181,50 +191,6 @@ export default function AdminDeals() {
 
       {activeTab === 'inventory' ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { 
-                label: "Active Deals", count: deals.length, sub: "Live on Storefront",
-                icon: Tag,
-                bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
-                textClass: "text-indigo-700", labelClass: "text-indigo-500", subClass: "text-indigo-600/70",
-                iconBg: "bg-white/60", iconColor: "text-indigo-600"
-              },
-              { 
-                label: "Pending Review", count: pendingRequests.length, sub: "Merchant Inquiries",
-                icon: Clock,
-                bgClass: "bg-amber-50", borderClass: "border-amber-100", 
-                textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
-                iconBg: "bg-white/60", iconColor: "text-amber-600"
-              },
-              { 
-                label: "Trending Now", count: deals.filter(d => d.is_trending).length, sub: "Platform Velocity",
-                icon: TrendingUp,
-                bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
-                textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
-                iconBg: "bg-white/60", iconColor: "text-emerald-600"
-              },
-              { 
-                label: "Hot Coupons", count: deals.filter(d => d.is_hot).length, sub: "High Value Claims",
-                icon: Zap,
-                bgClass: "bg-rose-50", borderClass: "border-rose-100", 
-                textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
-                iconBg: "bg-white/60", iconColor: "text-rose-600"
-              },
-            ].map((stat, i) => (
-              <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
-                <div className="flex justify-between items-start mb-4">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
-                  <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
-                    <stat.icon size={20} />
-                  </div>
-                </div>
-                <p className={`text-4xl font-black ${stat.textClass} tracking-tight mb-2`}>{stat.count}</p>
-                <p className={`text-[11px] font-bold ${stat.subClass}`}>{stat.sub}</p>
-              </div>
-            ))}
-          </div>
-
           <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden text-left">
             <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/10">
               <div className="relative w-full sm:w-80">
@@ -233,7 +199,10 @@ export default function AdminDeals() {
                   type="text" 
                   placeholder="Filter inventory..." 
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                  }}
                   className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -249,8 +218,13 @@ export default function AdminDeals() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
+              {isInitialLoad && deals.length === 0 ? (
+                <div className="p-6">
+                  <AdminSkeleton />
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
                   <tr className="bg-slate-50/50">
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Information</th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant</th>
@@ -259,7 +233,7 @@ export default function AdminDeals() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   <AnimatePresence mode="popLayout">
-                    {filteredDeals.length === 0 ? (
+                    {filteredDeals.length === 0 && !isInitialLoad ? (
                       <tr>
                         <td colSpan={3} className="px-8 py-20 text-center text-slate-400 italic">No deals found matching your criteria.</td>
                       </tr>
@@ -298,6 +272,27 @@ export default function AdminDeals() {
                   </AnimatePresence>
                 </tbody>
               </table>
+              )}
+            </div>
+
+            <div className="p-6 bg-slate-50/30 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <p>Page {currentPage} of {Math.max(1, totalPages)} • Total {totalDeals} Deals</p>
+              <div className="flex gap-2">
+                <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+                >
+                    Prev
+                </button>
+                <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+                >
+                    Next
+                </button>
+              </div>
             </div>
           </div>
         </>

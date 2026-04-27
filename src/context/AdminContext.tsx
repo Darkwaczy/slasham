@@ -30,6 +30,7 @@ interface AdminContextType {
   isRefreshing: boolean;
   refreshData: () => Promise<void>;
   updateData: (key: string, newData: any) => void;
+  fetchEntity: (entity: 'users' | 'merchants' | 'deals', page: number, limit: number, search?: string) => Promise<any>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -88,6 +89,27 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const fetchEntity = async (entity: 'users' | 'merchants' | 'deals', page: number, limit: number, search: string = "") => {
+    try {
+      const result = await apiClient(`/admin/${entity}?page=${page}&limit=${limit}&search=${search}`);
+      // Update specific entity data in state to keep counts synced if needed
+      if (result.data) {
+          setData(prev => ({
+              ...prev,
+              [entity]: result.data,
+              counts: {
+                  ...prev.counts,
+                  [entity]: result.count
+              }
+          }));
+      }
+      return result;
+    } catch (error) {
+      console.error(`Failed to fetch ${entity}:`, error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchSummary();
   }, []);
@@ -102,7 +124,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       isLoading, 
       isRefreshing, 
       refreshData: () => fetchSummary(true),
-      updateData
+      updateData,
+      fetchEntity
     }}>
       {children}
     </AdminContext.Provider>

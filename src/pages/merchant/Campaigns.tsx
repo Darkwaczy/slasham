@@ -16,19 +16,26 @@ export default function MerchantCampaigns() {
   const [isHotCoupon, setIsHotCoupon] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [, setMerchantProfile] = useState<any>(null);
 
   const fetchDeals = async () => {
     try {
-      const data = await apiClient("/deals/merchant/my-deals");
+      const [dealsData, profileData] = await Promise.all([
+        apiClient("/deals/merchant/my-deals"),
+        apiClient("/merchants/my-profile")
+      ]);
+      
+      setMerchantProfile(profileData);
+      
       // Map backend fields to frontend UI expectation
-      const mapped = data.map((d: any) => ({
+      const mapped = dealsData.map((d: any) => ({
         id: d.id,
         productName: d.title,
         productImage: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
         originalPrice: `₦${d.original_price.toLocaleString()}`,
         category: d.category,
         status: d.is_active ? "Approved" : "Pending",
-        location: "Lagos", // Mock for now, should come from merchant profile
+        location: profileData?.city || "Not set",
         totalQuantity: d.total_quantity,
         soldQuantity: d.sold_quantity,
         description: d.description,

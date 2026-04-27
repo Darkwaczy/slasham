@@ -1,5 +1,4 @@
-import React from "react";
-import { Store, ArrowRight, CheckCircle2, Zap, BarChart3, Users } from "lucide-react";
+import { Store, ArrowRight, Zap, BarChart3, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 

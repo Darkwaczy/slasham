@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
+import { useUser } from "../../context/UserContext";
 import { 
   User, Shield, Bell, CreditCard, Star, 
   MapPin, Phone, Mail, Camera, 
@@ -12,29 +13,20 @@ import {
 export default function UserSettings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [profile, setProfile] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const { user, setUser, isLoading: userLoading } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      setProfile(user);
+    }
+  }, [user]);
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3500);
   };
-
-  const fetchProfile = async () => {
-    try {
-      const data = await apiClient("/auth/me");
-      setProfile(data);
-    } catch (error) {
-      console.error("Failed to fetch profile", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -47,6 +39,7 @@ export default function UserSettings() {
         })
       });
       setProfile(updated);
+      setUser(updated);
       showToast("Profile updated successfully!");
     } catch (error: any) {
       showToast("Update failed: " + error.message, false);
@@ -55,7 +48,7 @@ export default function UserSettings() {
     }
   };
 
-  if (isLoading) {
+  if (userLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
         <Loader2 className="animate-spin text-slate-300" size={40} />

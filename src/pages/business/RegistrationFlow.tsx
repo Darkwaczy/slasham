@@ -1,5 +1,4 @@
-import React from "react";
-import { User, Store, ArrowRight, Sparkles } from "lucide-react";
+import { User, Store, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 

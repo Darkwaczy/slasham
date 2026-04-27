@@ -130,9 +130,18 @@ export default function MyCoupons() {
                         <p className="text-2xl font-black tracking-tighter leading-none">{coupon.price || coupon.discount}</p>
                         
                         {coupon.status === 'Active' && (
-                            <button className="mt-4 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all">
-                            <ArrowUpRight size={20} />
-                            </button>
+                            <div className="mt-4 flex flex-col items-center gap-4">
+                                <div className="bg-white p-2 rounded-2xl shadow-xl shadow-emerald-500/10">
+                                    <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${coupon.code}`} 
+                                        alt="Voucher QR"
+                                        className="w-24 h-24"
+                                    />
+                                </div>
+                                <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-slate-900">
+                                    <ArrowUpRight size={18} />
+                                </button>
+                            </div>
                         )}
                     </div>
                     </motion.div>

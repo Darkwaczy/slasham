@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../api/client";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AdminModal from "../components/AdminModal";
 
 export default function MerchantDashboard() {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ export default function MerchantDashboard() {
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{ success: boolean; message: string } | null>(null);
   const [merchant, setMerchant] = useState<any>(null);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [selectedSupport, setSelectedSupport] = useState<any>(null);
   const [stats, setStats] = useState([
     { label: "Total Revenue", value: "₦0", change: "0%", icon: <DollarSign size={20} />, color: "black" },
     { label: "Active Deals", value: "0", change: "0", icon: <Ticket size={20} />, color: "yellow" },
@@ -29,6 +32,7 @@ export default function MerchantDashboard() {
     { label: "Total Claims", value: "0", change: "0%", icon: <TrendingUp size={20} />, color: "yellow" },
   ]);
 
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [redemptions, setRedemptions] = useState<any[]>([]);
 
   useEffect(() => {
@@ -43,19 +47,31 @@ export default function MerchantDashboard() {
         setMerchant(profile);
         setRedemptions(log);
 
-        setStats([
-          { label: "Total Revenue", value: `₦${liveStats.totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
-          { label: "Active Deals", value: liveStats.activeDeals.toString(), change: "0", icon: <Ticket size={20} />, color: "yellow" },
-          { label: "New Customers", value: liveStats.uniqueCustomers.toString(), change: "+0%", icon: <Users size={20} />, color: "emerald" },
-          { label: "Total Claims", value: liveStats.totalClaims.toString(), change: "+0%", icon: <TrendingUp size={20} />, color: "yellow" },
-        ]);
+        if (liveStats && liveStats.totalRevenue > 0) {
+          setStats([
+            { label: "Total Revenue", value: `₦${liveStats.totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
+            { label: "Active Deals", value: liveStats.activeDeals.toString(), change: liveStats.activeDeals > 0 ? "↑" : "0", icon: <Ticket size={20} />, color: "yellow" },
+            { label: "New Customers", value: liveStats.uniqueCustomers.toString(), change: "+0%", icon: <Users size={20} />, color: "emerald" },
+            { label: "Total Claims", value: liveStats.totalClaims.toString(), change: "+0%", icon: <TrendingUp size={20} />, color: "yellow" },
+          ]);
+        }
       } catch (err) {
         console.error("Dashboard data fetch failed", err);
       }
     };
 
     fetchDashboardData();
+    fetchNotifications();
   }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await apiClient("/merchants/notifications");
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
 
   const formatCode = (val: string) => {
     const raw = val.replace(/[^A-Za-z0-9]/g, "").slice(0, 12).toUpperCase();
@@ -74,33 +90,75 @@ export default function MerchantDashboard() {
   };
 
   const handleValidation = async () => {
-    if (!validationCode.trim()) return;
-    
+    if (!validationCode) return;
     setIsValidating(true);
     setValidationResult(null);
-
     try {
-      const result = await apiClient("/vouchers/redeem", {
+      // Assuming a backend route exists for this, e.g., POST /vouchers/validate
+      await apiClient("/vouchers/validate", {
         method: "POST",
-        body: JSON.stringify({ voucher_code: validationCode.trim().toUpperCase() }),
+        body: JSON.stringify({ code: validationCode }),
       });
-
-      setValidationResult({ success: true, message: result.message });
-      setValidationCode("");
-      
-      // Refresh redemptions list (placeholder logic for now)
-      setRedemptions(prev => [{
-         id: validationCode.toUpperCase(),
-         customer: "Verified Customer",
-         deal: "Live Redemption",
-         time: "Just now",
-         status: "Verified"
-      }, ...prev.slice(0, 4)]);
-    } catch (err: any) {
-      setValidationResult({ success: false, message: err.message });
+      setValidationResult({ success: true, message: "Voucher is valid and ready for redemption." });
+    } catch (error: any) {
+      setValidationResult({ success: false, message: error.message || "Invalid voucher code." });
     } finally {
       setIsValidating(false);
     }
+  };
+
+  const handleDownloadReports = async () => {
+    try {
+      const reportData = await apiClient("/merchants/reports");
+      
+      // Generate CSV content
+      const csvContent = generateReportCSV(reportData);
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `merchant-report-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      alert("Failed to generate report. Please try again.");
+    }
+  };
+
+  const generateReportCSV = (data: any) => {
+    let csv = "Merchant Performance Report\n";
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    
+    // Summary section
+    csv += "SUMMARY\n";
+    csv += `Business Name,${data.merchant.name}\n`;
+    csv += `Total Revenue,₦${data.summary.totalRevenue.toLocaleString()}\n`;
+    csv += `Total Redemptions,${data.summary.totalRedemptions}\n`;
+    csv += `Active Deals,${data.summary.activeDeals}\n`;
+    csv += `Total Deals,${data.summary.totalDeals}\n`;
+    csv += `Average Rating,${data.summary.avgRating}/5\n`;
+    csv += `Total Reviews,${data.summary.totalReviews}\n\n`;
+    
+    // Deals section
+    csv += "DEALS\n";
+    csv += "Title,Original Price,Discount Price,Total Quantity,Sold Quantity,Status,Created Date,Expiry Date\n";
+    data.deals.forEach((deal: any) => {
+      csv += `"${deal.title}",${deal.originalPrice},${deal.discountPrice},${deal.totalQuantity},${deal.soldQuantity},"${deal.status}","${new Date(deal.createdAt).toLocaleDateString()}","${new Date(deal.expiryDate).toLocaleDateString()}"\n`;
+    });
+    csv += "\n";
+    
+    // Redemptions section
+    csv += "RECENT REDEMPTIONS\n";
+    csv += "Voucher Code,Deal Title,Customer Name,Customer Email,Redeemed Date,Revenue\n";
+    data.redemptions.slice(0, 50).forEach((redemption: any) => {
+      csv += `"${redemption.voucherCode}","${redemption.dealTitle}","${redemption.customerName}","${redemption.customerEmail}","${new Date(redemption.redeemedAt).toLocaleString()}","₦${redemption.revenue}"\n`;
+    });
+    
+    return csv;
   };
 
   return (
@@ -115,7 +173,7 @@ export default function MerchantDashboard() {
           </div>
           <div className="flex gap-3">
              <button 
-               onClick={() => alert("Report generation started. Security token: SLSH-DASH-REPORTS")}
+               onClick={handleDownloadReports}
                className="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:scale-105 active:scale-95 transition-all"
              >
                 Download Reports
@@ -165,6 +223,57 @@ export default function MerchantDashboard() {
             }`}>{stat.value}</p>
           </motion.div>
         ))}
+      </div>
+
+      {/* Notifications */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+          <h3 className="font-black text-xl text-slate-900 tracking-tight leading-none mb-1">Notifications</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Real-time alerts & updates</p>
+        </div>
+        <div className="max-h-96 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="p-8 text-center text-slate-400">
+              <ShieldCheck size={48} className="mx-auto mb-4 opacity-50" />
+              <p className="text-sm font-bold">All clear! No new notifications.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {notifications.slice(0, 10).map((notification, i) => (
+                <motion.div 
+                  key={notification.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className={`p-6 hover:bg-slate-50/30 transition-colors ${
+                    notification.priority === 'high' ? 'border-l-4 border-red-400 bg-red-50/20' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      notification.type === 'redemption' ? 'bg-emerald-100 text-emerald-600' :
+                      notification.type === 'inventory' ? 'bg-red-100 text-red-600' :
+                      notification.type === 'review' ? 'bg-yellow-100 text-yellow-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      {notification.type === 'redemption' && <CheckCircle2 size={20} />}
+                      {notification.type === 'inventory' && <TrendingUp size={20} />}
+                      {notification.type === 'review' && <Users size={20} />}
+                      {notification.type === 'expiry' && <Clock size={20} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-900 text-sm mb-1">{notification.title}</h4>
+                      <p className="text-slate-600 text-sm leading-relaxed">{notification.message}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
+                        {new Date(notification.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -291,7 +400,27 @@ export default function MerchantDashboard() {
             </div>
             <h3 className="font-black text-xl text-slate-900 tracking-tight mb-8">Business Support</h3>
             <div className="space-y-4 relative z-10">
-              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
+              <button 
+                onClick={() => {
+                    setSelectedSupport({
+                        title: "Merchant Booking Policy",
+                        content: (
+                            <div className="space-y-4 text-sm font-medium text-slate-600 leading-relaxed">
+                                <p>This policy outlines the standard operating procedures for redeeming Slasham vouchers at your business location.</p>
+                                <ul className="space-y-3 list-disc pl-5">
+                                    <li><strong className="text-slate-900">Verification:</strong> Merchants must verify the voucher code using the Slasham Terminal before providing service.</li>
+                                    <li><strong className="text-slate-900">Validity:</strong> Vouchers are only valid for the specific deal and timeframe indicated on the digital coupon.</li>
+                                    <li><strong className="text-slate-900">No Double Discounting:</strong> Slasham vouchers cannot be combined with other in-house promotions unless explicitly stated.</li>
+                                    <li><strong className="text-slate-900">Refunds:</strong> Slasham handles all refund inquiries. If a customer requests a refund at your location, please direct them to Slasham Support.</li>
+                                    <li><strong className="text-slate-900">Identification:</strong> You reserve the right to ask for a valid ID to match the customer name on the voucher.</li>
+                                </ul>
+                            </div>
+                        )
+                    });
+                    setIsSupportModalOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:text-emerald-600 transition-colors">
                     <Calendar size={18} />
@@ -299,8 +428,52 @@ export default function MerchantDashboard() {
                   <span className="text-sm font-black text-slate-700 tracking-tight">Booking Policy</span>
                 </div>
                 <ArrowUpRight size={18} className="text-slate-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-500 transition-all" />
-              </a>
-              <a href="#" className="flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
+              </button>
+
+              <button 
+                onClick={() => {
+                    setSelectedSupport({
+                        title: "Merchant System Guide",
+                        content: (
+                            <div className="space-y-6 text-sm font-medium text-slate-600 leading-relaxed">
+                                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1 text-left">Quick Start</p>
+                                    <p className="text-slate-700">Follow these steps to successfully manage your presence on Slasham.</p>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex gap-4 text-left">
+                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 font-black text-xs">1</div>
+                                        <div>
+                                            <p className="font-black text-slate-900 uppercase text-[10px] tracking-widest">Register Deals</p>
+                                            <p>Use the 'Campaigns' tab to submit products. Admin approval usually takes 2-4 hours.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 text-left">
+                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 font-black text-xs">2</div>
+                                        <div>
+                                            <p className="font-black text-slate-900 uppercase text-[10px] tracking-widest">Validate Codes</p>
+                                            <p>When a customer arrives, use the 'Scanner' to input their 12-digit code. Always 'Redeem' to get paid.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 text-left">
+                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 font-black text-xs">3</div>
+                                        <div>
+                                            <p className="font-black text-slate-900 uppercase text-[10px] tracking-widest">Monitor Payouts</p>
+                                            <p>Track your earnings in 'Analytics'. Settlements are processed every Friday at 12:00 PM.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="pt-4 border-t border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Technical Support</p>
+                                    <p>Email: <span className="text-indigo-600">partners@slasham.com</span></p>
+                                </div>
+                            </div>
+                        )
+                    });
+                    setIsSupportModalOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-5 bg-slate-50 rounded-4xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:text-emerald-600 transition-colors">
                     <Search size={18} />
@@ -308,11 +481,28 @@ export default function MerchantDashboard() {
                   <span className="text-sm font-black text-slate-700 tracking-tight">System Guide</span>
                 </div>
                 <ArrowUpRight size={18} className="text-slate-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-500 transition-all" />
-              </a>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      <AdminModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+        title={selectedSupport?.title || "Support"}
+        description="Help and documentation for Slasham partners."
+      >
+        <div className="pt-4 pb-6">
+            {selectedSupport?.content}
+            <button 
+                onClick={() => setIsSupportModalOpen(false)}
+                className="w-full mt-10 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all"
+            >
+                Got it, thanks
+            </button>
+        </div>
+      </AdminModal>
     </div>
   );
 }

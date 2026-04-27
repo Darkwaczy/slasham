@@ -18,13 +18,14 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const { user } = await apiClient("/auth/login", {
+      const { user, token } = await apiClient("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
 
       // Save session
       localStorage.setItem("slasham_user", JSON.stringify(user));
+      if (token) localStorage.setItem("slasham_token", token);
 
       navigate("/admin/dashboard");
     } catch (err: any) {

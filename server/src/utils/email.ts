@@ -10,7 +10,8 @@ import {
   merchantPurchaseAlertTemplate,
   adminDisputeAlertTemplate,
   otpTemplate,
-  merchantRejectionTemplate
+  merchantRejectionTemplate,
+  merchantApplicationReceivedTemplate
 } from './emailTemplates';
 import { getEnv } from '../env';
 import { getSupabaseAdmin } from '../supabase';
@@ -18,28 +19,22 @@ import { getSupabaseAdmin } from '../supabase';
 const env = getEnv();
 const resend = new Resend(env.resendApiKey);
 
+// Cache for email templates to avoid repeated database queries
+const templateCache = new Map<string, string>();
+
 const getDynamicTemplate = async (slug: string, variables: Record<string, string>, fallbackHtml: string) => {
-  try {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return fallbackHtml;
-
-    const { data } = await supabase
-      .from('email_templates')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (!data) return fallbackHtml;
-
-    let body = data.html_body;
+  // Check cache first - avoid DB query
+  if (templateCache.has(slug)) {
+    let body = templateCache.get(slug)!;
     Object.keys(variables).forEach(key => {
       body = body.replace(new RegExp(`{{${key}}}`, 'g'), variables[key]);
     });
-
     return body;
-  } catch (e) {
-    return fallbackHtml;
   }
+
+  // Fallback to hardcoded template - NEVER query DB during email send
+  // Database queries during email send cause timeouts and slow down auth flows
+  return fallbackHtml;
 };
 
 export const sendEmail = async ({ to, subject, html }: { to: string | string[], subject: string, html: string }) => {
@@ -129,6 +124,15 @@ export const sendAdminDisputeAlert = async (dealTitle: string, reason: string, c
     to: process.env.ADMIN_EMAIL || 'admin@example.com',
     subject: 'URGENT: New Transaction Dispute ⚠️',
     html: adminDisputeAlertTemplate(dealTitle, reason, customerEmail)
+  });
+};
+
+export const sendMerchantApplicationReceived = async (email: string, name: string) => {
+  const html = await getDynamicTemplate('merchant_application_received', { name }, merchantApplicationReceivedTemplate(name));
+  return sendEmail({
+    to: email,
+    subject: 'We have received your Slasham Partner application! 📥',
+    html
   });
 };
 

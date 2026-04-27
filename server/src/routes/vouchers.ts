@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomBytes } from "crypto";
 import { getSupabaseAdmin } from "../supabase";
 import { requireAuth } from "../middleware/auth";
 import { sendCouponPurchased, sendMerchantPurchaseAlert, sendCouponRedeemed } from "../utils/email";
@@ -7,10 +8,8 @@ const router = Router();
 
 // Generate random voucher code (e.g. SLSH-X8J-9M2)
 const generateVoucherCode = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const p1 = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  const p2 = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `SLSH-${p1}-${p2}`;
+  const code = randomBytes(4).toString('hex').toUpperCase(); // 8 character secure hex
+  return `SLSH-${code.slice(0, 4)}-${code.slice(4)}`;
 };
 
 // User claims a deal
@@ -37,13 +36,17 @@ router.post("/claim", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Deal is sold out" });
     }
 
-    // 2. Increment sold quantity
-    const { error: updateError } = await supabase
+    // 2. Increment sold quantity (Optimistic Concurrency Control)
+    const { error: updateError, data: updateData } = await supabase
       .from("deals")
       .update({ sold_quantity: deal.sold_quantity + 1 })
-      .eq("id", deal_id);
+      .eq("id", deal_id)
+      .eq("sold_quantity", deal.sold_quantity)
+      .select();
 
-    if (updateError) throw updateError;
+    if (updateError || !updateData || updateData.length === 0) {
+      return res.status(409).json({ error: "Deal is currently busy or sold out. Please try again." });
+    }
 
     // 3. Create voucher
     const voucherCode = generateVoucherCode();
@@ -65,14 +68,14 @@ router.post("/claim", requireAuth, async (req, res) => {
       const { data: user } = await supabase.from("users").select("name, email").eq("id", req.user.id).single();
       
       if (user) {
-        await sendCouponPurchased(user.email, user.name, deal.title, voucherCode, deal.discount_price.toString());
+        sendCouponPurchased(user.email, user.name, deal.title, voucherCode, deal.discount_price.toString()).catch(e => console.error("BG Email Error:", e));
         
         // Alert Merchant
         // @ts-ignore
         const merchantEmail = deal.merchants?.users?.email;
         if (merchantEmail) {
             // @ts-ignore
-            await sendMerchantPurchaseAlert(merchantEmail, deal.merchants.business_name, deal.title, user.name);
+            sendMerchantPurchaseAlert(merchantEmail, deal.merchants.business_name, deal.title, user.name).catch(e => console.error("BG Email Error:", e));
         }
       }
     } catch (emailErr) {
@@ -116,6 +119,70 @@ router.get("/my-vouchers", requireAuth, async (req, res) => {
   }
 });
 
+// Merchant validates a voucher without redeeming it
+router.post("/validate", requireAuth, async (req, res) => {
+  try {
+    const { voucher_code } = req.body;
+    if (!voucher_code) return res.status(400).json({ error: "Voucher code required" });
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    // 1. Verify merchant
+    const { data: merchant } = await supabase
+      .from("merchants")
+      .select("id")
+      .eq("user_id", req.user.id)
+      .single();
+
+    if (!merchant) return res.status(403).json({ error: "Only merchants can validate vouchers" });
+
+    // 2. Find voucher
+    const { data: voucher, error: voucherError } = await supabase
+      .from("vouchers")
+      .select(`
+        *,
+        deals ( 
+          merchant_id, 
+          title, 
+          images,
+          discount_price
+        ),
+        users (
+          name
+        )
+      `)
+      .eq("voucher_code", voucher_code.toUpperCase())
+      .single();
+
+    if (voucherError || !voucher) {
+      return res.status(404).json({ error: "Voucher not found or invalid" });
+    }
+
+    // 3. Verify ownership (Is this voucher for THIS merchant?)
+    // @ts-ignore
+    if (voucher.deals.merchant_id !== merchant.id) {
+      return res.status(403).json({ error: "This voucher belongs to a different merchant" });
+    }
+
+    res.json({ 
+      success: true, 
+      message: voucher.status === "REDEEMED" ? "Voucher already used" : "Voucher valid",
+      voucher: {
+        id: voucher.id,
+        code: voucher.voucher_code,
+        status: voucher.status,
+        customer: voucher.users?.name,
+        deal: voucher.deals?.title,
+        price: voucher.deals?.discount_price,
+        image: voucher.deals?.images?.[0]
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Merchant redeems a voucher
 router.post("/redeem", requireAuth, async (req, res) => {
   try {
@@ -138,7 +205,7 @@ router.post("/redeem", requireAuth, async (req, res) => {
     const { data: voucher, error: voucherError } = await supabase
       .from("vouchers")
       .select("*, deals ( merchant_id )")
-      .eq("voucher_code", voucher_code)
+      .eq("voucher_code", voucher_code.toUpperCase())
       .single();
 
     if (voucherError || !voucher) {
@@ -180,7 +247,7 @@ router.post("/redeem", requireAuth, async (req, res) => {
             .single();
         
         if (user) {
-            await sendCouponRedeemed(user.email, user.name, updated.deals.title);
+            sendCouponRedeemed(user.email, user.name, updated.deals.title).catch(e => console.error("BG Email Error:", e));
         }
     } catch (emailErr) {
         console.error("Voucher redemption email failed:", emailErr);

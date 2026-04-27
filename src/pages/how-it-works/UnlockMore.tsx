@@ -1,5 +1,4 @@
-import React from "react";
-import { Zap, Sparkles, Gift, Star, Users, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { Zap, Sparkles, Gift, Star, Users, ArrowUpRight } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function UnlockMore() {

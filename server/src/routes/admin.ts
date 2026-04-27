@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { randomBytes } from "crypto";
 import { getSupabaseAdmin } from "../supabase";
 import { requireAuth } from "../middleware/auth";
-import { sendOnboardingEmail } from "../utils/email";
+import { sendOnboardingEmail, sendRejectionEmail } from "../utils/email";
 
 const router = Router();
 
@@ -110,47 +111,43 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const results: any = await Promise.all([
-      supabase.from("users").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("merchants").select("*, users(email, name)", { count: 'exact' }).limit(50),
-      supabase.from("merchant_applications").select("*", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("deals").select("*, merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("campaign_requests").select("*, merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("vouchers").select("*, users(email, name), deals(title, merchants(business_name))", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("reports").select("*, users(name, email), merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("reviews").select("*, users(name), merchants(business_name)", { count: 'exact' }).order('created_at', { ascending: false }).limit(50),
-      supabase.from("system_settings").select("*").single(),
-      supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20),
-      supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30)
-    ]);
-
     const [
-      { data: profiles, count: userCount },
-      { data: merchants, count: merchantCount },
-      { data: apps, count: appCount },
-      { data: deals, count: dealCount },
-      { data: requests, count: requestCount },
-      { data: vouchers, count: voucherCount },
-      { data: reports, count: reportCount },
-      { data: reviews, count: reviewCount },
+      { count: userCount },
+      { count: merchantCount },
+      { count: appCount },
+      { count: dealCount },
+      { count: requestCount },
+      { count: voucherCount },
+      { count: reportCount },
+      { count: reviewCount },
       { data: systemSettings },
       { data: auditLogs },
-      { data: analytics }
-    ] = results;
-
-    // Calculate total revenue from all vouchers
-    const { data: voucherRevenue } = await supabase.from("vouchers").select("amount");
-    const totalRevenue = (voucherRevenue || []).reduce((acc: number, v: any) => acc + (Number(v.amount) || 0), 0);
+      { data: analytics },
+      { data: applications }
+    ] = await Promise.all([
+      supabase.from("users").select("id", { count: 'exact', head: true }),
+      supabase.from("merchants").select("id", { count: 'exact', head: true }),
+      supabase.from("merchant_applications").select("id", { count: 'exact', head: true }),
+      supabase.from("deals").select("id", { count: 'exact', head: true }),
+      supabase.from("campaign_requests").select("id", { count: 'exact', head: true }),
+      supabase.from("vouchers").select("id", { count: 'exact', head: true }),
+      supabase.from("reports").select("id", { count: 'exact', head: true }),
+      supabase.from("reviews").select("id", { count: 'exact', head: true }),
+      supabase.from("system_settings").select("*").single(),
+      supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30),
+      supabase.from("merchant_applications").select("id, business_name, created_at, status").order('created_at', { ascending: false }).limit(5)
+    ]);
 
     res.json({
-      users: profiles || [],
-      merchants: merchants || [],
-      applications: apps || [],
-      deals: deals || [],
-      requests: requests || [],
-      vouchers: vouchers || [],
-      reports: reports || [],
-      reviews: reviews || [],
+      users: [],
+      merchants: [],
+      applications: applications || [],
+      deals: [],
+      requests: [],
+      vouchers: [],
+      reports: [],
+      reviews: [],
       auditLogs: auditLogs || [],
       analytics: analytics || [],
       settings: systemSettings?.config || {
@@ -166,15 +163,15 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
         sessionTimeout: "24h"
       },
       counts: {
-        users: userCount,
-        merchants: merchantCount,
-        applications: appCount,
-        deals: dealCount,
-        requests: requestCount,
-        vouchers: voucherCount,
-        reports: reportCount,
-        reviews: reviewCount,
-        total_revenue: totalRevenue
+        users: userCount || 0,
+        merchants: merchantCount || 0,
+        applications: appCount || 0,
+        deals: dealCount || 0,
+        requests: requestCount || 0,
+        vouchers: voucherCount || 0,
+        reports: reportCount || 0,
+        reviews: reviewCount || 0,
+        total_revenue: 0
       }
     });
   } catch (error: any) {
@@ -219,16 +216,69 @@ router.get("/merchants", requireAuth, requireAdmin, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const { data, error } = await supabase
+    const { page = 1, limit = 20, search = "" } = req.query;
+    const from = (Number(page) - 1) * Number(limit);
+    const to = from + Number(limit) - 1;
+
+    let query = supabase
       .from("merchants")
       .select(`
         *,
         users ( email, name )
-      `)
-      .order("created_at", { ascending: false });
+      `, { count: "exact" });
+
+    if (search) {
+      query = query.or(`business_name.ilike.%${search}%,rc_number.ilike.%${search}%`);
+    }
+
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (error) throw error;
-    res.json(data);
+    res.json({
+        data,
+        count,
+        page: Number(page),
+        limit: Number(limit)
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin views all deals
+router.get("/deals", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { page = 1, limit = 20, search = "" } = req.query;
+    const from = (Number(page) - 1) * Number(limit);
+    const to = from + Number(limit) - 1;
+
+    let query = supabase
+      .from("deals")
+      .select(`
+        *,
+        merchants ( business_name )
+      `, { count: "exact" });
+
+    if (search) {
+      query = query.ilike("title", `%${search}%`);
+    }
+
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+    res.json({
+        data,
+        count,
+        page: Number(page),
+        limit: Number(limit)
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -342,16 +392,28 @@ router.get("/users", requireAuth, requireAdmin, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    // 1. Fetch all users from Supabase Auth (The ultimate source of truth)
-    const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+    const { page = 1, limit = 20, search = "" } = req.query;
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
+    // 1. Fetch users from Supabase Auth with pagination
+    const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers({
+      page: pageNum,
+      perPage: limitNum,
+    });
     if (authError) throw authError;
 
-    // 2. Fetch all profiles from public.users (For metadata like city, points, etc.)
-    const { data: profiles } = await supabase.from("users").select("*");
+    // 2. Fetch profiles from public.users for the specific users returned
+    const userIds = authUsers.map(u => u.id);
+    const { data: profiles } = await supabase
+        .from("users")
+        .select("*")
+        .in("id", userIds);
+    
     const profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
 
     // 3. Merge them
-    const mergedUsers = authUsers.map(au => {
+    let mergedUsers = authUsers.map(au => {
       const p = profileMap.get(au.id) as any || {};
       return {
         id: au.id,
@@ -365,7 +427,25 @@ router.get("/users", requireAuth, requireAdmin, async (req, res) => {
       };
     });
 
-    res.json(mergedUsers);
+    // 4. Simple search filter (Ideally this would be done in the DB query, but joining Auth & DB is tricky)
+    if (search) {
+      const term = (search as string).toLowerCase();
+      mergedUsers = mergedUsers.filter(u => 
+        u.email?.toLowerCase().includes(term) || 
+        u.name?.toLowerCase().includes(term)
+      );
+    }
+
+    // Since listUsers doesn't return total count easily without fetching all, 
+    // we'll fetch the count separately for the pagination UI
+    const { count } = await supabase.from("users").select("id", { count: "exact", head: true });
+
+    res.json({
+        data: mergedUsers,
+        count: count || 0,
+        page: pageNum,
+        limit: limitNum
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -472,7 +552,7 @@ router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Merchant Applications Management
-router.get("/applications", requireAuth, async (req, res) => {
+router.get("/applications", requireAuth, requireAdmin, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -497,7 +577,7 @@ router.get("/applications", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/applications/:id/approve", requireAuth, async (req, res) => {
+router.post("/applications/:id/approve", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const supabase = getSupabaseAdmin();
@@ -513,8 +593,8 @@ router.post("/applications/:id/approve", requireAuth, async (req, res) => {
     if (appError || !app) throw new Error("Application not found");
 
     // 2. Create User account (Supabase Auth)
-    // For demo/onboarding flow, we use a temp password
-    const tempPassword = "Slasham" + Math.floor(1000 + Math.random() * 9000);
+    // For demo/onboarding flow, we use a secure random password
+    const tempPassword = randomBytes(6).toString('hex'); // 12 character hex string
     
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: app.email,
@@ -561,8 +641,10 @@ router.post("/applications/:id/approve", requireAuth, async (req, res) => {
       .update({ status: 'APPROVED' })
       .eq("id", id);
 
-    // 5. Send Onboarding Email
-    await sendOnboardingEmail(app.email, app.contact_name, tempPassword);
+    // 5. Send Onboarding Email (Non-blocking)
+    sendOnboardingEmail(app.email, app.contact_name, tempPassword).catch(err => {
+        console.error("Failed to send onboarding email in background:", err);
+    });
 
     res.json({ success: true, tempPassword });
   } catch (error: any) {
@@ -570,7 +652,7 @@ router.post("/applications/:id/approve", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/applications/:id/reject", requireAuth, async (req, res) => {
+router.post("/applications/:id/reject", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -595,9 +677,10 @@ router.post("/applications/:id/reject", requireAuth, async (req, res) => {
 
     if (error) throw error;
 
-    // 2. Send Rejection Email
-    const { sendRejectionEmail } = await import("../utils/email.js");
-    await sendRejectionEmail(app.email, app.contact_name, reason);
+    // 2. Send Rejection Email (Non-blocking)
+    sendRejectionEmail(app.email, app.contact_name, reason).catch(err => {
+        console.error("Failed to send rejection email in background:", err);
+    });
 
     res.json({ success: true, message: "Application rejected" });
   } catch (error: any) {

@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Share2, ArrowRight, ShoppingBag } from "lucide-react";
 import { motion } from "motion/react";
@@ -45,12 +46,13 @@ function getExpiryLabel(expiryDate?: string): string | null {
   return `${days} day${days !== 1 ? 's' : ''} left`;
 }
 
-export default function DealCard({ 
-  id, title, price, original, image, category, location, 
-  totalQuantity = 100, soldQuantity = 0, expiryDate, dealExplanation, index 
-}: DealCardProps) {
-  const expiryLabel = getExpiryLabel(expiryDate);
-  const isUrgent = !!expiryLabel && (expiryLabel.includes('hr') || expiryLabel === 'Expired');
+const DealCard = React.memo<DealCardProps>(({
+  id, title, price, original, image, category, location,
+  totalQuantity = 100, soldQuantity = 0, expiryDate, dealExplanation, index
+}) => {
+  // Memoize expensive calculations
+  const expiryLabel = useMemo(() => getExpiryLabel(expiryDate), [expiryDate]);
+  const isUrgent = useMemo(() => !!expiryLabel && (expiryLabel.includes('hr') || expiryLabel === 'Expired'), [expiryLabel]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,12 +68,13 @@ export default function DealCard({
     }
   };
 
-  const theme = THEMES[category as keyof typeof THEMES] || 
-                THEMES[Object.keys(THEMES).find(k => k.toLowerCase() === (category || '').toLowerCase()) as keyof typeof THEMES] || 
-                THEMES.default;
+  const theme = useMemo(() => {
+    return THEMES[category as keyof typeof THEMES] ||
+           THEMES[Object.keys(THEMES).find(k => k.toLowerCase() === (category || '').toLowerCase()) as keyof typeof THEMES] ||
+           THEMES.default;
+  }, [category]);
 
   // Forced brand rhythm: Green-Yellow-Green-Yellow
-  // We use (index % 2) to alternate.
   const forcedTheme = index !== undefined ? (index % 2 === 0 ? THEMES.Grocery : THEMES.Food) : theme;
 
   return (
@@ -94,8 +97,6 @@ export default function DealCard({
           )}
         </div>
 
-
-
         {/* Image Container */}
         <div className="aspect-4/3 overflow-hidden relative">
           <img
@@ -107,7 +108,6 @@ export default function DealCard({
           />
           {/* Image Overlays */}
           <div className="absolute bottom-3 left-3 flex gap-2">
-
             {id % 5 === 0 && (
               <div className="bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg">
                 New
@@ -178,4 +178,8 @@ export default function DealCard({
       </Link>
     </motion.div>
   );
-}
+});
+
+DealCard.displayName = 'DealCard';
+
+export default DealCard;

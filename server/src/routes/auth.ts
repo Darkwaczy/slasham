@@ -11,10 +11,10 @@ const env = getEnv();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name, phone, city, role } = req.body;
 
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!email || !password || !name || !phone || !city) {
+      return res.status(400).json({ error: "Missing required fields (email, password, name, phone, city)" });
     }
 
     const authClient = getAuthClient();
@@ -37,7 +37,7 @@ router.post("/register", async (req, res) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, role: role || "USER" }
+      user_metadata: { name, phone, city, role: "USER" }
     });
 
     if (authError) throw authError;
@@ -53,7 +53,9 @@ router.post("/register", async (req, res) => {
         id: authData.user.id,
         email,
         name,
-        role: role || "USER",
+        phone,
+        city,
+        role: "USER",
         otp_code: otpCode,
         otp_expires: otpExpires.toISOString(),
         otp_attempts: 0,
@@ -67,7 +69,7 @@ router.post("/register", async (req, res) => {
         id: authData.user.id,
         email,
         name,
-        role: role || "USER",
+        role: "USER",
         otp_code: otpCode,
         otp_expires: otpExpires.toISOString(),
         is_verified: false
@@ -75,19 +77,93 @@ router.post("/register", async (req, res) => {
       if (fallbackError) throw fallbackError;
     }
 
-    // 4. Trigger OTP Email
-    try {
-      await sendOTP(email, name, otpCode);
-    } catch (emailErr) {
-      console.error("OTP email failed to send:", emailErr);
-    }
+    // 4. Trigger OTP Email (Non-blocking)
+    sendOTP(email, name, otpCode).catch(emailErr => {
+      console.error("OTP email failed to send in background:", emailErr);
+    });
 
     res.status(201).json({ 
       message: "Registration successful. Please verify your email.",
       userId: authData.user.id 
     });
   } catch (error: any) {
+    // Better UX: If user tries to register again with an unverified email, resend the OTP
+    if (error.message?.includes("Email already exists") || error.code === "23505" || error.message?.includes("already been registered")) {
+      const { email } = req.body;
+      const supabase = getSupabaseAdmin();
+      const authClient = getAuthClient();
+      
+      if (supabase && authClient) {
+        // 1. Check if they exist in our DB
+        const { data: existingUser } = await supabase.from("users").select("id, is_verified, name").eq("email", email).single();
+        
+        if (existingUser && !existingUser.is_verified) {
+          const otpCode = randomInt(100000, 999999).toString();
+          const otpExpires = new Date(Date.now() + 10 * 60000);
+          await supabase.from("users").update({
+            otp_code: otpCode,
+            otp_expires: otpExpires.toISOString(),
+            otp_attempts: 0
+          }).eq("email", email);
+          
+          sendOTP(email, existingUser.name, otpCode).catch(e => console.error("BG Email Error:", e));
+          return res.status(200).json({ message: "Account already exists but is unverified. A new code has been sent.", action: "VERIFY_EMAIL" });
+        } else if (!existingUser) {
+          // 2. Profile missing? Check Supabase Auth for this specific email only
+          // We can't easily filter listUsers by email in the admin API without a full scan,
+          // so we rely on the fact that if they are missing from public.users, 
+          // we can't reliably send them an OTP anyway without an ID.
+          // For now, we return the standard error to keep it fast.
+          return res.status(400).json({ error: "Account exists in Auth but profile is missing. Please contact support." });
+        }
+      }
+      return res.status(400).json({ error: "A user with this email address has already been registered" });
+    }
     res.status(400).json({ error: error.message || "Registration failed" });
+  }
+});
+
+// Resend OTP
+router.post("/resend-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const supabase = getSupabaseAdmin();
+    const authClient = getAuthClient();
+    if (!supabase) throw new Error("DB not configured");
+
+    // 1. Verify user exists in our DB (indexed search)
+    const { data: user, error: dbError } = await supabase
+      .from("users")
+      .select("id, name, is_verified")
+      .eq("email", email)
+      .single();
+
+    if (dbError || !user) {
+      return res.status(404).json({ error: "No account found with this email." });
+    }
+
+    // 2. Generate new OTP
+    const otpCode = randomInt(100000, 999999).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+    // 3. Update public.users
+    await supabase.from("users").update({
+      otp_code: otpCode,
+      otp_expires: otpExpires.toISOString(),
+      otp_attempts: 0,
+      is_verified: false
+    }).eq("id", user.id);
+
+    // 4. Send Email (Non-blocking)
+    sendOTP(email, user.name || "Member", otpCode).catch(emailErr => {
+      console.error("OTP resend email failed in background:", emailErr);
+    });
+
+    res.json({ message: "A new verification code has been sent to your email." });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -136,13 +212,9 @@ router.post("/verify-otp", async (req, res) => {
 
     if (updateError) throw updateError;
 
-    // 3. Trigger Welcome Emails after verification
-    try {
-      await sendUserWelcome(user.email, user.name);
-      await sendFounderWelcome(user.email, user.name);
-    } catch (emailErr) {
-      console.error("Welcome emails failed to send:", emailErr);
-    }
+    // 3. Trigger Welcome Emails after verification (Non-blocking)
+    sendUserWelcome(user.email, user.name).catch(e => console.error("BG Email Error:", e));
+    sendFounderWelcome(user.email, user.name).catch(e => console.error("BG Email Error:", e));
 
     res.json({ message: "Email verified successfully" });
   } catch (error: any) {
@@ -169,24 +241,40 @@ router.post("/login", async (req, res) => {
     res.cookie("slasham_session", data.session.access_token, {
       httpOnly: true,
       secure: env.nodeEnv === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: data.session.expires_in * 1000,
     });
 
     // Also fetch the user's role from the public.users table
     const supabaseAdmin = getSupabaseAdmin();
     let role = "USER";
-    let is_verified = false;
+    let is_verified = !!data.user.email_confirmed_at; // TRUST AUTH STATUS FIRST
+
     if (supabaseAdmin) {
-      const { data: userRecord } = await supabaseAdmin
+      // Fetch user role in a single query (avoid 2 sequential queries)
+      const { data: existingUser } = await supabaseAdmin
         .from("users")
-        .select("role, is_verified")
+        .select("id, role, is_verified")
         .eq("id", data.user.id)
         .single();
-      if (userRecord) {
-        role = userRecord.role;
-        is_verified = userRecord.is_verified;
+
+      const finalRole = existingUser?.role === "ADMIN" ? "ADMIN" : (data.user.user_metadata?.role || "USER");
+
+      // Only upsert if user doesn't exist (avoid redundant write)
+      if (!existingUser) {
+        await supabaseAdmin
+          .from("users")
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.name || "Member",
+            is_verified: true, 
+            role: finalRole
+          });
       }
+
+      role = existingUser?.role || finalRole;
+      is_verified = existingUser?.is_verified || is_verified;
     }
 
     // Block unverified or banned users
@@ -206,8 +294,13 @@ router.post("/login", async (req, res) => {
       user: {
         id: data.user.id,
         email: data.user.email,
+        name: data.user.user_metadata?.name || "Member",
+        phone: data.user.user_metadata?.phone || "",
+        city: data.user.user_metadata?.city || "",
         role,
-        is_verified
+        is_verified,
+        points: 0,
+        total_savings: 0
       },
     });
   } catch (error: any) {
@@ -222,7 +315,7 @@ router.get("/me", requireAuth, async (req, res) => {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, email, name, role, is_verified, created_at")
+      .select("id, email, name, role, is_verified, created_at, phone, city, points, total_savings, avatar_url")
       .eq("id", req.user.id)
       .single();
 
@@ -235,7 +328,12 @@ router.get("/me", requireAuth, async (req, res) => {
         name: req.user.user_metadata?.name || "Member",
         role: req.user.user_metadata?.role || "USER",
         is_verified: !!req.user.email_confirmed_at,
-        created_at: req.user.created_at
+        created_at: req.user.created_at,
+        phone: "",
+        city: "",
+        points: 0,
+        total_savings: 0,
+        avatar_url: null
       });
     }
 
@@ -261,6 +359,50 @@ router.patch("/me", requireAuth, async (req, res) => {
     if (error) throw error;
 
     res.json(user);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const authClient = getAuthClient();
+    const { error } = await authClient.auth.resetPasswordForEmail(email, {
+      redirectTo: `${req.headers.origin}/#/reset-password`,
+    });
+
+    if (error) throw error;
+
+    res.json({ message: "Password reset instructions sent to your email." });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { password, token } = req.body;
+    if (!password) return res.status(400).json({ error: "New password is required" });
+
+    const authClient = getAuthClient();
+    
+    // If a token is provided (from URL), verify it first
+    if (token) {
+        const { error: sessionError } = await authClient.auth.verifyOtp({
+            email: req.body.email,
+            token,
+            type: 'recovery'
+        });
+        if (sessionError) throw sessionError;
+    }
+
+    const { error } = await authClient.auth.updateUser({ password });
+    if (error) throw error;
+
+    res.json({ message: "Password updated successfully. You can now log in." });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

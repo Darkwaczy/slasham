@@ -1,16 +1,48 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin, Users, CheckCircle } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
 import AdminSkeleton from "../../components/AdminSkeleton";
-
 import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminBusinesses() {
-  const { data, isLoading, refreshData, updateData } = useAdminData();
-  const merchants = data?.merchants || [];
+  const { data, isLoading, updateData, fetchEntity } = useAdminData();
   
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [, setIsAddModalOpen] = useState(false);
+  const [selectedBiz, setSelectedBiz] = useState<any>(null);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isQuickDealModalOpen, setIsQuickDealModalOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const [isHotCoupon, setIsHotCoupon] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  const fetchBusinesses = async () => {
+    try {
+      await fetchEntity('merchants', currentPage, pageSize, searchQuery);
+    } catch (err) {
+      console.error("Failed to fetch businesses", err);
+    } finally {
+      if (isInitialLoad) setIsInitialLoad(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchBusinesses();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchQuery]);
+
+  const merchants = data?.merchants || [];
+  const totalMerchants = data?.counts?.merchants || merchants.length;
+  const totalPages = Math.ceil(totalMerchants / pageSize);
+
   const businesses = merchants.map((m: any) => ({
     id: m.id,
     name: m.business_name,
@@ -23,21 +55,9 @@ export default function AdminBusinesses() {
     address: m.address
   }));
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedBiz, setSelectedBiz] = useState<any>(null);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [isQuickDealModalOpen, setIsQuickDealModalOpen] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState("All");
-
-  const [isHotCoupon, setIsHotCoupon] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
   const filteredBusinesses = businesses.filter(b => {
-    const matchesSearch = (b.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (b.owner || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "All" || b.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   const handleToggleVerify = async (biz: any) => {
@@ -104,13 +124,13 @@ export default function AdminBusinesses() {
         setIsActionModalOpen(false);
         setPreviewImage(null);
         alert(`Success: Live deal launched for ${selectedBiz.name}.`);
-        refreshData();
+        fetchBusinesses();
     } catch (error: any) {
         alert("Launch failed: " + error.message);
     }
   };
 
-  if (isLoading) return <AdminSkeleton />;
+  if (isLoading && isInitialLoad) return <AdminSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -128,51 +148,6 @@ export default function AdminBusinesses() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { 
-            label: "Total Partners", count: businesses.length, sub: `${businesses.filter(b => b.status ==='Pending').length} pending`,
-            icon: Users,
-            bgClass: "bg-indigo-50", borderClass: "border-indigo-100", 
-            textClass: "text-indigo-700", labelClass: "text-indigo-500", subClass: "text-indigo-600/70",
-            iconBg: "bg-white/60", iconColor: "text-indigo-600"
-          },
-          { 
-            label: "Active Partners", count: businesses.filter(b => b.status === 'Verified').length, sub: "Trusted network status",
-            icon: ShieldCheck,
-            bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
-            textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
-            iconBg: "bg-white/60", iconColor: "text-emerald-600"
-          },
-          { 
-            label: "Deal Velocity", count: "4.2d", sub: "Clearance time",
-            icon: Zap,
-            bgClass: "bg-amber-50", borderClass: "border-amber-100", 
-            textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
-            iconBg: "bg-white/60", iconColor: "text-amber-600"
-          },
-          { 
-            label: "Success Rate", count: "98%", sub: "Order fulfillment",
-            icon: CheckCircle,
-            bgClass: "bg-violet-50", borderClass: "border-violet-100", 
-            textClass: "text-violet-700", labelClass: "text-violet-500", subClass: "text-violet-600/70",
-            iconBg: "bg-white/60", iconColor: "text-violet-600"
-          },
-        ].map((stat, i) => (
-          <div key={i} className={`p-6 rounded-4xl border ${stat.bgClass} ${stat.borderClass} shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}>
-            <div className="flex justify-between items-start mb-4">
-              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.labelClass}`}>{stat.label}</p>
-              <div className={`w-10 h-10 rounded-2xl ${stat.iconBg} flex items-center justify-center ${stat.iconColor} shadow-sm backdrop-blur-sm`}>
-                <stat.icon size={20} />
-              </div>
-            </div>
-            <p className={`text-4xl font-black ${stat.textClass} tracking-tight mb-2`}>{stat.count}</p>
-            <p className={`text-[11px] font-bold ${stat.subClass}`}>{stat.sub}</p>
-          </div>
-        ))}
-      </div>
-
       {/* Business Table */}
       <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/10">
@@ -182,7 +157,10 @@ export default function AdminBusinesses() {
               type="text" 
               placeholder="Search businesses..." 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+              }}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
@@ -201,7 +179,12 @@ export default function AdminBusinesses() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          {isInitialLoad && merchants.length === 0 ? (
+            <div className="p-6">
+              <AdminSkeleton />
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Business Identity</th>
@@ -261,29 +244,34 @@ export default function AdminBusinesses() {
               </AnimatePresence>
             </tbody>
           </table>
-          {filteredBusinesses.length === 0 && (
+          )}
+          {filteredBusinesses.length === 0 && !isInitialLoad && (
               <div className="py-20 text-center text-slate-400">
                   <p className="text-sm font-bold uppercase tracking-widest">No matching partners found.</p>
               </div>
           )}
         </div>
-      </div>
 
-      {/* New Partner Modal */}
-      <AdminModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Register New Partner"
-        description="Initialize a new business identity in the Slasham network."
-      >
-        <div className="space-y-6 pt-6 mb-8 text-sm">
-           <p className="text-slate-500 font-medium">Onboarding a new business requires manual verification of legal documents. Proceed with adding this business?</p>
-           <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setIsAddModalOpen(false)} className="py-4 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancel</button>
-              <button className="py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-600/10">Add Partner</button>
-           </div>
+        <div className="p-6 bg-slate-50/30 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <p>Page {currentPage} of {Math.max(1, totalPages)} • Total {totalMerchants} Partners</p>
+          <div className="flex gap-2">
+            <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+            >
+                Prev
+            </button>
+            <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl disabled:opacity-50 font-bold hover:bg-slate-50 transition-colors"
+            >
+                Next
+            </button>
+          </div>
         </div>
-      </AdminModal>
+      </div>
 
       {/* Action/Manage Business Modal */}
       <AdminModal
@@ -296,7 +284,7 @@ export default function AdminBusinesses() {
           <div className="flex items-center justify-between p-6 bg-slate-50 rounded-4xl border border-slate-100 mb-6">
              <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl">
-                   {selectedBiz?.name.charAt(0)}
+                   {selectedBiz?.name?.charAt(0) || "B"}
                 </div>
                 <div>
                    <h3 className="text-xl font-black text-slate-900 leading-none mb-1">{selectedBiz?.name}</h3>
@@ -334,7 +322,6 @@ export default function AdminBusinesses() {
       >
         <form onSubmit={handleCreateDirectDeal} className="space-y-6 pt-6 mb-8 overflow-y-auto max-h-[70vh] px-2 text-sm">
           <div className="space-y-4">
-             {/* Core Identity */}
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Holding Company Name</label>
@@ -381,7 +368,6 @@ export default function AdminBusinesses() {
                 </div>
              </div>
 
-             {/* Images */}
              <div className="p-6 bg-slate-50 rounded-4xl border border-slate-100 space-y-4">
                 <div className="flex items-center justify-between">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 px-1">Product Photo (Full View Rendering)</label>
@@ -408,7 +394,6 @@ export default function AdminBusinesses() {
                 )}
              </div>
 
-             {/* Pricing & Scheduling */}
              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-1">Slasham Price</label>

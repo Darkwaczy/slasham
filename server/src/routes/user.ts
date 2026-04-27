@@ -117,7 +117,8 @@ router.post("/reviews", requireAuth, async (req, res) => {
         deal_id,
         merchant_id,
         rating,
-        comment
+        comment,
+        media: req.body.media || []
       })
       .select()
       .single();
@@ -135,7 +136,7 @@ router.post("/reviews", requireAuth, async (req, res) => {
         // @ts-ignore
         const merchantEmail = merchant?.users?.email;
         if (merchantEmail) {
-            await sendMerchantReviewAlert(merchantEmail, merchant.business_name, rating, comment || "No comment provided");
+            sendMerchantReviewAlert(merchantEmail, merchant.business_name, rating, comment || "No comment provided").catch(e => console.error("BG Email Error:", e));
         }
     } catch (emailErr) {
         console.error("Merchant review alert failed to send:", emailErr);
@@ -175,7 +176,7 @@ router.post("/report", requireAuth, async (req, res) => {
     // Trigger Admin Alert Email
     try {
         const { data: user } = await supabase.from("users").select("email").eq("id", req.user.id).single();
-        await sendAdminDisputeAlert(reason, description || "No detail provided", user?.email || "Unknown User");
+        sendAdminDisputeAlert(reason, description || "No detail provided", user?.email || "Unknown User").catch(e => console.error("BG Email Error:", e));
     } catch (emailErr) {
         console.error("Admin dispute alert failed to send:", emailErr);
     }
@@ -184,6 +185,89 @@ router.post("/report", requireAuth, async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// GET all notifications for the current user
+router.get("/notifications", requireAuth, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return res.status(500).json({ error: "DB not configured" });
+
+    // 1. Fetch real notifications from DB (if any)
+    const { data: dbNotifications } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", req.user.id)
+      .order("created_at", { ascending: false });
+
+    // 2. Generate "Smart" notifications based on user state
+    const smartNotifications = [];
+
+    // Welcome Notification
+    smartNotifications.push({
+      id: "welcome-msg",
+      title: "Welcome to Slasham!",
+      message: "Start exploring exclusive deals and start saving today.",
+      type: "INFO",
+      created_at: req.user.created_at,
+      is_read: true
+    });
+
+    // Verification Notification
+    if (req.user.email_confirmed_at) {
+        smartNotifications.push({
+            id: "verify-success",
+            title: "Account Verified",
+            message: "Your account is fully verified. You can now claim any deal!",
+            type: "SUCCESS",
+            created_at: req.user.email_confirmed_at,
+            is_read: true
+        });
+    }
+
+    // City-based prompt
+    const userCity = req.user.user_metadata?.city || "your area";
+    smartNotifications.push({
+        id: "city-deals",
+        title: `Deals in ${userCity}`,
+        message: `New exclusive offers just landed in ${userCity}. Don't miss out!`,
+        type: "PROMO",
+        created_at: new Date().toISOString(),
+        is_read: false
+    });
+
+    const allNotifications = [...(dbNotifications || []), ...smartNotifications];
+    
+    // Sort by newest first
+    allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    res.json(allNotifications);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark a user notification as read
+router.post("/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+        const supabase = getSupabaseAdmin();
+        if (!supabase) return res.status(500).json({ error: "DB not configured" });
+
+        const { id } = req.params;
+        
+        // If it's a DB notification, update it
+        if (id.length > 20) { 
+            await supabase
+                .from("notifications")
+                .update({ is_read: true })
+                .eq("id", id)
+                .eq("user_id", req.user.id);
+        }
+
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 export default router;

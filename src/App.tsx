@@ -24,6 +24,8 @@ const RegistrationFlow = lazy(() => import("./pages/business/RegistrationFlow"))
 const BusinessDetail = lazy(() => import("./pages/BusinessDetail"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AboutUs = lazy(() => import("./pages/company/AboutUs"));
 const Careers = lazy(() => import("./pages/company/Careers"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -101,6 +103,8 @@ export default function App() {
         <Routes>
           <Route path="login" element={<Auth />} />
           <Route path="signup" element={<Auth />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="merchant/login" element={<MerchantLogin />} />
           <Route path="admin/login" element={<AdminLogin />} />
           <Route path="/" element={<Layout />}>

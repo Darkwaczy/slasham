@@ -1,5 +1,4 @@
-import React from "react";
-import { MapPin, Zap, Mail } from "lucide-react";
+import { Zap, Mail } from "lucide-react";
 
 export default function PortHarcourt() {
   return (

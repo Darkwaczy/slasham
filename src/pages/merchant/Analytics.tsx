@@ -1,18 +1,44 @@
 import { ArrowUpRight, Activity } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "motion/react";
-
-const data = [
-  { name: "Mon", revenue: 4000, reach: 2400 },
-  { name: "Tue", revenue: 3000, reach: 1398 },
-  { name: "Wed", revenue: 2000, reach: 9800 },
-  { name: "Thu", revenue: 2780, reach: 3908 },
-  { name: "Fri", revenue: 1890, reach: 4800 },
-  { name: "Sat", revenue: 2390, reach: 3800 },
-  { name: "Sun", revenue: 3490, reach: 4300 },
-];
+import { useState, useEffect } from "react";
+import { apiClient } from "../../api/client";
 
 export default function MerchantAnalytics() {
+  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const data = await apiClient("/merchants/analytics");
+        setAnalyticsData(data.analyticsData ?? []);
+        setActiveUsers(Number.isFinite(data.activeUsers) ? data.activeUsers : 0);
+      } catch (error) {
+        console.error("Failed to fetch analytics", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Performance Intelligence</h1>
+            <p className="text-slate-500 font-medium">Detailed data on your campaign velocity and reach</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
+          <div className="text-center text-slate-500">Loading analytics...</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -39,7 +65,7 @@ export default function MerchantAnalytics() {
           
           <div className="h-[350px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={analyticsData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
@@ -101,7 +127,7 @@ export default function MerchantAnalytics() {
                  <div className="space-y-6">
                     <div className="flex items-center justify-between">
                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Users</span>
-                       <span className="text-lg font-black text-yellow-400">1,240</span>
+                       <span className="text-lg font-black text-yellow-400">{activeUsers !== null ? activeUsers.toLocaleString() : '1,240'}</span>
                     </div>
                     <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                        <motion.div 

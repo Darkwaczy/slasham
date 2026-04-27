@@ -86,6 +86,24 @@ export const merchantOnboardingTemplate = (name: string, email: string, tempPass
   <a href="https://slasham.com/#/merchant/login" style="display: inline-block; background: #10b981; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Launch Merchant Dashboard</a>
 `);
 
+export const merchantApplicationReceivedTemplate = (name: string) => layout(`
+  <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Application Received. 📥</h1>
+  <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, thank you for your interest in joining the Slasham Partner Network.</p>
+  
+  <p style="font-size: 16px; color: #475569; margin-bottom: 24px;">Our verification team has received your application and is currently reviewing your business details. This process typically takes 24-48 hours.</p>
+  
+  <div style="background: #f1f5f9; border-radius: 24px; padding: 32px; margin-bottom: 40px;">
+    <h3 style="font-size: 14px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">What happens next?</h3>
+    <ul style="font-size: 15px; color: #475569; padding-left: 20px; margin: 0;">
+      <li style="margin-bottom: 12px;">We verify your business registration and social presence.</li>
+      <li style="margin-bottom: 12px;">Once approved, you'll receive your login credentials via email.</li>
+      <li>You can then start listing your first deals!</li>
+    </ul>
+  </div>
+  
+  <p style="font-size: 15px; color: #64748b;">If we need any additional information, a member of our team will reach out to you directly.</p>
+`);
+
 export const merchantRejectionTemplate = (name: string, reason: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Application Status Update</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, thank you for your interest in joining the Slasham Partner Network.</p>
