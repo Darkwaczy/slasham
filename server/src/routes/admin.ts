@@ -48,7 +48,7 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/stats", requireAuth, requireAdmin, async (req, res) => {
+router.get("/stats", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -106,7 +106,7 @@ router.get("/stats", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
+router.get("/summary", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -180,7 +180,7 @@ router.get("/summary", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/analytics", requireAuth, requireAdmin, async (req, res) => {
+router.get("/analytics", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -308,7 +308,7 @@ router.post("/merchants/:id/verify", requireAuth, requireAdmin, async (req, res)
 });
 
 // Admin views all campaign requests
-router.get("/requests", requireAuth, requireAdmin, async (req, res) => {
+router.get("/requests", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -371,7 +371,7 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
 });
 
 // Billboard Management
-router.get("/billboards", requireAuth, requireAdmin, async (req, res) => {
+router.get("/billboards", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");

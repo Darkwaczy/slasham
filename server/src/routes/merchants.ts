@@ -6,7 +6,7 @@ import { sendMerchantApplicationReceived } from "../utils/email";
 const router = Router();
 
 // Get all verified merchants (Public)
-router.get("/public", async (req, res) => {
+router.get("/public", async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");

@@ -66,7 +66,7 @@ router.get("/", async (req, res) => {
 });
 
 // Lightning-fast home page deals (limited, optimized)
-router.get("/home", async (req, res) => {
+router.get("/home", async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");

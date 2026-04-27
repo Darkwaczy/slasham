@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { randomInt } from "crypto";
 import { getAuthClient, getSupabaseAdmin } from "../supabase";
-import { createClient } from "@supabase/supabase-js";
 import { getEnv } from "../env";
 import { requireAuth } from "../middleware/auth";
 import { sendUserWelcome, sendFounderWelcome, sendOTP } from "../utils/email";
@@ -11,7 +10,7 @@ const env = getEnv();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name, phone, city, role } = req.body;
+    const { email, password, name, phone, city } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Missing required fields (email, password, name)" });
@@ -129,7 +128,6 @@ router.post("/resend-otp", async (req, res) => {
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     const supabase = getSupabaseAdmin();
-    const authClient = getAuthClient();
     if (!supabase) throw new Error("DB not configured");
 
     // 1. Verify user exists in our DB (indexed search)
@@ -409,7 +407,7 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", (_req, res) => {
   res.clearCookie("slasham_session");
   res.json({ message: "Logged out successfully" });
 });
