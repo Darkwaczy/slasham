@@ -18,6 +18,7 @@ export default function Layout() {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [footerExpandedSection, setFooterExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [savedCount, setSavedCount] = useState<number>(0);
   const [adminSettings, setAdminSettings] = useState<any>({
     maintenanceMode: false,
     promoBanner: { enabled: false, text: "" }
@@ -47,6 +48,16 @@ export default function Layout() {
     setIsMenuOpen(false);
     setMobileExpandedSection(null);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const syncSavedCount = () => {
+      const deals = JSON.parse(storage.getItem("slasham_saved_deals") || "[]");
+      setSavedCount(deals.length);
+    };
+    syncSavedCount();
+    window.addEventListener("savedDealsUpdated", syncSavedCount);
+    return () => window.removeEventListener("savedDealsUpdated", syncSavedCount);
+  }, []);
 
   const handleLogout = () => {
     storage.removeItem("slasham_user");
@@ -204,10 +215,12 @@ export default function Layout() {
              </div>
              
              <div className="flex items-center gap-2">
-               <button className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
+               <Link to={user ? "/user/saved" : "/login"} className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
                  <Heart size={20} />
-                 <span className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full border border-white"></span>
-               </button>
+                 {savedCount > 0 && (
+                   <span className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full border border-white"></span>
+                 )}
+               </Link>
                
                {user ? (
                  <div className="relative group/user px-2">

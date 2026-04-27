@@ -26,7 +26,7 @@ function UserLayoutContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const { user, isLoading } = useUser();
+  const { user } = useUser();
 
   const getInitials = (name: string) => {
     if (!name) return "?";

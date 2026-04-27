@@ -235,7 +235,9 @@ router.post("/login", async (req, res) => {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     // Securely set the access token as an HTTP-only cookie
     res.cookie("slasham_session", data.session.access_token, {

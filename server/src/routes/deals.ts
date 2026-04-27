@@ -4,6 +4,14 @@ import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
+// In-Memory Cache for High-Traffic Routes (30-second TTL)
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
+const apiCache: Record<string, CacheEntry> = {};
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 // Get public active deals (Feed)
 router.get("/", async (req, res) => {
   try {
@@ -11,6 +19,12 @@ router.get("/", async (req, res) => {
     if (!supabase) throw new Error("DB not configured");
 
     const { category, search } = req.query;
+
+    const cacheKey = `deals_feed_${category || 'all'}_${search || 'none'}`;
+    const cached = apiCache[cacheKey];
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return res.json(cached.data);
+    }
 
     let query = supabase
       .from("deals")
@@ -35,6 +49,13 @@ router.get("/", async (req, res) => {
     const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) throw error;
+    
+    // Save to cache
+    apiCache[cacheKey] = {
+      data,
+      timestamp: Date.now()
+    };
+    
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -46,6 +67,12 @@ router.get("/home", async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
+
+    const cacheKey = "deals_home_feed";
+    const cached = apiCache[cacheKey];
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return res.json(cached.data);
+    }
 
     // Only fetch 12 deals for home page - minimal data needed
     const { data, error } = await supabase
@@ -72,6 +99,13 @@ router.get("/home", async (req, res) => {
       .limit(12);
 
     if (error) throw error;
+    
+    // Save to cache
+    apiCache[cacheKey] = {
+      data: data || [],
+      timestamp: Date.now()
+    };
+
     res.json(data || []);
   } catch (error: any) {
     console.error("Home deals fetch failed:", error);
