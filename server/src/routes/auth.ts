@@ -37,7 +37,10 @@ router.post("/register", async (req, res) => {
       email,
       password,
       email_confirm: true,
-        user_metadata: { name, phone: phone || "", city: city || "", role: "USER" }
+      user_metadata: { name, phone: phone || "", city: city || "", role: "USER" }
+    });
+
+    if (authError) throw authError;
 
     // 2. Generate OTP using cryptographically secure randomInt
     const otpCode = randomInt(100000, 999999).toString();
