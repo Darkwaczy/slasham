@@ -13,7 +13,7 @@ import adminRouter from "./routes/admin";
 import userRouter from "./routes/user";
 import { getEnv } from "./env";
 
-export function createApp() {
+export async function createApp() {
   const env = getEnv();
   const app = express();
 
@@ -72,6 +72,23 @@ export function createApp() {
   app.use("/api/vouchers", vouchersRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/user", userRouter);
+
+  // ── Production: Serve React App & BrowserRouter Catch-All ────────────────
+  if (env.nodeEnv === "production") {
+    const path = await import("path");
+    const { fileURLToPath } = await import("url");
+    const __dirname = path.default.dirname(fileURLToPath(import.meta.url));
+    const distPath = path.default.join(__dirname, "../../dist");
+
+    // Serve the built React static files
+    app.use(express.static(distPath));
+
+    // Catch-all: any route not matched by the API gets index.html
+    // This is REQUIRED for BrowserRouter to work on page refresh
+    app.get("*", (_req, res) => {
+      res.sendFile(path.default.join(distPath, "index.html"));
+    });
+  }
 
   return app;
 }

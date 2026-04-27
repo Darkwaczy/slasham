@@ -13,8 +13,8 @@ router.post("/register", async (req, res) => {
   try {
     const { email, password, name, phone, city, role } = req.body;
 
-    if (!email || !password || !name || !phone || !city) {
-      return res.status(400).json({ error: "Missing required fields (email, password, name, phone, city)" });
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: "Missing required fields (email, password, name)" });
     }
 
     const authClient = getAuthClient();
@@ -37,11 +37,7 @@ router.post("/register", async (req, res) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, phone, city, role: "USER" }
-    });
-
-    if (authError) throw authError;
-    if (!authData.user) throw new Error("Failed to create auth user");
+        user_metadata: { name, phone: phone || "", city: city || "", role: "USER" }
 
     // 2. Generate OTP using cryptographically secure randomInt
     const otpCode = randomInt(100000, 999999).toString();
@@ -53,8 +49,8 @@ router.post("/register", async (req, res) => {
         id: authData.user.id,
         email,
         name,
-        phone,
-        city,
+        phone: phone || "",
+        city: city || "",
         role: "USER",
         otp_code: otpCode,
         otp_expires: otpExpires.toISOString(),
@@ -243,7 +239,7 @@ router.post("/login", async (req, res) => {
     res.cookie("slasham_session", data.session.access_token, {
       httpOnly: true,
       secure: env.nodeEnv === "production",
-      sameSite: "lax",
+      sameSite: env.nodeEnv === "production" ? "none" : "lax",
       maxAge: data.session.expires_in * 1000,
     });
 

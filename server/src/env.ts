@@ -30,7 +30,14 @@ export function getEnv(): Env {
     nodeEnv: process.env.NODE_ENV ?? "development",
     corsOrigins: splitCsv(process.env.CORS_ORIGINS).length
       ? splitCsv(process.env.CORS_ORIGINS)
-      : ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"],
+      : [
+          "http://localhost:3000",
+          "http://localhost:5173",
+          "http://127.0.0.1:3000",
+          "http://127.0.0.1:5173",
+          "https://slasham.com",
+          "https://www.slasham.com",
+        ],
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     resendApiKey: process.env.RESEND_API_KEY,

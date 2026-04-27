@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, ShieldCheck, Sparkles, Bell } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, ShieldCheck, Sparkles, Bell, Phone, MapPin } from "lucide-react";
 import { apiClient } from "../api/client";
 
 export default function Auth() {
@@ -13,6 +13,8 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +61,18 @@ export default function Auth() {
       return;
     }
 
+    if (!isLoginPage && !phone) {
+      setError("Please enter your phone number.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isLoginPage && !city) {
+      setError("Please enter your city.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       if (isLoginPage) {
         const { user, token } = await apiClient("/auth/login", {
@@ -81,7 +95,7 @@ export default function Auth() {
       } else {
         await apiClient("/auth/register", {
           method: "POST",
-          body: JSON.stringify({ email, password, name, role: 'USER' }),
+          body: JSON.stringify({ email, password, name, phone, city, role: 'USER' }),
         });
         
         setStep("otp");
@@ -187,19 +201,49 @@ export default function Auth() {
 
                   <form onSubmit={handleAuthSubmit} className="space-y-5 text-left">
                     {!isLoginPage && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                        <div className="relative group">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
-                          <input 
-                            type="text" 
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="John Doe"
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold"
-                          />
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                          <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                            <input 
+                              type="text" 
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              placeholder="John Doe"
+                              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold"
+                            />
+                          </div>
                         </div>
-                      </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                          <div className="relative group">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                            <input 
+                              type="tel" 
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              placeholder="08012345678"
+                              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">City</label>
+                          <div className="relative group">
+                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                            <input 
+                              type="text" 
+                              value={city}
+                              onChange={(e) => setCity(e.target.value)}
+                              placeholder="Lagos"
+                              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold"
+                            />
+                          </div>
+                        </div>
+                      </>
                     )}
 
                     <div className="space-y-2">

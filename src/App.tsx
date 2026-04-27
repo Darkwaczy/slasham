@@ -5,7 +5,7 @@
 
 import { AdminProvider } from "./context/AdminContext";
 
-import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { useEffect, lazy, Suspense } from "react";
@@ -95,7 +95,7 @@ const LoadingFallback = () => (
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <ScrollToTop />
       <Analytics />
       <SpeedInsights />
@@ -196,6 +196,6 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
