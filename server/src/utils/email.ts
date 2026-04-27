@@ -15,7 +15,6 @@ import {
   campaignStatusUpdateTemplate
 } from './emailTemplates';
 import { getEnv } from '../env';
-import { getSupabaseAdmin } from '../supabase';
 
 const env = getEnv();
 const resend = new Resend(env.resendApiKey);

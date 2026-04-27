@@ -542,9 +542,6 @@ router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
       const supabase = getSupabaseAdmin();
       if (!supabase) throw new Error("DB not configured");
   
-      // 1. Fetch email before "deleting" so we can keep it as a blacklist marker
-      const { data: user } = await supabase.from("users").select("email").eq("id", id).single();
-      
       // 2. Instead of full delete, mark as DELETED to blacklist the email
       const { error } = await supabase
         .from("users")
@@ -571,7 +568,7 @@ router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Merchant Applications Management
-router.get("/applications", requireAuth, requireAdmin, async (req, res) => {
+router.get("/applications", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -708,7 +705,7 @@ router.post("/applications/:id/reject", requireAuth, requireAdmin, async (req, r
 });
 
 // Get all reports/disputes
-router.get("/reports", requireAuth, requireAdmin, async (req, res) => {
+router.get("/reports", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -753,7 +750,7 @@ router.patch("/reports/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin views all vouchers
-router.get("/vouchers", requireAuth, requireAdmin, async (req, res) => {
+router.get("/vouchers", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -778,7 +775,7 @@ router.get("/vouchers", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin views redemptions
-router.get("/redemptions", requireAuth, requireAdmin, async (req, res) => {
+router.get("/redemptions", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -804,7 +801,7 @@ router.get("/redemptions", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin views reviews
-router.get("/reviews", requireAuth, requireAdmin, async (req, res) => {
+router.get("/reviews", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -826,7 +823,7 @@ router.get("/reviews", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // System Settings Management
-router.get("/settings", requireAuth, requireAdmin, async (req, res) => {
+router.get("/settings", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -883,7 +880,7 @@ router.post("/settings", requireAuth, requireAdmin, async (req, res) => {
 
 // --- EMAIL TEMPLATES & BROADCASTS ---
 
-router.get("/emails/templates", requireAuth, requireAdmin, async (req, res) => {
+router.get("/emails/templates", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -913,7 +910,7 @@ router.put("/emails/templates/:id", requireAuth, requireAdmin, async (req, res) 
   }
 });
 
-router.get("/emails/broadcasts", requireAuth, requireAdmin, async (req, res) => {
+router.get("/emails/broadcasts", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
