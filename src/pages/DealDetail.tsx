@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, ShieldCheck, CreditCard, X, ChevronRight, Building, Truck, ClipboardCheck, Info, BookOpen, Gavel, Check, ShoppingBag, Ticket, Store, HelpCircle, ChevronDown, Share2, Heart, Video, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -158,7 +158,7 @@ export default function DealDetail() {
     setShowCelebration(true);  // show 5-second celebration first
   };
 
-  const handleCelebrationComplete = () => {
+  const handleCelebrationComplete = useCallback(() => {
     setShowCelebration(false);
     
     // Modern Logic Flow: Check if user is logged in AFTER celebration
@@ -169,7 +169,7 @@ export default function DealDetail() {
     } else {
       setShowAuthModal(true);
     }
-  };
+  }, []);
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
