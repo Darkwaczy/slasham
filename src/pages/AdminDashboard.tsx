@@ -118,7 +118,7 @@ export default function AdminDashboard() {
           { title: "Total Users", count: stats.users.toLocaleString(), icon: <Users size={24} />, color: "amber" },
           { title: "Businesses", count: stats.businesses.toLocaleString(), icon: <Store size={24} />, color: "indigo" },
           { title: "Active Campaigns", count: stats.campaigns.toLocaleString(), icon: <Tag size={24} />, color: "amber" },
-          { title: "Monthly Revenue", count: stats.revenue, icon: <Wallet size={24} />, color: "emerald" },
+          { title: "Revenue", count: stats.revenue, icon: <Wallet size={24} />, color: "emerald" },
         ].map((stat, i) => (
           <motion.div 
             key={i} 
