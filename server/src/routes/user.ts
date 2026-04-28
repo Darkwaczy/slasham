@@ -75,7 +75,14 @@ router.get("/transactions", requireAuth, async (req, res) => {
         deals (
           title,
           discount_price,
-          merchants (business_name)
+          description,
+          terms_conditions,
+          merchants (
+            business_name,
+            address,
+            city,
+            contact_phone
+          )
         )
       `)
       .eq("user_id", req.user.id)
@@ -88,9 +95,13 @@ router.get("/transactions", requireAuth, async (req, res) => {
         date: new Date(v.created_at).toLocaleDateString(),
         type: "Voucher Purchase",
         merchant: v.deals?.merchants?.business_name || "Merchant Partner",
+        merchant_details: v.deals?.merchants,
         amount: `₦${v.deals?.discount_price?.toLocaleString() || "0"}`,
         status: "Completed",
-        method: "Wallet Payment"
+        method: "Wallet Payment",
+        voucher_code: v.voucher_code,
+        deal_title: v.deals?.title,
+        terms: v.deals?.terms_conditions
     }));
 
     res.json(transactions);

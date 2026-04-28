@@ -194,3 +194,27 @@ h1, h2, h3, h4, h5, h6 {
 .animate-marquee-rtl:hover {
   animation-play-state: paused;
 }
+
+/* Print Styles for Receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-content, #receipt-content * {
+    visibility: visible;
+  }
+  #receipt-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px !important;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+

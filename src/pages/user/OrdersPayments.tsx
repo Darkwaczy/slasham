@@ -1,7 +1,8 @@
 import { 
   CreditCard, Calendar, Download, 
   Search, Filter, Receipt, Wallet, 
-  ArrowUpRight, ArrowDownRight, Loader2, X
+  ArrowUpRight, ArrowDownRight, Loader2, X,
+  Printer, CheckCircle2, ShieldCheck, MapPin, Phone, Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
@@ -14,6 +15,8 @@ export default function OrdersPayments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const loadTransactions = async () => {
     try {
@@ -199,7 +202,14 @@ export default function OrdersPayments() {
                           </span>
                         </td>
                         <td className="px-8 py-6 text-right">
-                          <button className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all" title="Download Receipt">
+                          <button 
+                            onClick={() => {
+                              setSelectedTx(tx);
+                              setShowReceipt(true);
+                            }}
+                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" 
+                            title="Download Receipt"
+                          >
                             <Receipt size={18} />
                           </button>
                         </td>
@@ -218,6 +228,148 @@ export default function OrdersPayments() {
           </div>
         </>
       )}
+      {/* Receipt Modal */}
+      <AnimatePresence>
+        {showReceipt && selectedTx && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowReceipt(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center">
+                    <Receipt size={20} />
+                  </div>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Transaction Receipt</h3>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => window.print()}
+                    className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all"
+                  >
+                    <Printer size={20} />
+                  </button>
+                  <button 
+                    onClick={() => setShowReceipt(false)} 
+                    className="p-3 text-slate-400 hover:text-slate-900 transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+
+              <div id="receipt-content" className="p-12 space-y-10 max-h-[75vh] overflow-y-auto print:p-0 print:max-h-none">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">Slasham</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Official Purchase Record</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 text-[9px] font-black rounded-lg uppercase tracking-widest mb-2">
+                      <CheckCircle2 size={12} /> Paid
+                    </div>
+                    <p className="text-[11px] font-bold text-slate-900">{selectedTx.date}</p>
+                  </div>
+                </div>
+
+                <div className="h-px bg-slate-100" />
+
+                {/* Main Details */}
+                <div className="grid grid-cols-2 gap-12">
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Merchant Partner</p>
+                      <p className="text-lg font-black text-slate-900 leading-tight">{selectedTx.merchant}</p>
+                      <div className="mt-3 space-y-1.5">
+                        <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                          <MapPin size={14} className="text-indigo-600" /> {selectedTx.merchant_details?.address}, {selectedTx.merchant_details?.city}
+                        </p>
+                        <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                          <Phone size={14} className="text-indigo-600" /> {selectedTx.merchant_details?.contact_phone || "Not provided"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-3xl p-8 space-y-4">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Coupon Code</p>
+                      <p className="text-2xl font-black text-indigo-600 tracking-wider font-mono">{selectedTx.voucher_code}</p>
+                    </div>
+                    <div className="pt-4 border-t border-slate-200">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Transaction ID</p>
+                      <p className="text-[11px] font-bold text-slate-900 font-mono">#{selectedTx.id}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deal Info */}
+                <div className="p-8 border-2 border-slate-100 rounded-3xl space-y-4">
+                   <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Item Purchased</p>
+                      <p className="text-xl font-black text-slate-900 leading-tight">{selectedTx.deal_title}</p>
+                   </div>
+                   <div className="flex justify-between items-end pt-4">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment Method</p>
+                        <p className="text-xs font-bold text-slate-900">{selectedTx.method}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
+                        <p className="text-3xl font-black text-slate-900 tracking-tight">{selectedTx.amount}</p>
+                      </div>
+                   </div>
+                </div>
+
+                {/* Terms */}
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2 text-indigo-600">
+                      <ShieldCheck size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Redemption Policy & Terms</span>
+                   </div>
+                   <div className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
+                      <p className="text-xs font-bold text-slate-600 leading-relaxed whitespace-pre-line">
+                        {selectedTx.terms || "Standard Slasham redemption protocols apply. Present this coupon at the merchant location to unlock your deal. Vouchers are single-use only and cannot be exchanged for cash."}
+                      </p>
+                   </div>
+                </div>
+
+                {/* Footer Info */}
+                <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <Info size={16} className="text-slate-300" />
+                      <p className="text-[10px] font-bold text-slate-400 leading-none">Slasham Marketplace • Secure Verified Transaction</p>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Questions?</p>
+                      <p className="text-[9px] font-bold text-indigo-600">support@slasham.com</p>
+                   </div>
+                </div>
+              </div>
+              
+              <div className="p-8 bg-slate-900 text-center">
+                 <button 
+                   onClick={() => window.print()}
+                   className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2"
+                 >
+                   <Download size={16} /> Download Official PDF
+                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
