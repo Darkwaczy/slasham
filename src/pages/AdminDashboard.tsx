@@ -28,11 +28,16 @@ export default function AdminDashboard() {
   const [scanResult, setScanResult] = useState<null | 'clean' | 'threat'>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const rawRevenue = data?.counts?.total_revenue || 0;
+  const formattedRevenue = rawRevenue >= 1000000 
+    ? `₦${(rawRevenue / 1000000).toFixed(1)}M` 
+    : `₦${rawRevenue.toLocaleString()}`;
+
   const stats = {
     users: data?.counts?.users || data?.users?.length || 0,
     businesses: data?.counts?.merchants || data?.merchants?.length || 0,
     campaigns: data?.counts?.deals || data?.deals?.length || 0,
-    revenue: (data?.counts?.total_revenue || 0) / 1000000
+    revenue: formattedRevenue
   };
 
   const analyticsData = data?.analytics?.length > 0 
@@ -113,7 +118,7 @@ export default function AdminDashboard() {
           { title: "Total Users", count: stats.users.toLocaleString(), icon: <Users size={24} />, color: "amber" },
           { title: "Businesses", count: stats.businesses.toLocaleString(), icon: <Store size={24} />, color: "indigo" },
           { title: "Active Campaigns", count: stats.campaigns.toLocaleString(), icon: <Tag size={24} />, color: "amber" },
-          { title: "Monthly Revenue", count: `₦${(stats.revenue / 1).toFixed(1)}M`, icon: <Wallet size={24} />, color: "emerald" },
+          { title: "Monthly Revenue", count: stats.revenue, icon: <Wallet size={24} />, color: "emerald" },
         ].map((stat, i) => (
           <motion.div 
             key={i} 
