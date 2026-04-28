@@ -227,12 +227,18 @@ router.post("/login", async (req, res) => {
     }
 
     const authClient = getAuthClient();
+    if (!authClient) {
+      console.error("Auth client not initialized - check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+      return res.status(500).json({ error: "Authentication service unavailable" });
+    }
+
     const { data, error } = await authClient.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      console.error("Supabase login error:", error.message);
       return res.status(400).json({ error: error.message });
     }
 
@@ -305,8 +311,8 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (error: any) {
-    console.error("Login handler error:", error);
-    res.status(401).json({ error: error.message || "Invalid credentials" });
+    console.error("Login handler unexpected error:", error);
+    res.status(500).json({ error: "Login failed. Please try again." });
   }
 });
 
