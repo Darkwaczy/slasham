@@ -121,18 +121,36 @@ router.post("/reviews", requireAuth, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    const { data: review, error } = await supabase
-      .from("reviews")
-      .insert({
+    const insertData: any = {
         user_id: req.user.id,
         deal_id,
         merchant_id,
         rating,
-        comment,
-        media: req.body.media || []
-      })
+        comment
+    };
+
+    if (req.body.media) {
+        insertData.media = req.body.media;
+    }
+
+    let { data: review, error } = await supabase
+      .from("reviews")
+      .insert(insertData)
       .select()
       .single();
+
+    // Fail-safe: if media column is missing in DB, retry without it
+    if (error && error.message.includes('media')) {
+        console.warn("Review media column missing in DB, falling back to text-only review.");
+        delete insertData.media;
+        const retry = await supabase
+          .from("reviews")
+          .insert(insertData)
+          .select()
+          .single();
+        review = retry.data;
+        error = retry.error;
+    }
 
     if (error) throw error;
 
