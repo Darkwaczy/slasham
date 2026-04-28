@@ -1,3 +1,3 @@
-import { createApp } from "../server/src/app.ts";
+import { createApp } from "../server/dist/app.js";
 const app = createApp();
 export default app;
