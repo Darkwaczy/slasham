@@ -167,7 +167,7 @@ export default function MerchantScanner() {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-3xl p-6 border border-emerald-100 shadow-sm"
+            className="bg-linear-to-br from-emerald-50 to-emerald-100/50 rounded-3xl p-6 border border-emerald-100 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -184,7 +184,7 @@ export default function MerchantScanner() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-3xl p-6 border border-yellow-100 shadow-sm"
+            className="bg-linear-to-br from-yellow-50 to-yellow-100/50 rounded-3xl p-6 border border-yellow-100 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div>
