@@ -125,7 +125,8 @@ router.get("/summary", requireAuth, requireAdmin, async (_req, res) => {
       { data: systemSettings },
       { data: auditLogs },
       { data: analytics },
-      { data: applications }
+      { data: applications },
+      { data: voucherDeals }
     ] = await Promise.all([
       supabase.from("users").select("id", { count: 'exact', head: true }),
       supabase.from("merchants").select("id", { count: 'exact', head: true }),
@@ -138,8 +139,13 @@ router.get("/summary", requireAuth, requireAdmin, async (_req, res) => {
       supabase.from("system_settings").select("*").single(),
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(20),
       supabase.from("analytics").select("*").order("date", { ascending: true }).limit(30),
-      supabase.from("merchant_applications").select("id, business_name, created_at, status").order('created_at', { ascending: false }).limit(5)
+      supabase.from("merchant_applications").select("id, business_name, created_at, status").order('created_at', { ascending: false }).limit(5),
+      supabase.from("vouchers").select("deals(discount_price)")
     ]);
+
+    const calculatedRevenue = (voucherDeals || []).reduce((sum: number, v: any) => {
+      return sum + Number(v.deals?.discount_price || 0);
+    }, 0);
 
     res.json({
       users: [],
@@ -173,7 +179,7 @@ router.get("/summary", requireAuth, requireAdmin, async (_req, res) => {
         vouchers: voucherCount || 0,
         reports: reportCount || 0,
         reviews: reviewCount || 0,
-        total_revenue: 0
+        total_revenue: calculatedRevenue
       }
     });
   } catch (error: any) {
