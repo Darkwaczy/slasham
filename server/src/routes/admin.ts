@@ -952,6 +952,7 @@ router.post("/emails/broadcast", requireAuth, requireAdmin, async (req, res) => 
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
 // Secure Cron Endpoint (Triggered by Vercel or Admin)
 router.get("/cron/check-vouchers", async (req, res) => {
   try {
