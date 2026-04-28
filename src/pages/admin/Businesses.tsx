@@ -1,4 +1,4 @@
-import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin } from "lucide-react";
+import { Search, Plus, ShieldCheck, ShieldAlert, Ticket, DollarSign, Image as ImageIcon, ChevronRight, Calendar, Tag, Zap, Upload, Building, MapPin, Trash2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
@@ -77,6 +77,26 @@ export default function AdminBusinesses() {
         setIsActionModalOpen(false);
     } catch (error: any) {
         alert("Verification toggle failed: " + error.message);
+    }
+  };
+
+  const handleDeleteBusiness = async (bizId: string) => {
+    if (!window.confirm("CRITICAL: Are you sure you want to delete this business? This will PERMANENTLY remove the business profile AND the associated user account. They will need to re-register completely.")) return;
+    
+    try {
+        await apiClient(`/admin/merchants/${bizId}`, {
+            method: "DELETE"
+        });
+        
+        alert("Business and associated account deleted successfully.");
+        
+        // Update local context
+        const updatedMerchants = data.merchants.filter((m: any) => m.id !== bizId);
+        updateData('merchants', updatedMerchants);
+        
+        setIsActionModalOpen(false);
+    } catch (error: any) {
+        alert("Deletion failed: " + error.message);
     }
   };
 
@@ -308,6 +328,13 @@ export default function AdminBusinesses() {
               className="w-full flex items-center gap-4 px-6 py-5 bg-white border border-slate-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
             >
               <ShieldAlert size={18} className="text-amber-500" /> Toggle Verification Status
+            </button>
+
+            <button 
+              onClick={() => handleDeleteBusiness(selectedBiz.id)}
+              className="w-full flex items-center gap-4 px-6 py-5 bg-rose-50 border border-rose-100 rounded-2xl font-black uppercase tracking-widest text-[10px] text-rose-600 hover:bg-rose-100 transition-all shadow-sm mt-4"
+            >
+              <Trash2 size={18} className="text-rose-500" /> Delete Business Profile
             </button>
           </div>
         </div>

@@ -16,7 +16,8 @@ import {
   Zap,
   Loader2,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
@@ -79,6 +80,21 @@ export default function AdminApplications() {
       setIsRejectModalOpen(false);
       setIsModalOpen(false);
       setRejectionReason("");
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) return;
+    setIsProcessing(true);
+    try {
+      await apiClient(`/admin/applications/${id}`, { method: "DELETE" });
+      alert("Application deleted successfully.");
+      fetchApplications();
+      setIsModalOpen(false);
     } catch (err: any) {
       alert("Error: " + err.message);
     } finally {
@@ -217,9 +233,20 @@ export default function AdminApplications() {
                     </span>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all shadow-sm">
-                      <ChevronRight size={18} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                       {app.status === 'REJECTED' && (
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); handleDeleteApplication(app.id); }}
+                           className="w-10 h-10 rounded-xl bg-white border border-rose-100 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
+                           title="Delete Rejected Application"
+                         >
+                           <Trash2 size={16} />
+                         </button>
+                       )}
+                       <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all shadow-sm">
+                         <ChevronRight size={18} />
+                       </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -367,13 +394,23 @@ export default function AdminApplications() {
             {/* Action Buttons */}
             {(selectedApp.status === 'PENDING' || selectedApp.status === 'REJECTED') && (
               <div className="pt-10 flex gap-4 border-t border-slate-100">
-                <button 
-                  onClick={() => setIsRejectModalOpen(true)}
-                  disabled={isProcessing}
-                  className="flex-1 py-5 rounded-2xl border-2 border-rose-100 text-rose-500 font-black uppercase text-xs tracking-widest hover:bg-rose-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <XCircle size={18} /> Reject Partner
-                </button>
+                {selectedApp.status === 'REJECTED' ? (
+                   <button 
+                     onClick={() => handleDeleteApplication(selectedApp.id)}
+                     disabled={isProcessing}
+                     className="flex-1 py-5 rounded-2xl border-2 border-rose-100 text-rose-500 font-black uppercase text-xs tracking-widest hover:bg-rose-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                   >
+                     <Trash2 size={18} /> Delete Application
+                   </button>
+                ) : (
+                  <button 
+                    onClick={() => setIsRejectModalOpen(true)}
+                    disabled={isProcessing}
+                    className="flex-1 py-5 rounded-2xl border-2 border-rose-100 text-rose-500 font-black uppercase text-xs tracking-widest hover:bg-rose-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <XCircle size={18} /> Reject Partner
+                  </button>
+                )}
                 <button 
                   onClick={() => handleApprove(selectedApp.id)}
                   disabled={isProcessing}

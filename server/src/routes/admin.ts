@@ -249,6 +249,45 @@ router.get("/merchants", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// Admin deletes a business
+router.delete("/merchants/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    // 1. Get the merchant to find the user_id
+    const { data: merchant, error: fetchError } = await supabase
+      .from("merchants")
+      .select("user_id, email")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !merchant) throw new Error("Business not found");
+
+    // 2. Delete the merchant record (Cascade should handle deals/vouchers)
+    const { error: deleteMerchantError } = await supabase
+      .from("merchants")
+      .delete()
+      .eq("id", id);
+
+    if (deleteMerchantError) throw deleteMerchantError;
+
+    // 3. Delete the user record (This will also delete them from Supabase Auth if using triggers, 
+    // but here we primarily care about our public.users table)
+    if (merchant.user_id) {
+      await supabase.from("users").delete().eq("id", merchant.user_id);
+    }
+
+    // 4. Optionally delete any associated applications to allow re-application
+    await supabase.from("merchant_applications").delete().eq("email", merchant.email);
+
+    res.json({ success: true, message: "Business and associated user account deleted successfully." });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Admin views all deals
 router.get("/deals", requireAuth, requireAdmin, async (req, res) => {
   try {
@@ -701,6 +740,26 @@ router.post("/applications/:id/reject", requireAuth, requireAdmin, async (req, r
     });
 
     res.json({ success: true, message: "Application rejected" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin deletes a partner application
+router.delete("/applications/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { error } = await supabase
+      .from("merchant_applications")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    res.json({ success: true, message: "Application deleted successfully." });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
