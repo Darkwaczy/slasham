@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, ShieldCheck, Sparkles, Bell, Phone, MapPin } from "lucide-react";
+import { 
+  ArrowRight, 
+  ShieldCheck, 
+  Mail, 
+  Lock, 
+  User, 
+  Phone, 
+  MapPin, 
+  RefreshCw, 
+  AlertCircle,
+  CheckCircle2,
+  Bell,
+  Sparkles,
+  Clock,
+  ArrowLeft,
+  Eye,
+  EyeOff
+} from "lucide-react";
 import { apiClient } from "../api/client";
 
 export default function Auth() {
@@ -20,6 +37,20 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   // Clear error when switching between login and signup
   useEffect(() => {
@@ -102,6 +133,24 @@ export default function Auth() {
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    setIsLoading(true);
+    setError("");
+    try {
+      await apiClient("/auth/resend-otp", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setResendTimer(60);
+      setCanResend(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to resend code");
     } finally {
       setIsLoading(false);
     }
@@ -368,8 +417,25 @@ export default function Auth() {
 
                     <button 
                       type="button"
+                      disabled={!canResend || isLoading}
+                      onClick={handleResendOtp}
+                      className={`w-full py-4 rounded-2xl border border-slate-100 font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 ${
+                        canResend ? 'text-slate-600 hover:bg-slate-50' : 'text-slate-300 cursor-not-allowed'
+                      }`}
+                    >
+                      {resendTimer > 0 ? (
+                        <>
+                          <Clock size={14} className="animate-pulse" /> Resend Code in {resendTimer}s
+                        </>
+                      ) : (
+                        "Didn't receive code? Resend Now"
+                      )}
+                    </button>
+
+                    <button 
+                      type="button"
                       onClick={() => setStep("auth")}
-                      className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+                      className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors pt-2"
                     >
                       ← Use a different email
                     </button>
