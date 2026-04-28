@@ -81,7 +81,7 @@ router.get("/transactions", requireAuth, async (req, res) => {
             business_name,
             address,
             city,
-            contact_phone
+            phone
           )
         )
       `)

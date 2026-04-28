@@ -296,7 +296,7 @@ export default function OrdersPayments() {
                           <MapPin size={14} className="text-indigo-600" /> {selectedTx.merchant_details?.address}, {selectedTx.merchant_details?.city}
                         </p>
                         <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                          <Phone size={14} className="text-indigo-600" /> {selectedTx.merchant_details?.contact_phone || "Not provided"}
+                          <Phone size={14} className="text-indigo-600" /> {selectedTx.merchant_details?.phone || "Not provided"}
                         </p>
                       </div>
                     </div>
