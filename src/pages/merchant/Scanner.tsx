@@ -76,7 +76,7 @@ export default function MerchantScanner() {
       setValidationResult({ 
         success: true, 
         message: result.message, 
-        customer: result.voucher?.users?.name || "Anonymous Customer",
+        customer: result.voucher?.customer || result.voucher?.users?.name || result.voucher?.users?.email || "Anonymous Customer",
         timestamp: new Date().toLocaleTimeString(),
         deal: {
           title: result.voucher.deals?.title,

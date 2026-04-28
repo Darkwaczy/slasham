@@ -172,9 +172,11 @@ router.get("/redemption-log", requireAuth, async (req, res) => {
 
     const mapped = (data as any[]).map(v => ({
       id: v.voucher_code,
-      customer: v.users?.name || "Anonymous",
+      customer: v.users?.name || v.users?.email || "Anonymous",
       deal: v.deals?.title || "Unknown Deal",
       time: v.redeemed_at ? new Date(v.redeemed_at).toLocaleTimeString() : "N/A",
+      redeemed_at: v.redeemed_at, // Raw date for calculation
+      revenue: v.deals?.discount_price || 0, // Raw revenue for calculation
       status: "Verified"
     }));
 

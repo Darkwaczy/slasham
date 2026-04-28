@@ -275,7 +275,14 @@ export default function UserDashboardOverview() {
                </div>
                <h3 className="text-2xl font-black mb-3 tracking-tight">Invite Friends</h3>
                <p className="text-indigo-100/60 text-sm mb-8 leading-relaxed font-medium">Earn <span className="text-white font-bold">500 pts</span> for every friend who makes their first purchase.</p>
-               <button className="px-6 py-3 bg-indigo-500 text-white border border-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white hover:text-indigo-600 transition-all">
+               <button 
+                onClick={() => {
+                  const link = `${window.location.origin}/signup?ref=${user?.id?.slice(0, 8)}`;
+                  navigator.clipboard.writeText(link);
+                  alert("Referral link copied to clipboard!");
+                }}
+                className="px-6 py-3 bg-indigo-500 text-white border border-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white hover:text-indigo-600 transition-all active:scale-95"
+               >
                   Copy Invite Link
                </button>
             </div>

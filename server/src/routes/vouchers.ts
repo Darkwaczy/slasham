@@ -222,7 +222,7 @@ router.post("/redeem", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Voucher has already been redeemed" });
     }
 
-    // 4. Update status
+    // 4. Update status and Award Points (Transaction)
     const { data: updated, error: updateError } = await supabase
       .from("vouchers")
       .update({ status: "REDEEMED", redeemed_at: new Date().toISOString() })
@@ -232,13 +232,28 @@ router.post("/redeem", requireAuth, async (req, res) => {
         deals (
           title,
           images
+        ),
+        users (
+          name,
+          points
         )
       `)
       .single();
 
     if (updateError) throw updateError;
 
-    // 5. Trigger Redemption Email to User
+    // 5. Award Points to User (e.g., 100 points per redemption)
+    try {
+        const currentPoints = updated.users?.points || 0;
+        await supabase
+            .from("users")
+            .update({ points: currentPoints + 100 })
+            .eq("id", updated.user_id);
+    } catch (pointsErr) {
+        console.error("Failed to award points:", pointsErr);
+    }
+
+    // 6. Trigger Redemption Email to User
     try {
         const { data: user } = await supabase
             .from("users")
@@ -253,7 +268,13 @@ router.post("/redeem", requireAuth, async (req, res) => {
         console.error("Voucher redemption email failed:", emailErr);
     }
 
-    res.json({ message: "Voucher successfully redeemed", voucher: updated });
+    res.json({ 
+        message: "Voucher successfully redeemed", 
+        voucher: {
+            ...updated,
+            customer: updated.users?.name // Explicitly map for frontend
+        }
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
