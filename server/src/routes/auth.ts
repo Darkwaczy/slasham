@@ -236,6 +236,11 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
+    if (!data?.session || !data?.session.access_token || !data?.user) {
+      console.error("Login did not return session/user", { data });
+      return res.status(400).json({ error: "Login failed. Please check your credentials and verify your email." });
+    }
+
     // Securely set the access token as an HTTP-only cookie
     res.cookie("slasham_session", data.session.access_token, {
       httpOnly: true,
@@ -250,7 +255,6 @@ router.post("/login", async (req, res) => {
     let is_verified = !!data.user.email_confirmed_at; // TRUST AUTH STATUS FIRST
 
     if (supabaseAdmin) {
-      // Fetch user role in a single query (avoid 2 sequential queries)
       const { data: existingUser } = await supabaseAdmin
         .from("users")
         .select("id, role, is_verified")
@@ -259,7 +263,6 @@ router.post("/login", async (req, res) => {
 
       const finalRole = existingUser?.role === "ADMIN" ? "ADMIN" : (data.user.user_metadata?.role || "USER");
 
-      // Only upsert if user doesn't exist (avoid redundant write)
       if (!existingUser) {
         await supabaseAdmin
           .from("users")
@@ -267,8 +270,8 @@ router.post("/login", async (req, res) => {
             id: data.user.id,
             email: data.user.email,
             name: data.user.user_metadata?.name || "Member",
-            is_verified: true, 
-            role: finalRole
+            is_verified: true,
+            role: finalRole,
           });
       }
 
@@ -276,7 +279,6 @@ router.post("/login", async (req, res) => {
       is_verified = existingUser?.is_verified || is_verified;
     }
 
-    // Block unverified or banned users
     if (role === "DELETED" || role === "BANNED") {
       return res.status(403).json({ error: "This account has been permanently disabled." });
     }
@@ -284,7 +286,7 @@ router.post("/login", async (req, res) => {
     if (!is_verified) {
       return res.status(403).json({
         error: "Please verify your email before logging in.",
-        action: "VERIFY_EMAIL"
+        action: "VERIFY_EMAIL",
       });
     }
 
@@ -299,10 +301,11 @@ router.post("/login", async (req, res) => {
         role,
         is_verified,
         points: 0,
-        total_savings: 0
+        total_savings: 0,
       },
     });
   } catch (error: any) {
+    console.error("Login handler error:", error);
     res.status(401).json({ error: error.message || "Invalid credentials" });
   }
 });
