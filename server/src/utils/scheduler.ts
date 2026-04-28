@@ -1,62 +1,66 @@
-import cron from 'node-cron';
 import { getSupabaseAdmin } from '../supabase';
 import { sendCouponExpiring } from './email';
 
-export const initScheduler = () => {
-  // Run every day at 10:00 AM
-  cron.schedule('0 10 * * *', async () => {
-    console.log('Running expiring voucher check...');
-    try {
-      const supabase = getSupabaseAdmin();
-      if (!supabase) return;
+/**
+ * Logic to check for vouchers expiring in the next 24-48 hours
+ * and send email reminders to users.
+ */
+export const checkExpiringVouchers = async () => {
+  console.log('[Cron] Running expiring voucher check...');
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      console.error('[Cron] DB not configured');
+      return { success: false, error: 'DB not configured' };
+    }
 
-      const now = new Date();
-      const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
-      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const now = new Date();
+    const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+    const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-      // Find vouchers expiring in 24-48 hours
-      // We use !inner to ensure we only get vouchers where the deal exists and matches the criteria
-      const { data: expiringVouchers, error } = await supabase
-        .from('vouchers')
-        .select(`
-          id,
-          voucher_code,
-          users ( email, name ),
-          deals!inner (
-            title,
-            expiry_date
-          )
-        `)
-        .eq('status', 'ACTIVE')
-        .lt('deals.expiry_date', in48Hours)
-        .gt('deals.expiry_date', in24Hours);
+    // Find vouchers expiring in 24-48 hours
+    const { data: expiringVouchers, error } = await supabase
+      .from('vouchers')
+      .select(`
+        id,
+        voucher_code,
+        users ( email, name ),
+        deals!inner (
+          title,
+          expiry_date
+        )
+      `)
+      .eq('status', 'ACTIVE')
+      .lt('deals.expiry_date', in48Hours)
+      .gt('deals.expiry_date', in24Hours);
 
-      if (error) {
-        console.error('Error fetching expiring vouchers:', error);
-        return;
-      }
+    if (error) {
+      console.error('[Cron] Error fetching expiring vouchers:', error);
+      return { success: false, error: error.message };
+    }
 
-      console.log(`[Scheduler] Found ${expiringVouchers?.length || 0} expiring vouchers.`);
+    const count = expiringVouchers?.length || 0;
+    console.log(`[Cron] Found ${count} expiring vouchers.`);
 
-      if (expiringVouchers) {
-        for (const v of expiringVouchers) {
-          const user = v.users as any;
-          const deal = v.deals as any;
+    if (expiringVouchers) {
+      for (const v of expiringVouchers) {
+        const user = v.users as any;
+        const deal = v.deals as any;
 
-          if (user?.email) {
-            try {
-              await sendCouponExpiring(user.email, user.name, deal.title, 48);
-              console.log(`[Scheduler] Sent expiry reminder to ${user.email} for "${deal.title}"`);
-            } catch (emailErr) {
-              console.error(`[Scheduler] Failed to send email to ${user.email}:`, emailErr);
-            }
+        if (user?.email) {
+          try {
+            await sendCouponExpiring(user.email, user.name, deal.title, 48);
+            console.log(`[Cron] Sent expiry reminder to ${user.email} for "${deal.title}"`);
+          } catch (emailErr) {
+            console.error(`[Cron] Failed to send email to ${user.email}:`, emailErr);
           }
         }
       }
-    } catch (err) {
-      console.error('[Scheduler] Critical Error:', err);
     }
-  });
-
-  console.log('[Scheduler] Expiring voucher cron initialized (10:00 AM daily)');
+    
+    return { success: true, processed: count };
+  } catch (err: any) {
+    console.error('[Cron] Critical Error:', err);
+    return { success: false, error: err.message };
+  }
 };
