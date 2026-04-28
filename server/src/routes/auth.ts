@@ -370,7 +370,7 @@ router.post("/forgot-password", async (req, res) => {
 
     const authClient = getAuthClient();
     const { error } = await authClient.auth.resetPasswordForEmail(email, {
-      redirectTo: `${req.headers.origin}/#/reset-password`,
+      redirectTo: `${env.clientUrl}/#/reset-password`,
     });
 
     if (error) throw error;

@@ -3,13 +3,14 @@ import { randomBytes } from "crypto";
 import { getSupabaseAdmin } from "../supabase";
 import { requireAuth } from "../middleware/auth";
 import { sendOnboardingEmail, sendRejectionEmail } from "../utils/email";
+import { getEnv } from "../env";
 
 const router = Router();
+const env = getEnv();
 
 // Middleware to ensure user is admin
 const requireAdmin = (req: any, res: any, next: any) => {
-  // Admin Access depends entirely on ENV variables or database roles
-  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+  const adminEmails = env.adminEmails.map(e => e.toLowerCase());
   const userEmail = req.user?.email?.toLowerCase();
   
   const isExplicitAdmin = userEmail && adminEmails.includes(userEmail);
@@ -36,7 +37,7 @@ router.get("/me", requireAuth, async (req, res) => {
     if (error || !user) throw new Error("Profile not found");
 
     // Dynamic Role Sync: If email is in ADMIN_EMAILS env, ensure DB role is ADMIN
-    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+    const adminEmails = env.adminEmails.map(e => e.toLowerCase());
     if (user.role !== "ADMIN" && adminEmails.includes(user.email.toLowerCase())) {
        await supabase.from("users").update({ role: "ADMIN" }).eq("id", user.id);
        user.role = "ADMIN";

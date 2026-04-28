@@ -53,7 +53,7 @@ export const sendEmail = async ({ to, subject, html }: { to: string | string[], 
 };
 
 export const sendUserWelcome = async (email: string, name: string) => {
-  const html = await getDynamicTemplate('user_welcome', { name }, userWelcomeTemplate(name));
+  const html = await getDynamicTemplate('user_welcome', { name }, userWelcomeTemplate(name, env.clientUrl));
   return sendEmail({
     to: email,
     subject: `Welcome to Slasham, ${name}! 🥂`,
@@ -71,7 +71,7 @@ export const sendFounderWelcome = async (email: string, name: string) => {
 };
 
 export const sendOnboardingEmail = async (email: string, name: string, tempPassword: string) => {
-  const html = await getDynamicTemplate('merchant_onboarding', { name, email, tempPassword }, merchantOnboardingTemplate(name, email, tempPassword));
+  const html = await getDynamicTemplate('merchant_onboarding', { name, email, tempPassword }, merchantOnboardingTemplate(name, email, tempPassword, env.clientUrl));
   return sendEmail({
     to: email,
     subject: 'Welcome Onboard! Your Slasham Partner Credentials',
@@ -83,7 +83,7 @@ export const sendCouponPurchased = async (email: string, name: string, dealTitle
   return sendEmail({
     to: email,
     subject: `Your Voucher: ${dealTitle} 🎟️`,
-    html: couponPurchasedTemplate(name, dealTitle, voucherCode, price)
+    html: couponPurchasedTemplate(name, dealTitle, voucherCode, price, env.clientUrl)
   });
 };
 
@@ -91,7 +91,7 @@ export const sendCouponRedeemed = async (email: string, name: string, dealTitle:
   return sendEmail({
     to: email,
     subject: 'Voucher Redeemed! How was it? ✅',
-    html: couponRedeemedTemplate(name, dealTitle)
+    html: couponRedeemedTemplate(name, dealTitle, env.clientUrl)
   });
 };
 
@@ -99,7 +99,7 @@ export const sendCouponExpiring = async (email: string, name: string, dealTitle:
   return sendEmail({
     to: email,
     subject: 'Hurry! Your voucher is expiring ⏳',
-    html: couponExpiringTemplate(name, dealTitle, hoursLeft)
+    html: couponExpiringTemplate(name, dealTitle, hoursLeft, env.clientUrl)
   });
 };
 
@@ -107,7 +107,7 @@ export const sendMerchantReviewAlert = async (email: string, merchantName: strin
   return sendEmail({
     to: email,
     subject: 'New Customer Review! ⭐',
-    html: merchantReviewAlertTemplate(merchantName, rating, comment)
+    html: merchantReviewAlertTemplate(merchantName, rating, comment, env.clientUrl)
   });
 };
 
@@ -115,7 +115,7 @@ export const sendMerchantPurchaseAlert = async (email: string, merchantName: str
   return sendEmail({
     to: email,
     subject: 'New Purchase Alert! 💰',
-    html: merchantPurchaseAlertTemplate(merchantName, dealTitle, customerName)
+    html: merchantPurchaseAlertTemplate(merchantName, dealTitle, customerName, env.clientUrl)
   });
 };
 
@@ -123,7 +123,7 @@ export const sendAdminDisputeAlert = async (dealTitle: string, reason: string, c
   return sendEmail({
     to: process.env.ADMIN_EMAIL || 'admin@example.com',
     subject: 'URGENT: New Transaction Dispute ⚠️',
-    html: adminDisputeAlertTemplate(dealTitle, reason, customerEmail)
+    html: adminDisputeAlertTemplate(dealTitle, reason, customerEmail, env.clientUrl)
   });
 };
 
@@ -137,7 +137,7 @@ export const sendMerchantApplicationReceived = async (email: string, name: strin
 };
 
 export const sendRejectionEmail = async (email: string, name: string, reason: string) => {
-  const html = await getDynamicTemplate('merchant_rejection', { name, reason }, merchantRejectionTemplate(name, reason));
+  const html = await getDynamicTemplate('merchant_rejection', { name, reason }, merchantRejectionTemplate(name, reason, env.clientUrl));
   return sendEmail({
     to: email,
     subject: 'Update on your Slasham Partner Application',
@@ -158,6 +158,6 @@ export const sendCampaignStatusUpdate = async (email: string, merchantName: stri
   return sendEmail({
     to: email,
     subject: `Campaign ${status}: ${campaignTitle}`,
-    html: campaignStatusUpdateTemplate(merchantName, campaignTitle, status, notes)
+    html: campaignStatusUpdateTemplate(merchantName, campaignTitle, status, notes, env.clientUrl)
   });
 };

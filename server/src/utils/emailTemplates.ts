@@ -34,7 +34,7 @@ export const layout = (content: string, showUnsubscribe = false) => `
   </html>
 `;
 
-export const userWelcomeTemplate = (name: string) => layout(`
+export const userWelcomeTemplate = (name: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px; tracking: -0.02em;">Welcome to the Inner Circle.</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, you've just unlocked Nigeria's most exclusive lifestyle rewards platform.</p>
   
@@ -43,7 +43,7 @@ export const userWelcomeTemplate = (name: string) => layout(`
     <p style="font-size: 16px; color: #475569; margin: 0;">We've credited <span style="color: #10b981; font-weight: 900;">500 SlashPoints</span> to your wallet. Use them to shave even more off your first fine dining or spa experience.</p>
   </div>
   
-  <a href="https://slasham.com/#/deals" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);">Explore Trending Deals</a>
+  <a href="${clientUrl}/#/deals" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);">Explore Trending Deals</a>
 `, true);
 
 export const founderWelcomeTemplate = (name: string) => layout(`
@@ -73,7 +73,7 @@ export const otpTemplate = (name: string, code: string) => layout(`
   <p style="font-size: 13px; color: #94a3b8; text-align: center;">This code expires in 10 minutes. If you didn't request this, you're safe to ignore it.</p>
 `);
 
-export const merchantOnboardingTemplate = (name: string, email: string, tempPassword: string) => layout(`
+export const merchantOnboardingTemplate = (name: string, email: string, tempPassword: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Welcome Onboard. 🚀</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, your application has been verified. You are now a certified Slasham Partner.</p>
   
@@ -83,7 +83,7 @@ export const merchantOnboardingTemplate = (name: string, email: string, tempPass
     <p style="font-size: 16px; margin: 0;"><strong>Temp Password:</strong> <code style="background: #1e293b; padding: 6px 12px; border-radius: 8px; color: #10b981; margin-left: 8px;">${tempPassword}</code></p>
   </div>
 
-  <a href="https://slasham.com/#/merchant/login" style="display: inline-block; background: #10b981; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Launch Merchant Dashboard</a>
+  <a href="${clientUrl}/#/merchant/login" style="display: inline-block; background: #10b981; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Launch Merchant Dashboard</a>
 `);
 
 export const merchantApplicationReceivedTemplate = (name: string) => layout(`
@@ -104,7 +104,7 @@ export const merchantApplicationReceivedTemplate = (name: string) => layout(`
   <p style="font-size: 15px; color: #64748b;">If we need any additional information, a member of our team will reach out to you directly.</p>
 `);
 
-export const merchantRejectionTemplate = (name: string, reason: string) => layout(`
+export const merchantRejectionTemplate = (name: string, reason: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Application Status Update</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, thank you for your interest in joining the Slasham Partner Network.</p>
   
@@ -116,10 +116,10 @@ export const merchantRejectionTemplate = (name: string, reason: string) => layou
   
   <p style="font-size: 15px; color: #64748b; margin-bottom: 32px;">You are welcome to re-apply once these requirements have been met. If you believe this is an error, please reach out to our support team.</p>
   
-  <a href="https://slasham.com/#/support" style="display: inline-block; border: 2px solid #e2e8f0; color: #0f172a; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">Contact Support</a>
+  <a href="${clientUrl}/#/support" style="display: inline-block; border: 2px solid #e2e8f0; color: #0f172a; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">Contact Support</a>
 `);
 
-export const couponPurchasedTemplate = (name: string, dealTitle: string, voucherCode: string, price: string) => layout(`
+export const couponPurchasedTemplate = (name: string, dealTitle: string, voucherCode: string, price: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">It's Yours. 🎟️</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, your voucher for <strong>${dealTitle}</strong> is ready for use.</p>
   
@@ -136,20 +136,20 @@ export const couponPurchasedTemplate = (name: string, dealTitle: string, voucher
     3. Enjoy the Slasham experience.
   </div>
 
-  <a href="https://slasham.com/#/my-coupons" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">View My Wallet</a>
+  <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">View My Wallet</a>
 `);
 
-export const couponRedeemedTemplate = (name: string, dealTitle: string) => layout(`
+export const couponRedeemedTemplate = (name: string, dealTitle: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Experience Complete. ✅</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, your voucher for <strong>${dealTitle}</strong> has been successfully redeemed.</p>
   
   <div style="background: #f0fdf4; border-radius: 24px; padding: 32px; text-align: center; margin-bottom: 40px;">
     <p style="font-size: 16px; color: #166534; margin-bottom: 24px;">We hope you enjoyed it! Leave a review now to earn <strong style="color: #10b981;">100 SlashPoints</strong>.</p>
-    <a href="https://slasham.com/#/my-coupons" style="display: inline-block; background: #166534; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Rate Your Experience</a>
+    <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #166534; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Rate Your Experience</a>
   </div>
 `);
 
-export const couponExpiringTemplate = (name: string, dealTitle: string, hoursLeft: number) => layout(`
+export const couponExpiringTemplate = (name: string, dealTitle: string, hoursLeft: number, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Don't miss out. ⏳</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${name}, your voucher for <strong>${dealTitle}</strong> expires in less than ${hoursLeft} hours.</p>
   
@@ -157,10 +157,10 @@ export const couponExpiringTemplate = (name: string, dealTitle: string, hoursLef
     <p style="font-size: 16px; color: #be123c; font-weight: 700; margin: 0;">Use it today to claim your exclusive discount before it's gone.</p>
   </div>
 
-  <a href="https://slasham.com/#/my-coupons" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700;">View Voucher</a>
+  <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700;">View Voucher</a>
 `);
 
-export const merchantReviewAlertTemplate = (merchantName: string, rating: number, comment: string) => layout(`
+export const merchantReviewAlertTemplate = (merchantName: string, rating: number, comment: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">New Customer Voice. ⭐</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${merchantName}, you've just received a new review on Slasham.</p>
   
@@ -169,10 +169,10 @@ export const merchantReviewAlertTemplate = (merchantName: string, rating: number
     <p style="font-size: 18px; color: #0f172a; font-style: italic; margin: 0; line-height: 1.6;">"${comment}"</p>
   </div>
 
-  <a href="https://slasham.com/#/merchant/reviews" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Respond to Customer</a>
+  <a href="${clientUrl}/#/merchant/reviews" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Respond to Customer</a>
 `);
 
-export const merchantPurchaseAlertTemplate = (merchantName: string, dealTitle: string, customerName: string) => layout(`
+export const merchantPurchaseAlertTemplate = (merchantName: string, dealTitle: string, customerName: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Incoming Revenue. 💰</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Hi ${merchantName}, <strong>${customerName}</strong> just purchased <strong>${dealTitle}</strong>.</p>
   
@@ -180,10 +180,10 @@ export const merchantPurchaseAlertTemplate = (merchantName: string, dealTitle: s
     <p style="font-size: 16px; color: #166534; font-weight: 700; margin: 0;">Prepare for their visit! You can track all purchases in your partner console.</p>
   </div>
 
-  <a href="https://slasham.com/#/merchant/dashboard" style="display: inline-block; background: #059669; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Dashboard</a>
+  <a href="${clientUrl}/#/merchant/dashboard" style="display: inline-block; background: #059669; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Dashboard</a>
 `);
 
-export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, customerEmail: string) => layout(`
+export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, customerEmail: string, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Dispute Alert. ⚠️</h1>
   <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">A new dispute requires your immediate attention.</p>
   
@@ -193,10 +193,10 @@ export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, cus
     <p style="font-size: 15px; margin: 0;"><strong>Reason:</strong> ${reason}</p>
   </div>
 
-  <a href="https://slasham.com/#/admin/reports" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Review Dispute</a>
+  <a href="${clientUrl}/#/admin/reports" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Review Dispute</a>
 `);
 
-export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle: string, status: string, notes?: string) => layout(`
+export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle: string, status: string, notes: string | undefined, clientUrl: string) => layout(`
   <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 16px;">
     Campaign ${status === 'APPROVED' ? 'Approved! 🚀' : 'Update 📥'}
   </h1>
@@ -207,6 +207,6 @@ export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle
     ${notes ? `<p style="font-size: 14px; color: ${status === 'APPROVED' ? '#166534' : '#be123c'}; opacity: 0.8; margin: 0;"><strong>Admin Notes:</strong> ${notes}</p>` : ''}
   </div>
 
-  <a href="https://slasham.com/#/merchant/campaigns" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">Go to My Campaigns</a>
+  <a href="${clientUrl}/#/merchant/campaigns" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">Go to My Campaigns</a>
 `);
 

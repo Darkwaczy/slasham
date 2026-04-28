@@ -7,7 +7,11 @@ export type Env = {
   corsOrigins: string[];
   supabaseUrl?: string;
   supabaseServiceRoleKey?: string;
+  supabaseAnonKey?: string;
   resendApiKey?: string;
+  jwtSecret: string;
+  clientUrl: string;
+  adminEmails: string[];
 };
 
 let cached: Env | null = null;
@@ -40,7 +44,11 @@ export function getEnv(): Env {
         ],
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     resendApiKey: process.env.RESEND_API_KEY,
+    jwtSecret: process.env.JWT_SECRET ?? "default_secret_for_dev_only",
+    clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
+    adminEmails: splitCsv(process.env.ADMIN_EMAILS),
   };
 
   return cached;
