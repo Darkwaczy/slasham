@@ -192,17 +192,28 @@ export default function MerchantCampaigns() {
                  <div className="flex gap-2">
                     <button 
                       onClick={() => {
+                        if (req.status !== "Pending") return;
                         setEditingRequest(req);
                         setPreviewImage(req.productImage);
                         setShippingEnabled(req.shippingInfo?.enabled || false);
                         setIsHotCoupon(req.isHotCoupon || false);
                         setIsModalOpen(true);
                       }}
-                      className="p-4 bg-slate-50 text-slate-900 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95"
+                      disabled={req.status !== "Pending"}
+                      className={`p-4 rounded-2xl shadow-sm transition-all active:scale-95 ${
+                        req.status === "Pending" 
+                        ? "bg-slate-50 text-slate-900 hover:bg-slate-900 hover:text-white cursor-pointer" 
+                        : "bg-slate-100 text-slate-300 cursor-not-allowed opacity-50"
+                      }`}
+                      title={req.status !== "Pending" ? "Approved deals cannot be edited" : "Edit Deal"}
                     >
                       <Edit3 size={18} />
                     </button>
-                    <button className="p-4 bg-slate-50 text-slate-900 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95">
+                    <button 
+                      onClick={() => window.open(`/deals/${req.id}`, '_blank')}
+                      className="p-4 bg-slate-50 text-slate-900 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-95"
+                      title="View Live Deal"
+                    >
                       <Eye size={18} />
                     </button>
                  </div>
