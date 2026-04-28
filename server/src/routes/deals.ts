@@ -219,6 +219,7 @@ router.post("/", requireAuth, async (req, res) => {
         expiry_date,
         is_hot: is_hot || false,
         images: images || [],
+        is_active: isAdmin ? true : false, // ✅ Merchants require review, Admin can auto-approve
       })
       .select()
       .single();
