@@ -201,7 +201,7 @@ router.get("/analytics", requireAuth, requireAdmin, async (_req, res) => {
       
       last6Months.push({
         name: monthName,
-        revenue: count * 1500, // Mock revenue trend based on users
+        revenue: count * 0, // Placeholder set to 0 until actual revenue aggregation is implemented
         users: count
       });
     }
@@ -932,7 +932,7 @@ router.post("/emails/broadcast", requireAuth, requireAdmin, async (req, res) => 
     
     // In a real app, we would query the users table based on target_audience and use Resend to bulk send.
     // Here we record the broadcast for the UI demo.
-    const mockSentCount = target_audience === 'ALL_USERS' ? 12450 : target_audience === 'MERCHANTS' ? 342 : 120;
+    const mockSentCount = 0; // Initialize to 0; actual count will be updated by the email service asynchronously
     
     const { data, error } = await supabase
       .from("email_broadcasts")

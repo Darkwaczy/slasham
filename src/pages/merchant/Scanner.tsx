@@ -32,7 +32,7 @@ export default function MerchantScanner() {
     const todayRedemptions = redemptions.filter(r => new Date(r.redeemed_at || r.timestamp).toDateString() === today);
     setTodayStats({
       count: todayRedemptions.length,
-      volume: todayRedemptions.length * 1000 // Placeholder - should use actual deal values
+      volume: todayRedemptions.reduce((sum, r) => sum + (r.revenue || 0), 0)
     });
   };
 

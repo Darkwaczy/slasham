@@ -73,15 +73,14 @@ export default function BuyCoupon() {
 
           <div className="pt-4">
              <button 
-                onClick={simulatePurchase}
-                disabled={isBuying}
-                className="group relative px-10 py-5 bg-emerald-500 text-white rounded-4xl font-black uppercase tracking-[0.3em] overflow-hidden transition-all hover:bg-black shadow-2xl flex items-center gap-4 disabled:opacity-50"
+                onClick={() => window.location.href = "/deals"}
+                className="group relative px-10 py-5 bg-emerald-500 text-white rounded-4xl font-black uppercase tracking-[0.3em] overflow-hidden transition-all hover:bg-black shadow-2xl flex items-center gap-4"
              >
                 <div className="absolute inset-0 bg-linear-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-10 transition-opacity" />
-                {isBuying ? "Executing Transaction..." : "Simulate Purchase"} 
+                Browse Live Deals
                 <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
              </button>
-             <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Instant Generation Simulation</p>
+             <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Start your premium experience now</p>
           </div>
         </div>
 

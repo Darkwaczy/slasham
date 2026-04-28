@@ -74,7 +74,7 @@ export default function UserDashboardOverview() {
       title: deal.title,
       deal: discount,
       image: deal.images?.[0] || `https://picsum.photos/seed/${deal.id}/400/250`,
-      rating: "4.9" // Mock rating until review aggregation is built
+      rating: deal.avg_rating ? deal.avg_rating.toFixed(1) : "New"
     };
   });
 

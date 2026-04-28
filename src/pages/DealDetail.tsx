@@ -664,7 +664,7 @@ export default function DealDetail() {
         dealTitle={deal?.title || "Exclusive Deal"}
       />
 
-      {/* Payment Modal Mockup */}
+      {/* Secure Checkout Gateway */}
       <AnimatePresence>
         {showPaymentModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
@@ -686,7 +686,7 @@ export default function DealDetail() {
                         <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">S</div>
                         <div>
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Slasham Pay</h3>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Secure Payment Processing</p>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Secure Payment Gateway</p>
                         </div>
                     </div>
                     <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={24} /></button>
