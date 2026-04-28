@@ -348,6 +348,31 @@ router.post("/merchants/:id/verify", requireAuth, requireAdmin, async (req, res)
   }
 });
 
+// Admin toggles deal status (Approve/Deactivate)
+router.post("/deals/:id/toggle", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data, error } = await supabase
+      .from("deals")
+      .update({ is_active })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 // Admin views all campaign requests
 router.get("/requests", requireAuth, requireAdmin, async (_req, res) => {
   try {
