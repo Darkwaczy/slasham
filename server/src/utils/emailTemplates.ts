@@ -43,7 +43,7 @@ export const userWelcomeTemplate = (name: string, clientUrl: string) => layout(`
     <p style="font-size: 16px; color: #475569; margin: 0;">We've credited <span style="color: #10b981; font-weight: 900;">500 SlashPoints</span> to your wallet. Use them to shave even more off your first fine dining or spa experience.</p>
   </div>
   
-  <a href="${clientUrl}/#/deals" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);">Explore Trending Deals</a>
+  <a href="${clientUrl}/deals" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);">Explore Trending Deals</a>
 `, true);
 
 export const founderWelcomeTemplate = (name: string) => layout(`
@@ -83,7 +83,7 @@ export const merchantOnboardingTemplate = (name: string, email: string, tempPass
     <p style="font-size: 16px; margin: 0;"><strong>Temp Password:</strong> <code style="background: #1e293b; padding: 6px 12px; border-radius: 8px; color: #10b981; margin-left: 8px;">${tempPassword}</code></p>
   </div>
 
-  <a href="${clientUrl}/#/merchant/login" style="display: inline-block; background: #10b981; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Launch Merchant Dashboard</a>
+  <a href="${clientUrl}/merchant/login" style="display: inline-block; background: #10b981; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Launch Merchant Dashboard</a>
 `);
 
 export const merchantApplicationReceivedTemplate = (name: string) => layout(`
@@ -116,7 +116,7 @@ export const merchantRejectionTemplate = (name: string, reason: string, clientUr
   
   <p style="font-size: 15px; color: #64748b; margin-bottom: 32px;">You are welcome to re-apply once these requirements have been met. If you believe this is an error, please reach out to our support team.</p>
   
-  <a href="${clientUrl}/#/support" style="display: inline-block; border: 2px solid #e2e8f0; color: #0f172a; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">Contact Support</a>
+  <a href="${clientUrl}/contact" style="display: inline-block; border: 2px solid #e2e8f0; color: #0f172a; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">Contact Support</a>
 `);
 
 export const couponPurchasedTemplate = (name: string, dealTitle: string, voucherCode: string, price: string, clientUrl: string) => layout(`
@@ -136,7 +136,7 @@ export const couponPurchasedTemplate = (name: string, dealTitle: string, voucher
     3. Enjoy the Slasham experience.
   </div>
 
-  <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">View My Wallet</a>
+  <a href="${clientUrl}/user/coupons" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">View My Wallet</a>
 `);
 
 export const couponRedeemedTemplate = (name: string, dealTitle: string, clientUrl: string) => layout(`
@@ -145,7 +145,7 @@ export const couponRedeemedTemplate = (name: string, dealTitle: string, clientUr
   
   <div style="background: #f0fdf4; border-radius: 24px; padding: 32px; text-align: center; margin-bottom: 40px;">
     <p style="font-size: 16px; color: #166534; margin-bottom: 24px;">We hope you enjoyed it! Leave a review now to earn <strong style="color: #10b981;">100 SlashPoints</strong>.</p>
-    <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #166534; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Rate Your Experience</a>
+    <a href="${clientUrl}/user/coupons" style="display: inline-block; background: #166534; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Rate Your Experience</a>
   </div>
 `);
 
@@ -157,7 +157,7 @@ export const couponExpiringTemplate = (name: string, dealTitle: string, hoursLef
     <p style="font-size: 16px; color: #be123c; font-weight: 700; margin: 0;">Use it today to claim your exclusive discount before it's gone.</p>
   </div>
 
-  <a href="${clientUrl}/#/my-coupons" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700;">View Voucher</a>
+  <a href="${clientUrl}/user/coupons" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700;">View Voucher</a>
 `);
 
 export const merchantReviewAlertTemplate = (merchantName: string, rating: number, comment: string, clientUrl: string) => layout(`
@@ -169,7 +169,7 @@ export const merchantReviewAlertTemplate = (merchantName: string, rating: number
     <p style="font-size: 18px; color: #0f172a; font-style: italic; margin: 0; line-height: 1.6;">"${comment}"</p>
   </div>
 
-  <a href="${clientUrl}/#/merchant/reviews" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Respond to Customer</a>
+  <a href="${clientUrl}/merchant/reviews" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Respond to Customer</a>
 `);
 
 export const merchantPurchaseAlertTemplate = (merchantName: string, dealTitle: string, customerName: string, clientUrl: string) => layout(`
@@ -180,7 +180,7 @@ export const merchantPurchaseAlertTemplate = (merchantName: string, dealTitle: s
     <p style="font-size: 16px; color: #166534; font-weight: 700; margin: 0;">Prepare for their visit! You can track all purchases in your partner console.</p>
   </div>
 
-  <a href="${clientUrl}/#/merchant/dashboard" style="display: inline-block; background: #059669; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Dashboard</a>
+  <a href="${clientUrl}/merchant/dashboard" style="display: inline-block; background: #059669; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Dashboard</a>
 `);
 
 export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, customerEmail: string, clientUrl: string) => layout(`
@@ -193,7 +193,7 @@ export const adminDisputeAlertTemplate = (dealTitle: string, reason: string, cus
     <p style="font-size: 15px; margin: 0;"><strong>Reason:</strong> ${reason}</p>
   </div>
 
-  <a href="${clientUrl}/#/admin/reports" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Review Dispute</a>
+  <a href="${clientUrl}/admin/reports" style="display: inline-block; background: #e11d48; color: #ffffff; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700;">Review Dispute</a>
 `);
 
 export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle: string, status: string, notes: string | undefined, clientUrl: string) => layout(`
@@ -207,6 +207,6 @@ export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle
     ${notes ? `<p style="font-size: 14px; color: ${status === 'APPROVED' ? '#166534' : '#be123c'}; opacity: 0.8; margin: 0;"><strong>Admin Notes:</strong> ${notes}</p>` : ''}
   </div>
 
-  <a href="${clientUrl}/#/merchant/campaigns" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">Go to My Campaigns</a>
+  <a href="${clientUrl}/merchant/campaigns" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px;">Go to My Campaigns</a>
 `);
 
