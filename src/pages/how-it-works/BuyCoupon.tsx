@@ -1,21 +1,10 @@
 import { ShoppingBag, ShieldCheck, Zap, Search, ArrowRight, Sparkles, QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
-import { issueCoupon, Coupon } from "../../utils/couponVerification";
+import { Coupon } from "../../utils/couponVerification";
 
 export default function BuyCoupon() {
-  const [purchasedCoupon, setPurchasedCoupon] = useState<Coupon | null>(null);
-  const [isBuying, setIsBuying] = useState(false);
-
-  const simulatePurchase = () => {
-    setIsBuying(true);
-    setTimeout(() => {
-      // Mocking a purchase for the Orchid Bistro demo deal (ID: 1 is usually the first)
-      const newCoupon = issueCoupon(1, "demo-user-123");
-      setPurchasedCoupon(newCoupon);
-      setIsBuying(false);
-    }, 1500);
-  };
+  const [purchasedCoupon] = useState<Coupon | null>(null);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-24 pb-40">

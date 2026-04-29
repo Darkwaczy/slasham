@@ -3,20 +3,19 @@ export type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem" | "
 // IMPORTANT:
 // Product requirement: do not persist data on the frontend (no localStorage/sessionStorage/indexedDB).
 // This in-memory implementation resets on refresh and is safe for mock UI state during development.
-const memory = new Map<string, string>();
 
 export const storage: StorageLike = {
   getItem(key) {
-    return memory.has(key) ? memory.get(key)! : null;
+    return window.localStorage.getItem(key);
   },
   setItem(key, value) {
-    memory.set(key, String(value));
+    window.localStorage.setItem(key, String(value));
   },
   removeItem(key) {
-    memory.delete(key);
+    window.localStorage.removeItem(key);
   },
   clear() {
-    memory.clear();
+    window.localStorage.clear();
   },
 };
 

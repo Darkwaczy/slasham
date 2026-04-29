@@ -9,6 +9,7 @@ import uploadRouter from "./routes/upload";
 import merchantsRouter from "./routes/merchants";
 import dealsRouter from "./routes/deals";
 import vouchersRouter from "./routes/vouchers";
+import paymentsRouter from "./routes/payments";
 import adminRouter from "./routes/admin";
 import userRouter from "./routes/user";
 import { getEnv } from "./env";
@@ -36,15 +37,12 @@ export function createApp() {
   app.use(cookieParser());
 
   // ── Rate Limiters ─────────────────────────────────────────────────────────
-  // Custom key generator to extract real client IP from Vercel/Cloudflare headers
-  const resolveIp = (req: any) => {
-    return (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() || req.ip || "unknown";
-  };
+
 
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    keyGenerator: resolveIp,
+    keyGenerator: (req) => req.ip ?? "unknown",
     message: { error: "Too many login attempts. Please try again in 15 minutes." },
     standardHeaders: true,
     legacyHeaders: false,
@@ -53,7 +51,7 @@ export function createApp() {
   const registerLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    keyGenerator: resolveIp,
+    keyGenerator: (req) => req.ip ?? "unknown",
     message: { error: "Too many accounts created from this IP. Please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
@@ -62,7 +60,7 @@ export function createApp() {
   const otpLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    keyGenerator: resolveIp,
+    keyGenerator: (req) => req.ip ?? "unknown",
     message: { error: "Too many verification attempts. Please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
@@ -81,6 +79,7 @@ export function createApp() {
   app.use("/api/merchants", merchantsRouter);
   app.use("/api/deals", dealsRouter);
   app.use("/api/vouchers", vouchersRouter);
+  app.use("/api/payments", paymentsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/user", userRouter);
 

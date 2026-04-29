@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, ShieldCheck, CreditCard, X, ChevronRight, Building, Truck, ClipboardCheck, Info, BookOpen, Gavel, Check, ShoppingBag, Ticket, Store, HelpCircle, ChevronDown, Share2, Heart, Video, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, ShieldCheck, X, Truck, ClipboardCheck, Info, BookOpen, Gavel, Check, ShoppingBag, Ticket, Store, HelpCircle, ChevronDown, Share2, Heart, Video, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import gsap from "gsap";
 import { apiClient } from "../api/client";
 import CouponAgreementModal from "../components/CouponAgreementModal";
 import CelebrationModal from "../components/CelebrationModal";
 import AuthModal from "../components/AuthModal";
+import PaystackCheckoutModal from "../components/PaystackCheckoutModal";
+import { storage } from "../utils/storage";
 
 
 
@@ -14,19 +16,20 @@ export default function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isBuying, setIsBuying] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [deal, setDeal] = useState<any>(null);
   const [countdown, setCountdown] = useState<string>("");
-  const [isSaved, setIsSaved] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+// removed duplicate openFaqIndex declaration
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHoverRating, setReviewHoverRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [reviewMedia, setReviewMedia] = useState<any[]>([]);
   const [dealReviews, setDealReviews] = useState<any[]>([]);
 
@@ -61,9 +64,9 @@ export default function DealDetail() {
           title: d.title,
           price: d.discount_price.toString(),
           original: d.original_price.toString(),
-          image: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+          image: d.images?.[0] || "",
           category: d.category,
-          location: d.merchants?.city || "Lagos",
+          location: d.merchants?.city || "",
           companyName: d.merchants?.business_name,
           merchantId: d.merchant_id,
           description: d.description,
@@ -162,10 +165,10 @@ export default function DealDetail() {
     setShowCelebration(false);
     
     // Modern Logic Flow: Check if user is logged in AFTER celebration
-    const isLoggedIn = !!localStorage.getItem("slasham_user");
+    const isLoggedIn = !!storage.getItem("slasham_user");
     
     if (isLoggedIn) {
-      setShowPaymentModal(true);
+      setShowPaystackModal(true);
     } else {
       setShowAuthModal(true);
     }
@@ -173,26 +176,28 @@ export default function DealDetail() {
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    // Proceed to payment now that they are logged in
-    setShowPaymentModal(true);
+    // Proceed to Paystack checkout now that they are logged in
+    setShowPaystackModal(true);
   };
 
-  const handlePaymentComplete = async () => {
+  const handlePaymentSuccess = async (_: string) => {
     setIsBuying(true);
-    setShowPaymentModal(false);
+    setShowPaystackModal(false);
     
     try {
-      await apiClient("/vouchers/claim", {
-        method: "POST",
-        body: JSON.stringify({ deal_id: id }),
-      });
-
-      setIsBuying(false);
+      // Wait a moment for webhook to process (optional - can be removed if using callback URL)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Navigate to coupons page to show the newly created voucher
       navigate("/user/coupons");
     } catch (error: any) {
       setIsBuying(false);
-      alert(`Claim failed: ${error.message}`);
+      alert(`Error: ${error.message}`);
     }
+  };
+
+  const handlePaymentError = (error: string) => {
+    alert(`Payment failed: ${error}`);
   };
 
   const handleReviewSubmit = async () => {
@@ -261,7 +266,7 @@ export default function DealDetail() {
   };
 
   const removeMedia = (index: number) => {
-    setReviewMedia(reviewMedia.filter((_, i) => i !== index));
+    setReviewMedia((prev: any[]) => prev.filter((_: any, i: number) => i !== index));
   };
 
   if (!deal) {
@@ -288,12 +293,17 @@ export default function DealDetail() {
         {/* Left: Media & Details */}
         <div className="space-y-12">
           <div className="rounded-[2.5rem] overflow-hidden aspect-4/3 relative shadow-2xl shadow-emerald-500/5 ring-1 ring-slate-200 bg-white flex items-center justify-center">
-            <img 
-              src={deal.image} 
-              alt={deal.title} 
-              className="w-full h-full object-cover"
-              onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80" }}
-            />
+            {deal.image ? (
+              <img
+                src={deal.image}
+                alt={deal.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-xs font-black uppercase tracking-widest">
+                No deal image
+              </div>
+            )}
             <div className="absolute top-6 left-6 flex flex-col items-start gap-2 max-w-[80%]">
                 <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg text-[9px] font-black text-slate-900 uppercase tracking-widest shadow-sm">
                    {deal.category}
@@ -324,7 +334,7 @@ export default function DealDetail() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 border-b border-slate-100 mt-8 gap-6 w-full">
                <div className="flex items-center gap-6">
                  <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest">
-                    <MapPin size={18} /> {deal.location || "Lekki Phase 1, Lagos"}
+                    <MapPin size={18} /> {deal.location || "Location unavailable"}
                  </div>
                  <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
                     <Star size={18} className="fill-amber-400" />
@@ -381,35 +391,11 @@ export default function DealDetail() {
               <div id="what-you-get" className="space-y-6 scroll-mt-32">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">What You Get</h3>
                 <div className="space-y-4">
-                  {(deal.whatYouGet || (() => {
-                    const categoryDefaults: Record<string, any[]> = {
-                      Food: [
-                        { title: "Complimentary Side or Drink", description: "Enjoy an extra treat with your main meal." },
-                        { title: "Priority Seating", description: "Voucher holders get preferred table allocation." },
-                        { title: "Authentic Experience", description: "Freshly prepared dishes using premium ingredients." }
-                      ],
-                      Spa: [
-                        { title: "Expert Therapists", description: "Treatment by certified wellness professionals." },
-                        { title: "Aromatherapy Atmosphere", description: "Calming environment designed for total relaxation." },
-                        { title: "Premium Skincare", description: "Only high-quality, skin-safe products used." }
-                      ],
-                      Travel: [
-                        { title: "Guided Experience", description: "Led by knowledgeable local experts." },
-                        { title: "All Gear Included", description: "No hidden costs for equipment or safety kits." },
-                        { title: "Photo Opportunities", description: "Curated stops at the most scenic locations." }
-                      ],
-                      Events: [
-                        { title: "Guaranteed Entry", description: "Secure your spot even at high-demand events." },
-                        { title: "Bonus Perks", description: "Includes complimentary snacks or workshop materials." },
-                        { title: "VIP Support", description: "Dedicated help for Slasham ticket holders." }
-                      ]
-                    };
-                    return categoryDefaults[deal.category] || [
-                      { title: "Exclusive Slasham Discount", description: "Save big on this premium experience." },
-                      { title: "Instant Digital Delivery", description: "Get your voucher code immediately after purchase." },
-                      { title: "Verified Partner", description: "Redeem with confidence at our trusted business locations." }
-                    ];
-                  })()).map((item: any, i: number) => (
+                  {(deal.whatYouGet || [
+                    { title: "Verified Offer", description: "This deal is provided by a verified Slasham partner." },
+                    { title: "Instant Voucher Access", description: "Your voucher becomes available immediately after purchase." },
+                    { title: "Merchant Terms Apply", description: "Please review deal terms before redemption." }
+                  ]).map((item: any, i: number) => (
                     <div key={i} className="flex items-start gap-4 group">
                       <div className="mt-1 w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                         <Check size={12} />
@@ -664,87 +650,17 @@ export default function DealDetail() {
         dealTitle={deal?.title || "Exclusive Deal"}
       />
 
-      {/* Secure Checkout Gateway */}
-      <AnimatePresence>
-        {showPaymentModal && (
-          <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
-             <motion.div 
-               initial={{ opacity: 0 }} 
-               animate={{ opacity: 1 }} 
-               exit={{ opacity: 0 }} 
-               onClick={() => setShowPaymentModal(false)}
-               className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
-             />
-             <motion.div 
-               initial={{ opacity: 0, scale: 0.9, y: 20 }}
-               animate={{ opacity: 1, scale: 1, y: 0 }}
-               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl"
-             >
-                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">S</div>
-                        <div>
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Slasham Pay</h3>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Secure Payment Gateway</p>
-                        </div>
-                    </div>
-                    <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={24} /></button>
-                </div>
-
-                <div className="p-10 space-y-8">
-                   <div className="text-center space-y-2">
-                       <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Amount Payable</p>
-                       <h2 className="text-5xl font-black text-slate-900 tracking-tighter">{formatPrice(deal.price)}</h2>
-                   </div>
-
-                   <div className="space-y-4">
-                      <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                            <CreditCard size={20} className="text-indigo-600" />
-                            <div>
-                               <p className="text-xs font-black text-slate-900 uppercase">Pay with Card</p>
-                               <p className="text-[9px] text-slate-400 font-bold">Visa, Mastercard, Verve</p>
-                            </div>
-                         </div>
-                         <ChevronRight size={18} className="text-slate-300" />
-                      </div>
-                      <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                            <Building size={20} className="text-indigo-600" />
-                            <div>
-                               <p className="text-xs font-black text-slate-900 uppercase">Bank Transfer</p>
-                               <p className="text-[9px] text-slate-400 font-bold">Dynamic Nigerian Bank Account</p>
-                            </div>
-                         </div>
-                         <ChevronRight size={18} className="text-slate-300" />
-                      </div>
-                   </div>
-
-                   <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-start gap-3">
-                      <ShieldCheck size={20} className="text-emerald-600 shrink-0" />
-                      <p className="text-xs font-bold text-emerald-800 leading-relaxed italic">
-                        By clicking "Complete Payment", you agree to Slasham's terms of service and the {deal.companyName || "Vendor"}'s specific redemption protocols.
-                      </p>
-                   </div>
-
-                   <button 
-                     onClick={handlePaymentComplete}
-                     className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
-                   >
-                     {isBuying ? <Loader2 size={18} className="animate-spin" /> : <><ShieldCheck size={18} /> Complete Payment</>}
-                   </button>
-                </div>
-                
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-6">
-                    <img src="https://static-00.iconduck.com/assets.00/visa-icon-512x163-j0s6c9er.png" className="h-4 object-contain opacity-40 grayscale" alt="" />
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" className="h-6 object-contain opacity-40 grayscale" alt="" />
-                    <img src="https://paystack.com/assets/img/v3/logo-black.svg" className="h-4 object-contain opacity-40 grayscale" alt="" />
-                </div>
-             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Paystack Checkout Modal */}
+      <PaystackCheckoutModal
+        isOpen={showPaystackModal}
+        dealTitle={deal?.title || "Exclusive Deal"}
+        dealPrice={parseInt(deal?.price.replace(/\D/g, '') || "0")}
+        dealImage={deal?.image}
+        onClose={() => setShowPaystackModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentError={handlePaymentError}
+        dealId={id || ""}
+      />
 
       {/* Write a Review Modal */}
       <AnimatePresence>
@@ -889,7 +805,7 @@ export default function DealDetail() {
             { q: "What if my voucher expires?", a: "In most cases, we can consider a rollover with a penalty of 5% of the purchase price after expiration, subject to merchant approval." },
             { q: "Can I buy a deal as a gift?", a: "Absolutely! Just purchase the coupon and share the unique voucher code with your lucky recipient. They can redeem it just like any other customer." },
             { q: "Do I need to book in advance?", a: "Booking requirements vary by merchant. We recommend calling the business at the number provided in the 'Need to Know' section to confirm availability." }
-          ].map((faq, i) => (
+          ].map((faq, i: number) => (
             <div 
               key={i} 
               onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}

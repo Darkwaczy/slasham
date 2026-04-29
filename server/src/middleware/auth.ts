@@ -42,9 +42,25 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       return res.status(401).json({ error: "Unauthorized: Invalid token" });
     }
 
-    // Attach user to request and normalize role for easier access
-    const role = user.user_metadata?.role || "USER";
-    const userWithRole = { ...user, role };
+    // Prefer role from public.users so admin/merchant role changes take effect immediately.
+    let role = user.user_metadata?.role || "USER";
+    let isVerified = !!user.email_confirmed_at;
+    try {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role, is_verified")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role) role = profile.role;
+      if (typeof profile?.is_verified === "boolean") {
+        isVerified = profile.is_verified;
+      }
+    } catch {
+      // Non-fatal: fallback to Auth metadata.
+    }
+
+    const userWithRole = { ...user, role, is_verified: isVerified };
     
     // Store in cache
     authCache.set(token, { user: userWithRole, expires: Date.now() + CACHE_TTL });

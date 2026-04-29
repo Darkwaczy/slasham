@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, User, ArrowRight, ShieldCheck, Sparkles, RefreshCw, AlertCircle, Phone, MapPin } from "lucide-react";
 import { apiClient } from "../api/client";
+import { storage } from "../utils/storage";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -36,8 +37,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess, dealTitle }: Aut
 
       if (isLogin) {
         // Save session
-        localStorage.setItem("slasham_user", JSON.stringify(response.user));
-        if (response.token) localStorage.setItem("slasham_token", response.token);
+        storage.setItem("slasham_user", JSON.stringify(response.user));
+        storage.setItem("slasham_user_email", email);
+        if (response.token) storage.setItem("slasham_token", response.token);
         onSuccess();
       } else {
         // For registration, we might need OTP, but for this flow let's assume we want to keep it simple

@@ -116,9 +116,14 @@ export default function AdminBusinesses() {
     const slashamPrice = formData.get('slashamPrice') as string;
     const originalPrice = formData.get('originalPrice') as string;
     const category = formData.get('category') as string;
-    const image = previewImage || formData.get('imageUrl') as string || `https://images.unsplash.com/photo-1540555700478-4be289fbecef`;
+    const image = (formData.get('imageUrl') as string) || "";
 
     try {
+        if (!image) {
+            alert("Deal image is required before launch.");
+            return;
+        }
+
         const numericPrice = parseFloat(slashamPrice.replace(/[^0-9.]/g, ''));
         const numericOriginal = parseFloat(originalPrice.replace(/[^0-9.]/g, ''));
 

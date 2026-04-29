@@ -62,11 +62,17 @@ export default function SavedDeals() {
                 className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col"
               >
                 <div className="relative h-56 bg-slate-100 overflow-hidden shrink-0">
-                  <img 
-                    src={deal.images?.[0] || 'https://images.unsplash.com/photo-1544148103-0773bf10d330'} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    alt={deal.title} 
-                  />
+                  {deal.images?.[0] ? (
+                    <img
+                      src={deal.images[0]}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      alt={deal.title}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-black uppercase tracking-widest">
+                      No image
+                    </div>
+                  )}
                   
                   {/* Remove Button */}
                   <button 
@@ -126,3 +132,4 @@ export default function SavedDeals() {
     </div>
   );
 }
+

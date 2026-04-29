@@ -36,9 +36,18 @@ export default function MerchantLayout() {
     const loadMerchant = async () => {
       try {
         const data = await apiClient("/auth/me");
+        if (data?.role !== "MERCHANT" && data?.role !== "ADMIN") {
+          localStorage.removeItem("slasham_user");
+          localStorage.removeItem("slasham_token");
+          navigate("/merchant/login", { replace: true });
+          return;
+        }
         setMerchantData(data);
       } catch (error) {
         console.error("Failed to load merchant profile", error);
+        localStorage.removeItem("slasham_user");
+        localStorage.removeItem("slasham_token");
+        navigate("/merchant/login", { replace: true });
       }
     };
     
@@ -63,17 +72,21 @@ export default function MerchantLayout() {
     // Poll for notifications every 30 seconds
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = async () => {
     try {
         await apiClient("/auth/logout", { method: "POST" });
-        navigate("/login");
+        localStorage.removeItem("slasham_user");
+        localStorage.removeItem("slasham_token");
+        navigate("/merchant/login", { replace: true });
     } catch (error) {
         // Fallback for UI if logout fails
-        navigate("/login");
+        localStorage.removeItem("slasham_user");
+        localStorage.removeItem("slasham_token");
+        navigate("/merchant/login", { replace: true });
     }
   };
 

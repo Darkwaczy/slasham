@@ -20,31 +20,31 @@ export default function MerchantCampaigns() {
 
   const fetchDeals = async () => {
     try {
-      const [dealsData, profileData] = await Promise.all([
-        apiClient("/deals/merchant/my-deals"),
+      const [campaignsData, profileData] = await Promise.all([
+        apiClient("/merchants/campaigns"),
         apiClient("/merchants/my-profile")
       ]);
       
       setMerchantProfile(profileData);
       
       // Map backend fields to frontend UI expectation
-      const mapped = dealsData.map((d: any) => ({
+      const mapped = campaignsData.map((d: any) => ({
         id: d.id,
-        productName: d.title,
-        productImage: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
-        originalPrice: `₦${d.original_price.toLocaleString()}`,
-        category: d.category,
-        status: d.is_active ? "Approved" : "Pending",
+        productName: d.product_name,
+        productImage: d.product_image || "",
+        originalPrice: `₦${Number(d.original_price).toLocaleString()}`,
+        category: d.coupon_type || "General",
+        status: d.status === 'PENDING' ? 'Pending' : d.status === 'APPROVED' ? 'Approved' : 'Rejected',
         location: profileData?.city || "Not set",
         totalQuantity: d.total_quantity,
-        soldQuantity: d.sold_quantity,
+        soldQuantity: d.sold_quantity || 0,
         description: d.description,
-        dealExplanation: d.deal_explanation,
+        dealExplanation: d.description,
         expiryDate: d.expiry_date
       }));
       setRequests(mapped);
     } catch (error) {
-      console.error("Failed to fetch merchant deals:", error);
+      console.error("Failed to fetch merchant campaigns:", error);
     } finally {
       setIsLoading(false);
     }
@@ -85,24 +85,24 @@ export default function MerchantCampaigns() {
         imageUrl = uploadRes.url;
       }
 
-      // 2. Register deal
-      const dealData = {
-        title: formData.get('productName') as string,
-        description: formData.get('description') as string,
-        deal_explanation: formData.get('dealExplanation') as string,
-        category: formData.get('category') as string,
+      // 2. Register campaign request for admin review
+      const dealExplanation = formData.get('dealExplanation') as string;
+      const description = formData.get('description') as string;
+      const campaignData = {
+        product_name: formData.get('productName') as string,
+        description: dealExplanation ? `${description}\n\n${dealExplanation}` : description,
+        coupon_type: formData.get('category') as string,
         original_price: parseFloat((formData.get('originalPrice') as string).replace(/[^0-9.]/g, '')),
-        discount_price: parseFloat((formData.get('discountPrice') as string) || "500"), // Default unlock price
+        expected_discount: formData.get('discountPrice') as string,
         total_quantity: parseInt(formData.get('totalQuantity') as string),
         expiry_date: formData.get('expiryDate') as string,
-        is_hot: isHotCoupon,
-        images: imageUrl ? [imageUrl] : [],
-        validity_days: 30 // Default
+        product_image: imageUrl || (formData.get('imageUrl') as string) || null,
+        status: 'PENDING'
       };
 
-      await apiClient("/deals", {
+      await apiClient("/merchants/campaigns", {
         method: "POST",
-        body: JSON.stringify(dealData),
+        body: JSON.stringify(campaignData),
       });
 
       setIsModalOpen(false);
@@ -431,3 +431,4 @@ export default function MerchantCampaigns() {
     </div>
   );
 }
+

@@ -73,7 +73,7 @@ export default function UserDashboardOverview() {
       id: deal.id,
       title: deal.title,
       deal: discount,
-      image: deal.images?.[0] || `https://picsum.photos/seed/${deal.id}/400/250`,
+      image: deal.images?.[0] || "",
       rating: deal.avg_rating ? deal.avg_rating.toFixed(1) : "New"
     };
   });
@@ -316,3 +316,4 @@ export default function UserDashboardOverview() {
     </div>
   );
 }
+

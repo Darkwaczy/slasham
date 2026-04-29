@@ -12,6 +12,9 @@ export type Env = {
   jwtSecret: string;
   clientUrl: string;
   adminEmails: string[];
+  paystackSecretKey?: string;
+  paystackPublicKey?: string;
+  paystackWebhookSecret?: string;
 };
 
 let cached: Env | null = null;
@@ -49,6 +52,9 @@ export function getEnv(): Env {
     jwtSecret: process.env.JWT_SECRET ?? "default_secret_for_dev_only",
     clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
     adminEmails: splitCsv(process.env.ADMIN_EMAILS),
+    paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
+    paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
+    paystackWebhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
   };
 
   return cached;

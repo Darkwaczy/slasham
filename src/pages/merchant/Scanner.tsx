@@ -80,7 +80,7 @@ export default function MerchantScanner() {
         timestamp: new Date().toLocaleTimeString(),
         deal: {
           title: result.voucher.deals?.title,
-          image: result.voucher.deals?.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef"
+          image: result.voucher.deals?.images?.[0] || ""
         } 
       });
       setCouponHash("");
@@ -476,3 +476,4 @@ export default function MerchantScanner() {
     </div>
   );
 }
+

@@ -59,9 +59,17 @@ export default function Layout() {
     return () => window.removeEventListener("savedDealsUpdated", syncSavedCount);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const { apiClient } = await import("../api/client");
+      await apiClient.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
     storage.removeItem("slasham_user");
+    storage.removeItem("slasham_token");
     setUser(null);
+    window.location.reload(); // Refresh to clear all states
   };
 
   useEffect(() => {

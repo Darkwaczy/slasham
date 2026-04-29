@@ -26,7 +26,7 @@ function UserLayoutContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
 
   const getInitials = (name: string) => {
     if (!name) return "?";
@@ -84,9 +84,34 @@ function UserLayoutContent() {
     { name: "Settings", path: "/user/settings", icon: Settings },
   ];
 
-  const handleLogout = () => {
-    storage.removeItem("slasham_user");
-    navigate("/login");
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    if (user.role === "ADMIN") {
+      navigate("/admin/dashboard", { replace: true });
+      return;
+    }
+
+    if (user.role === "MERCHANT") {
+      navigate("/merchant/dashboard", { replace: true });
+    }
+  }, [isLoading, user, navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await apiClient("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      storage.removeItem("slasham_user");
+      storage.removeItem("slasham_token");
+      navigate("/login", { replace: true });
+    }
   };
 
   const currentPageName = navItems.find(item => item.path === location.pathname)?.name || "Dashboard";

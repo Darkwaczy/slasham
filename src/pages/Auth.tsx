@@ -111,12 +111,6 @@ export default function Auth() {
           body: JSON.stringify({ email, password }),
         });
 
-        if (user.role === 'USER' && !user.is_verified) {
-            setStep("otp");
-            setIsLoading(false);
-            return;
-        }
-
         // Save session
         localStorage.setItem("slasham_user", JSON.stringify(user));
         if (token) localStorage.setItem("slasham_token", token);
@@ -132,6 +126,9 @@ export default function Auth() {
         setStep("otp");
       }
     } catch (err: any) {
+      if (isLoginPage && typeof err?.message === "string" && err.message.toLowerCase().includes("verify your email")) {
+        setStep("otp");
+      }
       setError(err.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
@@ -162,17 +159,13 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const { user, token } = await apiClient("/auth/verify-otp", {
+      await apiClient("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ email, code: otpCode }),
       });
 
-      // Save session
-      localStorage.setItem("slasham_user", JSON.stringify(user));
-      if (token) localStorage.setItem("slasham_token", token);
-
       setSuccess(true);
-      setTimeout(() => navigate("/user/dashboard"), 1500);
+      setTimeout(() => navigate("/login"), 1200);
     } catch (err: any) {
       setError(err.message || "Verification failed.");
     } finally {

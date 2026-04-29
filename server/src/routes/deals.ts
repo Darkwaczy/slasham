@@ -184,7 +184,11 @@ router.post("/", requireAuth, async (req, res) => {
         .eq("user_id", req.user.id)
         .single();
 
-        if (merchantError || !merchant) {
+        if (merchantError && merchantError.code !== "PGRST116") {
+            throw merchantError;
+        }
+
+        if (!merchant) {
             return res.status(403).json({ error: "You must be a registered merchant to create deals" });
         }
         merchantId = merchant.id;

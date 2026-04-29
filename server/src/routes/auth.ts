@@ -10,7 +10,8 @@ const env = getEnv();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name, phone, city } = req.body;
+    const { password, name, phone, city } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
 
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Missing required fields (email, password, name)" });
@@ -87,11 +88,10 @@ router.post("/register", async (req, res) => {
   } catch (error: any) {
     // Better UX: If user tries to register again with an unverified email, resend the OTP
     if (error.message?.includes("Email already exists") || error.code === "23505" || error.message?.includes("already been registered")) {
-      const { email } = req.body;
+      const email = String(req.body?.email || "").trim().toLowerCase();
       const supabase = getSupabaseAdmin();
-      const authClient = getAuthClient();
       
-      if (supabase && authClient) {
+      if (supabase) {
         // 1. Check if they exist in our DB
         const { data: existingUser } = await supabase.from("users").select("id, is_verified, name").eq("email", email).single();
         
@@ -124,7 +124,7 @@ router.post("/register", async (req, res) => {
 // Resend OTP
 router.post("/resend-otp", async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     const supabase = getSupabaseAdmin();
@@ -167,7 +167,8 @@ router.post("/resend-otp", async (req, res) => {
 // Verify OTP
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { email, code } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const code = String(req.body?.code || "").trim();
     if (!email || !code) return res.status(400).json({ error: "Email and code are required" });
 
     const supabase = getSupabaseAdmin();
@@ -221,7 +222,8 @@ router.post("/verify-otp", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const { password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: "Missing email or password" });
     }
@@ -247,15 +249,7 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Login failed. Please check your credentials and verify your email." });
     }
 
-    // Securely set the access token as an HTTP-only cookie
-    res.cookie("slasham_session", data.session.access_token, {
-      httpOnly: true,
-      secure: env.nodeEnv === "production",
-      sameSite: env.nodeEnv === "production" ? "none" : "lax",
-      maxAge: data.session.expires_in * 1000,
-    });
-
-    // Also fetch the user's role from the public.users table
+    // Fetch role/verification status from public.users where possible
     const supabaseAdmin = getSupabaseAdmin();
     let role = "USER";
     let is_verified = !!data.user.email_confirmed_at; // TRUST AUTH STATUS FIRST
@@ -267,7 +261,7 @@ router.post("/login", async (req, res) => {
         .eq("id", data.user.id)
         .single();
 
-      const finalRole = existingUser?.role === "ADMIN" ? "ADMIN" : (data.user.user_metadata?.role || "USER");
+      const finalRole = existingUser?.role || data.user.user_metadata?.role || "USER";
 
       if (!existingUser) {
         await supabaseAdmin
@@ -282,7 +276,7 @@ router.post("/login", async (req, res) => {
       }
 
       role = existingUser?.role || finalRole;
-      is_verified = existingUser?.is_verified || is_verified;
+      is_verified = existingUser?.is_verified ?? is_verified;
     }
 
     if (role === "DELETED" || role === "BANNED") {
@@ -295,6 +289,14 @@ router.post("/login", async (req, res) => {
         action: "VERIFY_EMAIL",
       });
     }
+
+    // Set session cookie only after all account checks pass.
+    res.cookie("slasham_session", data.session.access_token, {
+      httpOnly: true,
+      secure: env.nodeEnv === "production",
+      sameSite: env.nodeEnv === "production" ? "none" : "lax",
+      maxAge: data.session.expires_in * 1000,
+    });
 
     res.json({
       message: "Login successful",
@@ -334,8 +336,8 @@ router.get("/me", requireAuth, async (req, res) => {
         id: req.user.id,
         email: req.user.email,
         name: req.user.user_metadata?.name || "Member",
-        role: req.user.user_metadata?.role || "USER",
-        is_verified: !!req.user.email_confirmed_at,
+        role: req.user.role || req.user.user_metadata?.role || "USER",
+        is_verified: req.user.is_verified ?? !!req.user.email_confirmed_at,
         created_at: req.user.created_at,
         phone: "",
         city: "",

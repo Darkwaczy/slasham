@@ -16,9 +16,9 @@ export default function ExperienceDeals() {
           title: d.title,
           price: d.discount_price.toString(),
           original: d.original_price.toString(),
-          image: d.images?.[0] || "https://images.unsplash.com/photo-1521017432521-f34f729bb917",
+          image: d.images?.[0] || "",
           category: d.category,
-          location: d.merchants?.city || "Lagos",
+          location: d.merchants?.city || "",
           expiryDate: d.expiry_date,
           totalQuantity: d.total_quantity,
           soldQuantity: d.sold_quantity,
@@ -52,7 +52,7 @@ export default function ExperienceDeals() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {deals.map((deal, i) => (
+          {deals.map((deal) => (
             <DealCard
               key={deal.id}
               id={deal.id}
@@ -66,7 +66,6 @@ export default function ExperienceDeals() {
               totalQuantity={deal.totalQuantity}
               soldQuantity={deal.soldQuantity}
               dealExplanation={deal.dealExplanation}
-              index={i}
             />
           ))}
           {deals.length === 0 && (
@@ -79,3 +78,4 @@ export default function ExperienceDeals() {
     </div>
   );
 }
+

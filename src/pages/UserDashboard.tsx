@@ -69,7 +69,7 @@ export default function UserDashboard() {
       merchant: deal.merchants?.business_name || "Merchant",
       price: `₦${deal.discount_price?.toLocaleString() || "0"}`,
       discount: discount,
-      image: deal.images?.[0] || `https://picsum.photos/seed/${deal.id}/400/300`
+      image: deal.images?.[0] || ""
     };
   });
 
@@ -494,3 +494,4 @@ export default function UserDashboard() {
 function XIcon({ size }: { size: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
 }
+

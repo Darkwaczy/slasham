@@ -37,7 +37,7 @@ export default function BusinessDetail() {
           location: merchant.address || merchant.city,
           rating: 4.8, // Fallback for now as reviews table might be empty
           reviews: 0,
-          image: merchant.banner_url || "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b",
+          image: merchant.banner_url || "",
           description: merchant.description || "No description provided.",
           openingHours: "Open Daily",
           phone: merchant.phone || "Not provided",
@@ -52,7 +52,7 @@ export default function BusinessDetail() {
           title: d.title,
           price: `₦${d.discount_price.toLocaleString()}`,
           original: `₦${d.original_price.toLocaleString()}`,
-          image: d.images?.[0] || "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
+          image: d.images?.[0] || "",
           category: d.category,
           tag: d.category
         })));
@@ -90,13 +90,19 @@ export default function BusinessDetail() {
     <div className="bg-white min-h-screen">
       {/* Hero Header */}
       <div className="relative h-[40vh] md:h-[60vh] overflow-hidden">
-        <img 
-          src={business.image} 
-          alt={business.name} 
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer"
-          loading="lazy"
-        />
+        {business.image ? (
+          <img
+            src={business.image}
+            alt={business.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-xs font-black uppercase tracking-widest">
+            No business image
+          </div>
+        )}
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
         
         {/* Top Actions */}
@@ -163,7 +169,13 @@ export default function BusinessDetail() {
                   {businessDeals.map((deal) => (
                     <Link key={deal.id} to={`/deal/${deal.id}`} className="group bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 hover:shadow-xl transition-all">
                       <div className="aspect-video relative overflow-hidden">
-                        <img src={deal.image} alt={deal.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        {deal.image ? (
+                          <img src={deal.image} alt={deal.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-xs font-black uppercase tracking-widest">
+                            No image
+                          </div>
+                        )}
                         <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
                           {deal.tag}
                         </div>
@@ -258,3 +270,4 @@ export default function BusinessDetail() {
     </div>
   );
 }
+

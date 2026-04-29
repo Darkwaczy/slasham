@@ -85,6 +85,108 @@ router.get("/my-profile", requireAuth, async (req, res) => {
   }
 });
 
+// Get merchant campaign requests
+router.get("/campaigns", requireAuth, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data: merchant, error: merchantError } = await supabase
+      .from("merchants")
+      .select("id")
+      .eq("user_id", req.user.id)
+      .single();
+
+    if (merchantError) {
+      if (merchantError.code === "PGRST116") {
+        return res.status(403).json({ error: "Merchant profile required" });
+      }
+      throw merchantError;
+    }
+
+    if (!merchant) {
+      return res.status(403).json({ error: "Merchant profile required" });
+    }
+
+    const { data, error } = await supabase
+      .from("campaign_requests")
+      .select(`
+        *,
+        merchants ( business_name )
+      `)
+      .eq("merchant_id", merchant.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Submit a new campaign request
+router.post("/campaigns", requireAuth, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { data: merchant, error: merchantError } = await supabase
+      .from("merchants")
+      .select("id")
+      .eq("user_id", req.user.id)
+      .single();
+
+    if (merchantError) {
+      if (merchantError.code === "PGRST116") {
+        return res.status(403).json({ error: "Merchant profile required" });
+      }
+      throw merchantError;
+    }
+
+    if (!merchant) {
+      return res.status(403).json({ error: "Merchant profile required" });
+    }
+
+    const {
+      product_name,
+      description,
+      coupon_type,
+      original_price,
+      expected_discount,
+      total_quantity,
+      expiry_date,
+      product_image,
+    } = req.body;
+
+    if (!product_name || !original_price) {
+      return res.status(400).json({ error: "Product name and original price are required" });
+    }
+
+    const { data, error } = await supabase
+      .from("campaign_requests")
+      .insert({
+        merchant_id: merchant.id,
+        product_name,
+        description,
+        coupon_type,
+        original_price,
+        expected_discount,
+        total_quantity,
+        expiry_date,
+        product_image,
+        status: 'PENDING',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET merchant dashboard stats
 router.get("/stats", requireAuth, async (req, res) => {
   try {
@@ -602,33 +704,53 @@ router.post("/apply", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields (Business Name, Email, Contact, RC Number, Phone)" });
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedPhone = String(phone).trim();
+    const normalizedRcNumber = String(rc_number).trim().toUpperCase();
+
     // --- DUPLICATE PREVENTION (Parallelized) ---
-    // Run all duplicate checks in parallel instead of sequentially
-    const [existingAppResult, existingRCResult] = await Promise.all([
+    // Run duplicate checks in parallel using exact column filters to avoid brittle OR-string interpolation.
+    const [existingByEmailResult, existingByPhoneResult, existingRCNormalizedResult, existingRCRawResult] = await Promise.all([
       supabase
         .from("merchant_applications")
-        .select("id, email, phone, status")
-        .or(`email.eq.${email},phone.eq.${phone}`)
+        .select("id, email, status")
+        .eq("email", normalizedEmail)
+        .neq('status', 'REJECTED')
+        .limit(1),
+      supabase
+        .from("merchant_applications")
+        .select("id, phone, status")
+        .eq("phone", normalizedPhone)
         .neq('status', 'REJECTED')
         .limit(1),
       supabase
         .from("merchant_applications")
         .select("id")
-        .contains("metadata", { rc_number })
+        .contains("metadata", { rc_number: normalizedRcNumber })
+        .neq('status', 'REJECTED')
+        .limit(1),
+      supabase
+        .from("merchant_applications")
+        .select("id")
+        .contains("metadata", { rc_number: String(rc_number).trim() })
         .neq('status', 'REJECTED')
         .limit(1)
     ]);
 
-    const { data: existingApp } = existingAppResult;
-    const { data: existingRC } = existingRCResult;
+    const { data: existingByEmail } = existingByEmailResult;
+    const { data: existingByPhone } = existingByPhoneResult;
+    const { data: existingRCNormalized } = existingRCNormalizedResult;
+    const { data: existingRCRaw } = existingRCRawResult;
 
-    if (existingApp && existingApp.length > 0) {
-      const match = existingApp[0];
-      const field = match.email === email ? "email" : "phone number";
-      return res.status(409).json({ error: `An application with this ${field} has already been submitted.` });
+    if (existingByEmail && existingByEmail.length > 0) {
+      return res.status(409).json({ error: "An application with this email has already been submitted." });
     }
 
-    if (existingRC && existingRC.length > 0) {
+    if (existingByPhone && existingByPhone.length > 0) {
+      return res.status(409).json({ error: "An application with this phone number has already been submitted." });
+    }
+
+    if ((existingRCNormalized && existingRCNormalized.length > 0) || (existingRCRaw && existingRCRaw.length > 0)) {
       return res.status(409).json({ error: "This RC Number / Registration ID is already associated with an application." });
     }
     // ----------------------------
@@ -639,15 +761,15 @@ router.post("/apply", async (req, res) => {
         business_name,
         business_type,
         contact_name,
-        email,
-        phone,
+        email: normalizedEmail,
+        phone: normalizedPhone,
         city,
         address,
         website_social,
         description,
         // Detailed metrics
         metadata: {
-          rc_number,
+          rc_number: normalizedRcNumber,
           years_in_operation,
           contact_role,
           instagram_handle,

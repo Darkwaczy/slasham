@@ -40,23 +40,38 @@ export default function AdminLayout() {
     const fetchMe = async () => {
       try {
         const { user } = await apiClient("/admin/me");
+        if (user?.role !== "ADMIN") {
+          localStorage.removeItem("slasham_user");
+          localStorage.removeItem("slasham_token");
+          navigate("/admin/login", { replace: true });
+          return;
+        }
         setAdminUser(user);
       } catch (e) {
         console.error("Failed to fetch admin profile");
+        localStorage.removeItem("slasham_user");
+        localStorage.removeItem("slasham_token");
+        navigate("/admin/login", { replace: true });
       }
     };
     fetchMe();
-  }, []);
+  }, [navigate]);
 
   const adminName = adminUser?.name || "Admin User";
   const adminEmail = adminUser?.email || "Administrator";
   const adminRole = adminUser?.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Master Admin';
   const adminInitials = adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  const handleLogout = () => {
-    localStorage.removeItem("slasham_user");
-    localStorage.removeItem("slasham_token");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await apiClient("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      localStorage.removeItem("slasham_user");
+      localStorage.removeItem("slasham_token");
+      navigate("/admin/login", { replace: true });
+    }
   };
 
   const currentPageName = navItems.find(item => item.path === location.pathname)?.name || "Admin Console";

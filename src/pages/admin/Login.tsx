@@ -23,6 +23,10 @@ export default function AdminLogin() {
         body: JSON.stringify({ email, password }),
       });
 
+      if (user.role !== "ADMIN") {
+        throw new Error("Access denied. Admin credentials required.");
+      }
+
       // Save session
       localStorage.setItem("slasham_user", JSON.stringify(user));
       if (token) localStorage.setItem("slasham_token", token);

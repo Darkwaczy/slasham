@@ -24,7 +24,7 @@ const requireAdmin = (req: any, res: any, next: any) => {
   return res.status(403).json({ error: "Access denied. Admin only." });
 };
 
-router.get("/me", requireAuth, async (req, res) => {
+router.get("/me", requireAuth, requireAdmin, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
@@ -699,7 +699,12 @@ router.post("/applications/:id/approve", requireAuth, requireAdmin, async (req, 
       email: app.email,
       name: app.contact_name,
       role: 'MERCHANT',
-      is_verified: true
+      is_verified: true,
+      points: 0,
+      total_savings: 0,
+      otp_attempts: 0,
+      city: app.city || null,
+      phone: app.phone || null
     });
 
     if (userError) throw userError;
@@ -714,8 +719,8 @@ router.post("/applications/:id/approve", requireAuth, requireAdmin, async (req, 
         address: app.metadata?.physical_address || app.city,
         email: app.email,
         phone: app.phone,
-        website: app.metadata?.website_url,
-        logo_url: "https://via.placeholder.com/150",
+        website: app.metadata?.website_url || null,
+        logo_url: app.metadata?.logo_url || null,
         category: app.business_type,
         status: 'Active',
         is_verified: true
