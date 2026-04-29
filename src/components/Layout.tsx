@@ -194,7 +194,7 @@ export default function Layout() {
 
       {/* Structured Header inspired by Groupon but uniquely Slasham */}
       <header className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-2 md:gap-8">
           {/* Logo */}
           <Link to="/" className="hover:opacity-80 transition-opacity shrink-0">
             <Logo size="md" />
@@ -216,14 +216,14 @@ export default function Layout() {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 md:gap-4 shrink-0">
              <div className="hidden lg:flex items-center gap-6 mr-4 border-r border-slate-100 pr-6">
                <Link to="/how-it-works" className="text-[11px] font-bold text-slate-500 hover:text-teal-600 uppercase tracking-wider transition-all">How it works</Link>
                <Link to="/business" className="text-[11px] font-bold text-slate-500 hover:text-teal-600 uppercase tracking-wider transition-all">For Business</Link>
              </div>
              
-             <div className="flex items-center gap-2">
-               <Link to={user ? "/user/saved" : "/login"} className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
+             <div className="flex items-center gap-1 md:gap-2">
+               <Link to={user ? "/user/saved" : "/login"} className="p-1.5 md:p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
                  <Heart size={20} />
                  {savedCount > 0 && (
                    <span className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full border border-white"></span>
@@ -231,8 +231,8 @@ export default function Layout() {
                </Link>
                
                {user ? (
-                 <div className="relative group/user px-2">
-                   <button className="w-9 h-9 rounded-full border border-slate-200 overflow-hidden ring-2 ring-transparent hover:ring-teal-500/20 transition-all">
+                 <div className="relative group/user px-1 md:px-2 hidden lg:block">
+                   <button className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-slate-200 overflow-hidden ring-2 ring-transparent hover:ring-teal-500/20 transition-all shrink-0">
                      <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-full h-full object-cover" />
                    </button>
                    <div className="absolute top-full right-0 mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 translate-y-1 group-hover/user:translate-y-0">
@@ -246,14 +246,14 @@ export default function Layout() {
                    </div>
                  </div>
                ) : (
-                 <Link to="/login" className="px-6 py-2.5 bg-emerald-500 text-white rounded-full text-xs font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
+                 <Link to="/login" className="hidden lg:inline-flex px-3 py-2 md:px-6 md:py-2.5 bg-emerald-500 text-white rounded-full text-[10px] md:text-xs font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap shrink-0">
                    SIGN IN
                  </Link>
                )}
              </div>
 
              <button 
-              className="lg:hidden text-slate-900 p-2 hover:bg-slate-50 rounded-full transition-colors"
+              className="lg:hidden text-slate-900 p-1 md:p-2 hover:bg-slate-50 rounded-full transition-colors -mr-1 md:mr-0 shrink-0"
               onClick={() => setIsMenuOpen(true)}
             >
               <Menu size={24} />
