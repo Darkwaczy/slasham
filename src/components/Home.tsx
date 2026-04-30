@@ -45,12 +45,14 @@ export default function Home() {
         const finalBanners = [
           {
             image: "/assets/banner 1.jpg",
+            mobileImage: "/assets/mobile banner 1.jpg",
             title: ["Less Spend", "More Value."],
             subtitle: "Only Available For A Short Time",
             code: "SLASHAM",
             badge: " LIMITED OFFER",
             isGraphicStyle: true,
-            mobilePosition: "object-[center_20%] scale-[1.3]"
+            desktopPosition: "md:object-right md:scale-105 lg:scale-110",
+            mobilePosition: "object-center scale-100"
           },
           {
             image: "/assets/banner 2.jpg",
@@ -59,7 +61,8 @@ export default function Home() {
             code: "SLASHAM",
             badge: " LIMITED OFFER",
             isGraphicStyle: true,
-            mobilePosition: "object-[75%_20%] scale-[1.3]",
+            desktopPosition: "md:object-right md:scale-105 lg:scale-110",
+            mobilePosition: "object-[80%_center] scale-100",
             whiteMobileBadge: true,
             whiteMobileSubtitle: true
           },
@@ -70,7 +73,8 @@ export default function Home() {
             code: "SLASHAM",
             badge: " LIMITED OFFER",
             isGraphicStyle: true,
-            mobilePosition: "object-[85%_top] scale-[1.2]",
+            desktopPosition: "md:object-right md:scale-100",
+            mobilePosition: "object-[85%_top] scale-100",
             textColor: "text-white",
             whiteMobileBadge: true,
             whiteDesktopBadge: true
@@ -83,12 +87,14 @@ export default function Home() {
         setAdBanners([
           {
             image: "/assets/banner 1.jpg",
+            mobileImage: "/assets/mobile banner 1.jpg",
             title: ["Less Spend", "More Value."],
             subtitle: "Only Available For A Short Time",
             code: "SLASHAM",
             badge: " LIMITED OFFER",
             isGraphicStyle: true,
-            mobilePosition: "object-[center_20%] scale-[1.3]"
+            desktopPosition: "md:object-right md:scale-105 lg:scale-110",
+            mobilePosition: "object-center scale-100"
           }
         ]);
       } finally {
@@ -132,17 +138,22 @@ export default function Home() {
               transition={{ duration: 1 }}
               className="absolute inset-0"
             >
-              <img 
-                src={adBanners[currentAdIndex].image} 
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-                  adBanners[currentAdIndex].isGraphicStyle 
-                    ? `md:object-right md:scale-100 ${adBanners[currentAdIndex].mobilePosition || "object-[center_20%] scale-[1.3]"}` 
-                    : "object-center scale-100"
-                }`} 
-                style={{ opacity: adBanners[currentAdIndex].isGraphicStyle ? 1 : 0.5 }} 
-              />
+              <picture className="absolute inset-0 w-full h-full">
+                {adBanners[currentAdIndex].mobileImage && (
+                  <source media="(max-width: 767px)" srcSet={encodeURI(adBanners[currentAdIndex].mobileImage)} />
+                )}
+                <img 
+                  src={adBanners[currentAdIndex].image} 
+                  className={`w-full h-full object-cover transition-all duration-700 ${
+                    adBanners[currentAdIndex].isGraphicStyle 
+                      ? `${adBanners[currentAdIndex].desktopPosition || "md:object-right md:scale-100"} ${adBanners[currentAdIndex].mobilePosition || "object-[center_20%] scale-[1.3]"}` 
+                      : "object-center scale-100"
+                  }`} 
+                  style={{ opacity: adBanners[currentAdIndex].isGraphicStyle ? 1 : 0.5 }} 
+                />
+              </picture>
               
-              <div className={`absolute inset-0 flex flex-col ${adBanners[currentAdIndex].isGraphicStyle ? "justify-start pt-40 md:justify-center md:pt-0" : "justify-center"} max-w-7xl mx-auto px-6 md:px-16 lg:px-24 z-20`}>
+              <div className={`absolute inset-0 flex flex-col ${adBanners[currentAdIndex].isGraphicStyle ? "justify-start pt-24 sm:pt-28 md:justify-center md:pt-0" : "justify-center"} max-w-7xl mx-auto px-6 md:px-16 lg:px-24 z-20`}>
                 <div className={`${adBanners[currentAdIndex].isGraphicStyle ? "w-full md:w-1/2" : "w-full"} flex flex-col items-start`}>
                   
                   <motion.div
@@ -181,7 +192,7 @@ export default function Home() {
 
                   <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6 }} className="flex flex-wrap items-center gap-4">
                     <div className="bg-white text-slate-900 px-5 py-3.5 md:px-6 md:py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-[11px] shadow-2xl flex items-center gap-3 md:gap-4 border border-slate-100">
-                      Use Promo Code
+                      PROMO CODE
                       <span className="text-white px-2.5 py-1.2 rounded-lg text-xs md:text-sm tracking-widest font-black" style={{ background: '#f97316' }}>
                         {adBanners[currentAdIndex].code}
                       </span>
