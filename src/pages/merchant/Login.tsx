@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { Store, Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff, RefreshCw, Sparkles } from "lucide-react";
 import { apiClient } from "../../api/client";
 
 export default function MerchantLogin() {
-  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

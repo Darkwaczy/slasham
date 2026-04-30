@@ -59,7 +59,12 @@ export default function PaystackCheckoutModal({
       if (window.PaystackPop) {
         const handler = window.PaystackPop.setup({
           key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_cf2a375f12be9eff21e3bb3697a84b740821386e",
-          email: localStorage.getItem("slasham_user_email") || "",
+          email: (() => {
+            try {
+              const user = JSON.parse(localStorage.getItem("slasham_user") || "{}");
+              return user.email || "";
+            } catch { return ""; }
+          })(),
           amount: dealPrice * 100, // Convert to kobo
           ref: data.reference,
           onClose: () => {
