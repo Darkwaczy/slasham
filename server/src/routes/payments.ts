@@ -273,9 +273,9 @@ router.post("/webhook", async (req, res) => {
       return res.status(500).json({ error: "Webhook not configured" });
     }
 
-    // 1. Verify webhook signature
+    // 1. Verify webhook signature using the RAW Buffer from req.body
     const hash = createHmac("sha512", env.paystackWebhookSecret)
-      .update(JSON.stringify(req.body))
+      .update(req.body)
       .digest("hex");
 
     const signature = req.headers["x-paystack-signature"];
@@ -284,9 +284,10 @@ router.post("/webhook", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const event = req.body;
+    // 2. Parse the raw Buffer into an object
+    const event = JSON.parse(req.body.toString());
 
-    // 2. Handle only charge.success events
+    // 3. Handle only charge.success events
     if (event.event !== "charge.success") {
       return res.json({ success: true, message: "Event ignored" });
     }
