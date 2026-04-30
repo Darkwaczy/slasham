@@ -1,48 +1,121 @@
 export const layout = (content: string, showUnsubscribe = false) => `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', -apple-system, sans-serif; }
-      </style>
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #ffffff; color: #000000; font-family: 'Inter', sans-serif;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 60px 20px;">
-        <!-- Header -->
-        <div style="margin-bottom: 60px; text-align: center;">
-          <img src="https://i.ibb.co/LzdYpZ7/slasham-logo.png" alt="SLASHAM" style="height: 40px; width: auto; font-weight: 900;" />
-        </div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    
+    <!-- Wrapper -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+            
+            <!-- Header -->
+            <tr>
+              <td style="background-color:#ffffff;border-radius:16px 16px 0 0;padding:32px 40px;border-bottom:3px solid #16a34a;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td>
+                      <img src="https://www.slasham.com/assets/slashamlogo.png" 
+                           alt="Slasham" 
+                           style="height:36px;width:auto;" />
+                    </td>
+                    <td align="right">
+                      <span style="font-size:11px;font-weight:900;color:#16a34a;text-transform:uppercase;letter-spacing:0.15em;">Nigeria's #1 Deal Platform</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
 
-        <div style="line-height: 1.8; font-size: 16px;">
-          ${content}
-        </div>
+            <!-- Body -->
+            <tr>
+              <td style="background-color:#ffffff;padding:40px;font-size:15px;line-height:1.8;color:#111827;">
+                ${content}
+              </td>
+            </tr>
 
-        <!-- Divider -->
-        <div style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #10b981; text-align: center;">
-          <p style="margin: 0; font-size: 10px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.3em;">
-            Slasham Global • Lagos • Abuja • London
-          </p>
-          ${showUnsubscribe ? '<p style="margin-top: 20px; font-size: 11px; color: #666666;">You received this because you are a registered member of Slasham. <a href="#" style="color: #000000; text-decoration: underline;">Unsubscribe</a></p>' : ''}
-        </div>
-      </div>
-    </body>
-  </html>
+            <!-- Footer -->
+            <tr>
+              <td style="background-color:#111827;border-radius:0 0 16px 16px;padding:32px 40px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td>
+                      <img src="https://www.slasham.com/assets/slashamlogo.png" 
+                           alt="Slasham" 
+                           style="height:28px;width:auto;filter:brightness(0) invert(1);opacity:0.9;" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top:16px;">
+                      <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
+                        Save More. Live Better. Nigeria's premium verified deals marketplace.
+                      </p>
+                      <p style="margin:8px 0 0;font-size:11px;font-weight:900;color:#16a34a;text-transform:uppercase;letter-spacing:0.2em;">
+                        Lagos • Abuja
+                      </p>
+                    </td>
+                  </tr>
+                  ${showUnsubscribe ? `
+                  <tr>
+                    <td style="padding-top:20px;border-top:1px solid #1f2937;margin-top:20px;">
+                      <p style="margin:0;font-size:11px;color:#6b7280;">
+                        You received this because you're a registered Slasham member.
+                        <a href="#" style="color:#16a34a;text-decoration:underline;">Unsubscribe</a>
+                      </p>
+                    </td>
+                  </tr>` : ''}
+                </table>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+
+  </body>
+</html>
 `;
 
 export const userWelcomeTemplate = (name: string, clientUrl: string) => layout(`
-  <h1 style="font-size: 32px; font-weight: 900; color: #000000; margin-top: 0; margin-bottom: 24px; letter-spacing: -1px;">Welcome to Slasham.</h1>
-  <p style="font-size: 18px; color: #000000; margin-bottom: 32px;">Hi ${name}, you've just unlocked Nigeria's most exclusive lifestyle rewards platform.</p>
-  
-  <p style="font-size: 16px; color: #000000; margin-bottom: 32px;">
-    We've credited <span style="color: #10b981; font-weight: 900;">500 SlashPoints</span> to your wallet as a founding member gift. 
-    Use these points to get even bigger discounts on premium dining, beauty, and travel experiences.
-  </p>
-  
-  <div style="border: 2px solid #10b981; padding: 2px; display: inline-block; border-radius: 12px;">
-    <a href="${clientUrl}/deals" style="display: inline-block; background: #000000; color: #ffffff; padding: 18px 36px; border-radius: 10px; text-decoration: none; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em;">Start Exploring</a>
+  <div style="background:#f0fdf4;border-radius:12px;padding:24px;margin-bottom:32px;text-align:center;">
+    <p style="margin:0;font-size:40px;">🎉</p>
+    <h1 style="font-size:28px;font-weight:900;color:#111827;margin:12px 0 8px;letter-spacing:-0.5px;">
+      Welcome to Slasham!
+    </h1>
+    <p style="margin:0;font-size:14px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+      You're now a verified member
+    </p>
   </div>
+
+  <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.8;">
+    Hi <strong>${name}</strong>, welcome to Nigeria's #1 verified deals platform. 
+    You now have exclusive access to premium deals in Lagos and Abuja.
+  </p>
+
+  <div style="border-left:4px solid #16a34a;padding:16px 24px;margin-bottom:32px;background:#f9fafb;border-radius:0 8px 8px 0;">
+    <p style="margin:0;font-size:15px;color:#111827;font-weight:700;">
+      🎁 500 SlashPoints credited to your wallet
+    </p>
+    <p style="margin:8px 0 0;font-size:13px;color:#6b7280;">
+      Use these points for extra discounts on your first purchase.
+    </p>
+  </div>
+
+  <table cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="background:#16a34a;border-radius:10px;padding:2px;">
+        <a href="${clientUrl}/deals" 
+           style="display:inline-block;background:#16a34a;color:#ffffff;padding:16px 32px;border-radius:8px;text-decoration:none;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:0.1em;">
+          Explore Deals →
+        </a>
+      </td>
+    </tr>
+  </table>
 `, true);
 
 export const founderWelcomeTemplate = (name: string) => layout(`
@@ -58,18 +131,29 @@ export const founderWelcomeTemplate = (name: string) => layout(`
     <img src="https://readme-typing-svg.herokuapp.com?font=Dancing+Script&size=36&duration=4000&pause=1000&color=10b981&width=350&lines=Nelly+Agbogu" alt="Nelly Agbogu" style="width: 250px; height: auto;" />
   </div>
   <p style="margin: 0; font-weight: 900; color: #000000; font-size: 18px; letter-spacing: -0.5px;">Nelly Agbogu</p>
-  <p style="margin: 0; color: #10b981; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Co-Founder, Slasham</p>
+  <p style="margin: 0; color: #16a34a; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Co-Founder, Slasham</p>
 `);
 
 export const otpTemplate = (name: string, code: string) => layout(`
-  <h1 style="font-size: 32px; font-weight: 900; color: #000000; margin-top: 0; margin-bottom: 24px; letter-spacing: -1px;">Verify your identity.</h1>
-  <p style="font-size: 16px; color: #000000; margin-bottom: 32px;">Hi ${name}, please use the secure code below to complete your Slasham registration.</p>
-  
-  <div style="border: 2px solid #000000; padding: 40px; border-radius: 4px; text-align: center; margin-bottom: 32px;">
-    <div style="font-size: 56px; font-weight: 900; color: #10b981; letter-spacing: 12px; font-family: monospace;">${code}</div>
+  <h1 style="font-size:28px;font-weight:900;color:#111827;margin:0 0 16px;letter-spacing:-0.5px;">
+    Verify your identity.
+  </h1>
+  <p style="font-size:15px;color:#374151;margin:0 0 32px;">
+    Hi <strong>${name}</strong>, use the code below to complete your Slasham verification.
+  </p>
+
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:40px;text-align:center;margin-bottom:32px;">
+    <p style="margin:0 0 8px;font-size:11px;font-weight:900;color:#16a34a;text-transform:uppercase;letter-spacing:0.2em;">
+      Your Verification Code
+    </p>
+    <div style="font-size:52px;font-weight:900;color:#111827;letter-spacing:12px;font-family:monospace;">
+      ${code}
+    </div>
   </div>
-  
-  <p style="font-size: 12px; color: #666666; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">This code expires in 10 minutes.</p>
+
+  <p style="font-size:12px;color:#9ca3af;text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+    ⏱ This code expires in 10 minutes. Do not share it with anyone.
+  </p>
 `);
 
 export const merchantOnboardingTemplate = (name: string, email: string, tempPassword: string, clientUrl: string) => layout(`
@@ -81,20 +165,20 @@ export const merchantOnboardingTemplate = (name: string, email: string, tempPass
   </p>
 
   <div style="border: 1px solid #000000; padding: 30px; margin-bottom: 40px; border-radius: 4px;">
-    <p style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #10b981; margin-bottom: 20px;">Secure Access Credentials</p>
+    <p style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #16a34a; margin-bottom: 20px;">Secure Access Credentials</p>
     <p style="font-size: 16px; margin-bottom: 12px;"><strong>Login Email:</strong> <span style="color: #000000;">${email}</span></p>
-    <p style="font-size: 16px; margin: 0;"><strong>Temporary Password:</strong> <span style="background: #10b981; color: #ffffff; padding: 4px 8px; font-weight: 900; border-radius: 4px;">${tempPassword}</span></p>
+    <p style="font-size: 16px; margin: 0;"><strong>Temporary Password:</strong> <span style="background: #16a34a; color: #ffffff; padding: 4px 8px; font-weight: 900; border-radius: 4px;">${tempPassword}</span></p>
   </div>
 
   <h3 style="font-size: 14px; font-weight: 900; text-transform: uppercase; color: #000000; letter-spacing: 0.1em; margin-bottom: 20px;">Next Steps for Success</h3>
   <div style="font-size: 15px; color: #000000; margin-bottom: 40px; line-height: 1.8;">
-    <strong style="color: #10b981;">1. Secure Your Account:</strong> Log in and immediately change your temporary password to something secure.<br>
-    <strong style="color: #10b981;">2. Complete Your Profile:</strong> Upload your high-resolution business logo and a captivating banner to attract customers.<br>
-    <strong style="color: #10b981;">3. Create Your First Campaign:</strong> Submit your deal for review. Once approved, it goes live to thousands of Slasham users.<br>
-    <strong style="color: #10b981;">4. Download the Scanner:</strong> Prepare your staff to scan customer vouchers using our digital terminal.
+    <strong style="color: #16a34a;">1. Secure Your Account:</strong> Log in and immediately change your temporary password to something secure.<br>
+    <strong style="color: #16a34a;">2. Complete Your Profile:</strong> Upload your high-resolution business logo and a captivating banner to attract customers.<br>
+    <strong style="color: #16a34a;">3. Create Your First Campaign:</strong> Submit your deal for review. Once approved, it goes live to thousands of Slasham users.<br>
+    <strong style="color: #16a34a;">4. Download the Scanner:</strong> Prepare your staff to scan customer vouchers using our digital terminal.
   </div>
 
-  <div style="border: 2px solid #10b981; padding: 2px; display: inline-block; border-radius: 12px;">
+  <div style="border: 2px solid #16a34a; padding: 2px; display: inline-block; border-radius: 12px;">
     <a href="${clientUrl}/merchant/login" style="display: inline-block; background: #000000; color: #ffffff; padding: 20px 40px; border-radius: 10px; text-decoration: none; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em;">Launch Partner Console</a>
   </div>
 `);
@@ -105,7 +189,7 @@ export const merchantApplicationReceivedTemplate = (name: string) => layout(`
   
   <p style="font-size: 16px; color: #000000; margin-bottom: 24px; line-height: 1.8;">Our verification team has received your application and is currently reviewing your business details. This process typically takes 24-48 hours.</p>
   
-  <div style="border-left: 4px solid #10b981; padding: 30px; margin-bottom: 40px;">
+  <div style="border-left: 4px solid #16a34a; padding: 30px; margin-bottom: 40px;">
     <h3 style="font-size: 14px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px;">What happens next?</h3>
     <ul style="font-size: 15px; color: #000000; padding-left: 20px; margin: 0; line-height: 2;">
       <li>We verify your business registration and social presence.</li>
@@ -139,9 +223,9 @@ export const couponPurchasedTemplate = (name: string, dealTitle: string, voucher
   <p style="font-size: 18px; color: #000000; margin-bottom: 32px;">Hi ${name}, your voucher for <strong>${dealTitle}</strong> is ready for use.</p>
   
   <div style="border: 2px dashed #000000; padding: 48px; text-align: center; margin-bottom: 40px;">
-    <p style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #10b981; margin-bottom: 12px;">Secure Voucher Code</p>
+    <p style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #16a34a; margin-bottom: 12px;">Secure Voucher Code</p>
     <div style="font-size: 56px; font-weight: 900; color: #000000; letter-spacing: 4px; font-family: monospace; margin-bottom: 16px;">${voucherCode}</div>
-    <p style="font-size: 14px; color: #000000; font-weight: 700;">Paid: <span style="color: #10b981;">₦${price}</span></p>
+    <p style="font-size: 14px; color: #000000; font-weight: 700;">Paid: <span style="color: #16a34a;">₦${price}</span></p>
   </div>
 
   <h3 style="font-size: 14px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px;">How to Redeem</h3>
@@ -151,7 +235,7 @@ export const couponPurchasedTemplate = (name: string, dealTitle: string, voucher
     3. Enjoy the Slasham experience.
   </div>
 
-  <div style="border: 2px solid #10b981; padding: 2px; display: inline-block; border-radius: 12px;">
+  <div style="border: 2px solid #16a34a; padding: 2px; display: inline-block; border-radius: 12px;">
     <a href="${clientUrl}/user/coupons" style="display: inline-block; background: #000000; color: #ffffff; padding: 20px 40px; border-radius: 10px; text-decoration: none; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em;">View My Wallet</a>
   </div>
 `);
@@ -160,8 +244,8 @@ export const couponRedeemedTemplate = (name: string, dealTitle: string, clientUr
   <h1 style="font-size: 32px; font-weight: 900; color: #000000; margin-top: 0; margin-bottom: 24px; letter-spacing: -1px;">Experience Complete. ✅</h1>
   <p style="font-size: 18px; color: #000000; margin-bottom: 32px;">Hi ${name}, your voucher for <strong>${dealTitle}</strong> has been successfully redeemed.</p>
   
-  <div style="border: 2px solid #10b981; padding: 32px; text-align: center; margin-bottom: 40px; border-radius: 4px;">
-    <p style="font-size: 16px; color: #000000; margin-bottom: 24px; line-height: 1.6;">We hope you enjoyed it! Leave a review now to earn <strong style="color: #10b981;">100 SlashPoints</strong>.</p>
+  <div style="border: 2px solid #16a34a; padding: 32px; text-align: center; margin-bottom: 40px; border-radius: 4px;">
+    <p style="font-size: 16px; color: #000000; margin-bottom: 24px; line-height: 1.6;">We hope you enjoyed it! Leave a review now to earn <strong style="color: #16a34a;">100 SlashPoints</strong>.</p>
     <a href="${clientUrl}/user/coupons" style="display: inline-block; background: #000000; color: #ffffff; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px;">Rate Your Experience</a>
   </div>
 `);
