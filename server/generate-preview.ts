@@ -16,21 +16,21 @@ const html = `
   <div class="preview-container">
     <h2 class="title">1. OTP Verification Email</h2>
     <div>
-      ${otpTemplate('Felix', '684294')}
+      ${otpTemplate('Member', '684294')}
     </div>
   </div>
 
   <div class="preview-container">
     <h2 class="title">2. Welcome Email</h2>
     <div>
-      ${userWelcomeTemplate('Felix')}
+      ${userWelcomeTemplate('Member', 'https://www.slasham.com')}
     </div>
   </div>
 
   <div class="preview-container">
     <h2 class="title">3. Founder Note</h2>
     <div>
-      ${founderWelcomeTemplate('Felix')}
+      ${founderWelcomeTemplate('Member')}
     </div>
   </div>
 </body>
