@@ -147,6 +147,120 @@ router.post("/initiate", requireAuth, async (req, res) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// Helper: Verify and Fulfill Order
+// ────────────────────────────────────────────────────────────────────────────
+const verifyAndCreateVoucher = async (reference: string, supabase: any) => {
+  const env = getEnv();
+  
+  // 1. Fetch local payment record
+  const { data: payment, error: paymentError } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("paystack_reference", reference)
+    .single();
+
+  if (paymentError || !payment) throw new Error("Payment record not found");
+  
+  // If already processed, just return success
+  if (payment.status === "success") return payment;
+
+  // 2. Verify with Paystack API
+  const verifyResponse = await axios.get(
+    `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
+    {
+      headers: {
+        Authorization: `Bearer ${env.paystackSecretKey}`,
+      },
+    }
+  );
+
+  const verifiedData = verifyResponse.data.data;
+
+  if (verifiedData.status !== "success") {
+    // Mark as failed in our DB if Paystack says so
+    await supabase
+      .from("payments")
+      .update({ status: "failed", paystack_status: verifiedData.status })
+      .eq("id", payment.id);
+    throw new Error(`Payment status: ${verifiedData.status}`);
+  }
+
+  // 3. Mark payment as success in our DB
+  await supabase
+    .from("payments")
+    .update({
+      status: "success",
+      paystack_status: "success",
+      paystack_customer_id: verifiedData.customer?.id,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", payment.id);
+
+  // 4. Order Fulfillment: Create Voucher
+  const voucherCode = generateVoucherCode();
+  
+  // A. Increment sold quantity
+  const { data: currentDeal } = await supabase
+    .from("deals")
+    .select("sold_quantity")
+    .eq("id", payment.deal_id)
+    .single();
+
+  await supabase
+    .from("deals")
+    .update({ sold_quantity: (currentDeal?.sold_quantity || 0) + 1 })
+    .eq("id", payment.deal_id);
+
+  // B. Create the voucher
+  const { error: voucherError } = await supabase
+    .from("vouchers")
+    .insert({
+      user_id: payment.user_id,
+      deal_id: payment.deal_id,
+      voucher_code: voucherCode,
+      payment_id: payment.id,
+      status: "ACTIVE",
+    });
+
+  if (voucherError) throw voucherError;
+
+  // 5. Send Notifications (Non-blocking)
+  try {
+    const [{ data: user }, { data: deal }] = await Promise.all([
+      supabase.from("users").select("email, name").eq("id", payment.user_id).single(),
+      supabase.from("deals").select("*, merchants(business_name, users(email))").eq("id", payment.deal_id).single()
+    ]);
+
+    if (user && deal) {
+      // To Customer
+      sendCouponPurchased(
+        user.email,
+        user.name,
+        deal.title,
+        voucherCode,
+        deal.discount_price.toString()
+      ).catch(e => console.error("Email Error:", e));
+
+      // To Merchant
+      // @ts-ignore
+      const merchantEmail = deal.merchants?.users?.email;
+      if (merchantEmail) {
+        sendMerchantPurchaseAlert(
+          merchantEmail,
+          deal.merchants.business_name,
+          deal.title,
+          user.name
+        ).catch(e => console.error("Merchant Email Error:", e));
+      }
+    }
+  } catch (err) {
+    console.error("Post-verification notification error:", err);
+  }
+
+  return { ...payment, status: "success", voucher_code: voucherCode };
+};
+
+// ────────────────────────────────────────────────────────────────────────────
 // POST /api/payments/webhook
 // Paystack webhook for payment confirmation
 // ────────────────────────────────────────────────────────────────────────────
@@ -174,170 +288,42 @@ router.post("/webhook", async (req, res) => {
 
     // 2. Handle only charge.success events
     if (event.event !== "charge.success") {
-      return res.json({ success: true, message: "Event received but not processed" });
+      return res.json({ success: true, message: "Event ignored" });
     }
 
-    const { data } = event;
-    const { reference, status, metadata } = data;
-
-    if (status !== "success") {
-      console.warn(`Payment ${reference} status: ${status}`);
-      return res.json({ success: true });
-    }
-
+    const { reference } = event.data;
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("Database not configured");
 
-    // 3. Fetch payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("paystack_reference", reference)
-      .single();
-
-    if (paymentError || !payment) {
-      console.warn(`Payment record not found for reference: ${reference}`);
-      return res.status(404).json({ error: "Payment not found" });
-    }
-
-    // 4. Prevent duplicate processing
-    if (payment.status === "success") {
-      console.log(`Payment ${reference} already processed`);
-      return res.json({ success: true, message: "Payment already processed" });
-    }
-
-    // 5. Verify transaction with Paystack API
-    try {
-      const verifyResponse = await axios.get(
-        `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${env.paystackSecretKey}`,
-          },
-        }
-      );
-
-      const verifiedData = verifyResponse.data.data;
-
-      if (verifiedData.status !== "success" || verifiedData.amount !== Math.round(payment.amount * 100)) {
-        console.warn(
-          `Payment verification failed for ${reference}:`,
-          `Expected ${Math.round(payment.amount * 100)}, got ${verifiedData.amount}`
-        );
-
-        // Mark as failed
-        await supabase
-          .from("payments")
-          .update({ status: "failed", paystack_status: "verification_failed" })
-          .eq("id", payment.id);
-
-        return res.json({ success: true, message: "Verification failed" });
-      }
-    } catch (verifyError: any) {
-      console.error("Paystack verification error:", verifyError.response?.data || verifyError.message);
-
-      await supabase
-        .from("payments")
-        .update({ status: "failed", paystack_status: "verification_error" })
-        .eq("id", payment.id);
-
-      return res.json({ success: true, message: "Verification error" });
-    }
-
-    // 6. Mark payment as success
-    await supabase
-      .from("payments")
-      .update({
-        status: "success",
-        paystack_status: "success",
-        paystack_customer_id: data.customer?.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", payment.id);
-
-    // 7. Create voucher for the user
-    try {
-      const voucherCode = generateVoucherCode();
-
-      const { data: user } = await supabase
-        .from("users")
-        .select("email, name")
-        .eq("id", payment.user_id)
-        .single();
-
-      const { data: deal } = await supabase
-        .from("deals")
-        .select("*, merchants(business_name, users(email))")
-        .eq("id", payment.deal_id)
-        .single();
-
-      // Increment sold quantity
-      const { data: currentDeal } = await supabase
-        .from("deals")
-        .select("sold_quantity")
-        .eq("id", payment.deal_id)
-        .single();
-
-      await supabase
-        .from("deals")
-        .update({ sold_quantity: (currentDeal?.sold_quantity || 0) + 1 })
-        .eq("id", payment.deal_id);
-
-      // Create voucher
-      const { error: voucherError } = await supabase
-        .from("vouchers")
-        .insert({
-          user_id: payment.user_id,
-          deal_id: payment.deal_id,
-          voucher_code: voucherCode,
-          payment_id: payment.id,
-          status: "ACTIVE",
-        });
-
-      if (voucherError) throw voucherError;
-
-      // 8. Send emails
-      try {
-        if (user && deal) {
-          // Email to customer
-          await sendCouponPurchased(
-            user.email,
-            user.name,
-            deal.title,
-            voucherCode,
-            deal.discount_price.toString()
-          ).catch((e) => console.error("Customer email error:", e));
-
-          // Email to merchant
-          // @ts-ignore
-          const merchantEmail = deal.merchants?.users?.email;
-          if (merchantEmail) {
-            await sendMerchantPurchaseAlert(
-              merchantEmail,
-              deal.merchants.business_name,
-              deal.title,
-              user.name
-            ).catch((e) => console.error("Merchant email error:", e));
-          }
-        }
-      } catch (emailErr) {
-        console.error("Email sending error:", emailErr);
-      }
-
-      console.log(`✅ Payment ${reference} processed successfully. Voucher: ${voucherCode}`);
-    } catch (voucherErr) {
-      console.error("Voucher creation error:", voucherErr);
-      // Payment succeeded but voucher creation failed - log for manual review
-      await supabase
-        .from("payments")
-        .update({ paystack_status: "voucher_creation_pending" })
-        .eq("id", payment.id);
-    }
+    console.log(`Processing webhook for reference: ${reference}`);
+    await verifyAndCreateVoucher(reference, supabase);
 
     res.json({ success: true, message: "Webhook processed" });
   } catch (error: any) {
     console.error("Webhook error:", error);
-    res.status(500).json({ error: error.message });
+    // Always return 200 to Paystack to stop retries if it's a processing error
+    res.status(200).json({ error: error.message });
+  }
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/payments/verify-callback
+// Redirect handler from Paystack checkout
+// ────────────────────────────────────────────────────────────────────────────
+router.get("/verify-callback", async (req, res) => {
+  const { reference } = req.query;
+  const env = getEnv();
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    if (!reference) throw new Error("No reference provided");
+
+    await verifyAndCreateVoucher(reference as string, supabase);
+    res.redirect(`${env.clientUrl}/user/coupons?payment=success`);
+  } catch (error) {
+    console.error("Callback verification failed:", error);
+    res.redirect(`${env.clientUrl}/user/coupons?payment=failed`);
   }
 });
 
@@ -348,131 +334,23 @@ router.post("/webhook", async (req, res) => {
 router.post("/verify/:reference", requireAuth, async (req, res) => {
   try {
     const { reference } = req.params;
-    const env = getEnv();
-
-    if (!env.paystackSecretKey) {
-      return res.status(500).json({ error: "Paystack not configured" });
-    }
-
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("Database not configured");
 
-    // 1. Fetch local payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("paystack_reference", reference)
-      .eq("user_id", req.user.id)
-      .single();
-
-    if (paymentError || !payment) {
-      return res.status(404).json({ error: "Payment not found" });
-    }
-
-    // 2. If already processed, return status
-    if (payment.status === "success") {
-      return res.json({
-        success: true,
-        status: "success",
-        message: "Payment confirmed",
-        payment,
-      });
-    }
-
-    // 3. Verify with Paystack
-    try {
-      const verifyResponse = await axios.get(
-        `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${env.paystackSecretKey}`,
-          },
-        }
-      );
-
-      const verifiedData = verifyResponse.data.data;
-
-      if (verifiedData.status === "success") {
-        // ────────────────────────────────────────────────────────────────────
-        // ⚡ ROBUSTNESS: If Paystack says success but our DB is still pending,
-        // we process it here as a fallback (essential for local testing where 
-        // webhooks don't reach localhost).
-        // ────────────────────────────────────────────────────────────────────
-        if (payment.status !== "success") {
-          console.log(`Processing payment ${reference} via manual verification fallback...`);
-          
-          // 1. Mark payment as success
-          await supabase
-            .from("payments")
-            .update({
-              status: "success",
-              paystack_status: "success",
-              paystack_customer_id: verifiedData.customer?.id,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", payment.id);
-
-          // 2. Create voucher
-          try {
-            const voucherCode = generateVoucherCode();
-            
-            // Increment sold quantity
-            const { data: currentDeal } = await supabase
-              .from("deals")
-              .select("sold_quantity")
-              .eq("id", payment.deal_id)
-              .single();
-
-            await supabase
-              .from("deals")
-              .update({ sold_quantity: (currentDeal?.sold_quantity || 0) + 1 })
-              .eq("id", payment.deal_id);
-
-            // Create voucher
-            await supabase
-              .from("vouchers")
-              .insert({
-                user_id: payment.user_id,
-                deal_id: payment.deal_id,
-                voucher_code: voucherCode,
-                payment_id: payment.id,
-                status: "ACTIVE",
-              });
-
-            // 3. Send emails
-            const { data: user } = await supabase.from("users").select("email, name").eq("id", payment.user_id).single();
-            const { data: deal } = await supabase.from("deals").select("*, merchants(business_name, users(email))").eq("id", payment.deal_id).single();
-            
-            if (user && deal) {
-              await sendCouponPurchased(user.email, user.name, deal.title, voucherCode, deal.discount_price.toString()).catch(e => console.error("Email Error:", e));
-            }
-          } catch (voucherErr) {
-            console.error("Voucher creation error in fallback:", voucherErr);
-          }
-        }
-
-        return res.json({
-          success: true,
-          status: "success",
-          message: "Payment verified and processed",
-          payment,
-        });
-      } else {
-        return res.json({
-          success: false,
-          status: verifiedData.status,
-          message: `Payment status: ${verifiedData.status}`,
-        });
-      }
-    } catch (verifyError: any) {
-      console.error("Verification error:", verifyError.response?.data || verifyError.message);
-      return res.status(500).json({
-        error: "Failed to verify payment",
-      });
-    }
+    const result = await verifyAndCreateVoucher(reference as string, supabase);
+    
+    res.json({
+      success: true,
+      status: "success",
+      message: "Payment confirmed",
+      payment: result,
+    });
   } catch (error: any) {
-    console.error("Verify error:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Verification error:", error.message);
+    res.status(400).json({
+      error: "Failed to verify payment",
+      details: error.message,
+    });
   }
 });
 
