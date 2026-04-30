@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import AdminModal from "../../components/AdminModal";
 import { apiClient } from "../../api/client";
-import AdminSkeleton from "../../components/AdminSkeleton";
+import { AdminSkeleton } from "../../components/AdminSkeleton";
 import { useAdminData } from "../../context/AdminContext";
 
 export default function AdminUsers() {

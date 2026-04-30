@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { AdminSkeleton } from "./AdminSkeleton";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Store, Tag, Ticket, 
@@ -8,7 +10,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo";
-import { apiClient } from "../api/client";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -31,48 +32,26 @@ export default function AdminLayout() {
     { name: "Admin Settings", path: "/admin/settings", icon: Settings },
   ];
 
-  const [adminUser, setAdminUser] = useState<any>(() => {
-    const saved = localStorage.getItem("slasham_user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user: adminUser, isLoading, logout } = useAuth();
 
   useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const { user } = await apiClient("/admin/me");
-        if (user?.role !== "ADMIN") {
-          localStorage.removeItem("slasham_user");
-          localStorage.removeItem("slasham_token");
-          navigate("/admin/login", { replace: true });
-          return;
-        }
-        setAdminUser(user);
-      } catch (e) {
-        console.error("Failed to fetch admin profile");
-        localStorage.removeItem("slasham_user");
-        localStorage.removeItem("slasham_token");
-        navigate("/admin/login", { replace: true });
-      }
-    };
-    fetchMe();
-  }, [navigate]);
-
-  const adminName = adminUser?.name || "Admin User";
-  const adminEmail = adminUser?.email || "Administrator";
-  const adminRole = adminUser?.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Master Admin';
-  const adminInitials = adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
-
-  const handleLogout = async () => {
-    try {
-      await apiClient("/auth/logout", { method: "POST" });
-    } catch (error) {
-      console.error("Logout failed", error);
-    } finally {
-      localStorage.removeItem("slasham_user");
-      localStorage.removeItem("slasham_token");
+    if (!isLoading && (!adminUser || adminUser.role !== "ADMIN")) {
       navigate("/admin/login", { replace: true });
     }
+  }, [adminUser, isLoading, navigate]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login", { replace: true });
   };
+
+  if (isLoading) return <AdminSkeleton />;
+  if (!adminUser) return null;
+
+  const adminName = adminUser.name || "Admin User";
+  const adminEmail = adminUser.email || "Administrator";
+  const adminRole = adminUser.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Master Admin';
+  const adminInitials = adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   const currentPageName = navItems.find(item => item.path === location.pathname)?.name || "Admin Console";
 

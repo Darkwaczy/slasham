@@ -2,7 +2,7 @@ import { Save, Shield, Percent, Globe, Database, Server, Check, AlertCircle, Ref
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/client";
-import AdminSkeleton from "../../components/AdminSkeleton";
+import { AdminSkeleton } from "../../components/AdminSkeleton";
 
 import { useAdminData } from "../../context/AdminContext";
 

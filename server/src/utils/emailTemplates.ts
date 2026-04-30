@@ -231,3 +231,26 @@ export const campaignStatusUpdateTemplate = (merchantName: string, campaignTitle
   </div>
 `);
 
+export const campaignSubmittedTemplate = (merchantName: string, campaignTitle: string) => layout(`
+  <h1 style="font-size: 32px; font-weight: 900; color: #000000; margin-top: 0; margin-bottom: 24px; letter-spacing: -1px;">Campaign Submitted. ⚡</h1>
+  <p style="font-size: 18px; color: #000000; margin-bottom: 32px; font-weight: 700;">Hi ${merchantName}, your campaign is now under review.</p>
+
+  <p style="font-size: 16px; color: #000000; margin-bottom: 24px; line-height: 1.8;">
+    We've received your campaign submission for <strong>${campaignTitle}</strong>. Our team will review it within 24 hours and notify you once it's approved or if any changes are needed.
+  </p>
+
+  <div style="border-left: 4px solid #10b981; padding: 30px; margin-bottom: 40px;">
+    <h3 style="font-size: 14px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px;">What happens next?</h3>
+    <ul style="margin: 0; padding: 0; list-style: none;">
+      <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #000000;">
+        <strong>1. Review</strong> — Our team checks your campaign details (24hrs)
+      </li>
+      <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #000000;">
+        <strong>2. Approval</strong> — You'll receive an email once approved or rejected
+      </li>
+      <li style="padding: 10px 0; font-size: 14px; color: #000000;">
+        <strong>3. Live</strong> — Approved campaigns go live to thousands of Slasham users
+      </li>
+    </ul>
+  </div>
+`);

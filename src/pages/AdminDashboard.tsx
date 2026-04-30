@@ -17,7 +17,7 @@ import {
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import AdminModal from "../components/AdminModal";
 
-import AdminSkeleton from "../components/AdminSkeleton";
+import { AdminSkeleton } from "../components/AdminSkeleton";
 
 import { useAdminData } from "../context/AdminContext";
 

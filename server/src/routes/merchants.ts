@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { getSupabaseAdmin } from "../supabase";
 import { requireAuth } from "../middleware/auth";
-import { sendMerchantApplicationReceived } from "../utils/email";
+import { sendMerchantApplicationReceived, sendEmail } from "../utils/email";
+import { campaignSubmittedTemplate } from "../utils/emailTemplates";
 
 const router = Router();
 
@@ -85,7 +86,7 @@ router.get("/my-profile", requireAuth, async (req, res) => {
   }
 });
 
-// Get merchant campaign requests
+// Get merchant's own campaigns
 router.get("/campaigns", requireAuth, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
@@ -97,29 +98,18 @@ router.get("/campaigns", requireAuth, async (req, res) => {
       .eq("user_id", req.user.id)
       .single();
 
-    if (merchantError) {
-      if (merchantError.code === "PGRST116") {
-        return res.status(403).json({ error: "Merchant profile required" });
-      }
-      throw merchantError;
-    }
-
-    if (!merchant) {
-      return res.status(403).json({ error: "Merchant profile required" });
+    if (merchantError || !merchant) {
+      return res.status(404).json({ error: "Merchant not found" });
     }
 
     const { data, error } = await supabase
       .from("campaign_requests")
-      .select(`
-        *,
-        merchants ( business_name )
-      `)
+      .select("*")
       .eq("merchant_id", merchant.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-
-    res.json(data || []);
+    res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -131,57 +121,53 @@ router.post("/campaigns", requireAuth, async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
+    // 1. Get merchant profile
     const { data: merchant, error: merchantError } = await supabase
       .from("merchants")
-      .select("id")
+      .select("id, business_name, email")
       .eq("user_id", req.user.id)
       .single();
 
-    if (merchantError) {
-      if (merchantError.code === "PGRST116") {
-        return res.status(403).json({ error: "Merchant profile required" });
-      }
-      throw merchantError;
-    }
-
-    if (!merchant) {
-      return res.status(403).json({ error: "Merchant profile required" });
+    if (merchantError || !merchant) {
+      return res.status(403).json({ error: "Merchant profile not found" });
     }
 
     const {
-      product_name,
-      description,
-      coupon_type,
-      original_price,
-      expected_discount,
-      total_quantity,
-      expiry_date,
-      product_image,
+      title, description, deal_explanation, category,
+      original_price, discount_price, total_quantity,
+      expiry_date, is_hot, image_url
     } = req.body;
 
-    if (!product_name || !original_price) {
-      return res.status(400).json({ error: "Product name and original price are required" });
-    }
-
+    // 2. Insert into campaign_requests
     const { data, error } = await supabase
       .from("campaign_requests")
       .insert({
         merchant_id: merchant.id,
-        product_name,
+        title,
         description,
-        coupon_type,
+        deal_explanation,
+        category,
         original_price,
-        expected_discount,
+        discount_price,
         total_quantity,
         expiry_date,
-        product_image,
-        status: 'PENDING',
+        is_hot: is_hot || false,
+        image_url: image_url || null,
+        status: 'PENDING'
       })
       .select()
       .single();
 
     if (error) throw error;
-    res.status(201).json(data);
+
+    // 3. Send correct campaign email
+    sendEmail({
+      to: merchant.email,
+      subject: "Campaign Submitted for Review — Slasham",
+      html: campaignSubmittedTemplate(merchant.business_name, title)
+    }).catch((err: any) => console.error("Campaign email failed:", err));
+
+    res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

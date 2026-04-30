@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Menu, X, Twitter, Instagram, Facebook, Linkedin, Mail, Search, 
   User, Utensils, Sparkles, Heart, Package, Settings, ShoppingBag, 
@@ -24,6 +24,7 @@ export default function Layout() {
     promoBanner: { enabled: false, text: "" }
   });
   const location = useLocation();
+  const navigate = useNavigate();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -48,6 +49,70 @@ export default function Layout() {
     setIsMenuOpen(false);
     setMobileExpandedSection(null);
   }, [location.pathname]);
+
+  // Session Validation & Inactivity Logout
+  useEffect(() => {
+    const validateSession = async () => {
+      if (!storage.getItem("slasham_token")) return;
+      
+      try {
+        const { apiClient } = await import("../api/client");
+        await apiClient("/user/me");
+      } catch (error: any) {
+        if (error.message?.includes("401") || error.message?.includes("403")) {
+          try {
+            const { apiClient } = await import("../api/client");
+            await apiClient.post("/auth/logout");
+          } catch (e) {} 
+          
+          storage.removeItem("slasham_user");
+          storage.removeItem("slasham_token");
+          setUser(null);
+          navigate("/login");
+        }
+      }
+    };
+
+    validateSession();
+
+    // Re-validate every 30 minutes while app is open
+    const interval = setInterval(validateSession, 30 * 60 * 1000);
+
+    // Inactivity logout logic (30 minutes)
+    let inactivityTimer: ReturnType<typeof setTimeout>;
+    const INACTIVITY_LIMIT = 30 * 60 * 1000;
+
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        if (storage.getItem("slasham_token")) {
+          storage.removeItem("slasham_user");
+          storage.removeItem("slasham_token");
+          setUser(null);
+          navigate("/login?reason=inactivity");
+        }
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Track user activity
+    window.addEventListener("mousemove", resetInactivityTimer);
+    window.addEventListener("keypress", resetInactivityTimer);
+    window.addEventListener("scroll", resetInactivityTimer);
+    window.addEventListener("click", resetInactivityTimer);
+    window.addEventListener("touchstart", resetInactivityTimer);
+
+    resetInactivityTimer();
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(inactivityTimer);
+      window.removeEventListener("mousemove", resetInactivityTimer);
+      window.removeEventListener("keypress", resetInactivityTimer);
+      window.removeEventListener("scroll", resetInactivityTimer);
+      window.removeEventListener("click", resetInactivityTimer);
+      window.removeEventListener("touchstart", resetInactivityTimer);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const syncSavedCount = () => {
@@ -488,8 +553,7 @@ export default function Layout() {
                 <Logo size="md" variant="light" />
               </Link>
               <p className="text-white/70 text-lg leading-relaxed max-w-sm">
-                Experience the best of your city for less. Curated premium deals for dining, wellness, and entertainment.
-              </p>
+Nigeria's #1 verified marketplace for premium local deals, experiences, and lifestyle savings.</p>
             </div>
 
             {/* Accordion Links Columns */}

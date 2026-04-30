@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/client";
 import AdminModal from "../../components/AdminModal";
-import AdminSkeleton from "../../components/AdminSkeleton";
+import { AdminSkeleton } from "../../components/AdminSkeleton";
 
 export default function AdminReports() {
   const [reports, setReports] = useState<any[]>([]);

@@ -335,11 +335,11 @@ export default function Home() {
       <section className="py-24 bg-slate-50/50 overflow-hidden relative border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-50 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-4 border border-emerald-100">
-               <Sparkles size={14} className="fill-emerald-600" /> Real Experiences
+              Real Experiences
             </span>
-            <h2 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase italic leading-none mb-6">
+            {/* <h2 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase italic leading-none mb-6">
               Hear from our <span className="text-emerald-500">Slashers</span>
-            </h2>
+            </h2> */}
             <p className="text-slate-500 font-bold text-sm lg:text-lg max-w-2xl mx-auto">
               Join thousands of smart shoppers in Lagos who are saving big every single day.
             </p>
@@ -470,62 +470,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-slate-950 text-white pt-24 pb-12 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-          <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-8">
-              <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <ShoppingBag className="text-white" size={24} />
-              </div>
-              <span className="text-2xl font-black tracking-tighter uppercase italic">Slasham</span>
-            </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8">
-              Nigeria's #1 verified marketplace for premium local deals, gourmet experiences, and luxury lifestyle savings.
-            </p>
-          </div>
 
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-widest mb-8 text-emerald-500">Quick Links</h4>
-            <ul className="space-y-4">
-              <li><Link to="/deals" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Marketplace</Link></li>
-              <li><Link to="/deals/hot" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Hot Coupons</Link></li>
-              <li><Link to="/how-it-works" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">How It Works</Link></li>
-              <li><Link to="/for-business" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Partner Portal</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-widest mb-8 text-emerald-500">Categories</h4>
-            <ul className="space-y-4">
-              <li><Link to="/deals/food" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Food & Drink</Link></li>
-              <li><Link to="/deals/beauty" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Beauty & Spa</Link></li>
-              <li><Link to="/deals/experiences" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Things To Do</Link></li>
-              <li><Link to="/deals/products" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Retail Goods</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-widest mb-8 text-emerald-500">Legal & Support</h4>
-            <ul className="space-y-4">
-              <li><Link to="/terms" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Privacy Policy</Link></li>
-              <li><Link to="/faq" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Help Center</Link></li>
-              <li><Link to="/contact" className="text-slate-400 hover:text-white transition-colors text-sm font-bold">Contact Us</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">
-            &copy; {new Date().getFullYear()} Slasham Marketplace Ltd. All Rights Reserved.
-          </p>
-          <div className="flex items-center gap-8">
-             <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-white transition-colors">Instagram</span>
-             <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-white transition-colors">Twitter</span>
-             <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-white transition-colors">Facebook</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

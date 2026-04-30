@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { MerchantSkeleton } from "./MerchantSkeleton";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -14,7 +16,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  QrCode
+  QrCode,
+  ArrowUpRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../api/client";
@@ -23,34 +26,20 @@ import { Logo } from "./Logo";
 export default function MerchantLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [merchantData, setMerchantData] = useState<any>(() => {
-    if (typeof window === "undefined") return null;
-    const saved = localStorage.getItem("slasham_user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user: merchantData, isLoading, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadMerchant = async () => {
-      try {
-        const data = await apiClient("/auth/me");
-        if (data?.role !== "MERCHANT" && data?.role !== "ADMIN") {
-          localStorage.removeItem("slasham_user");
-          localStorage.removeItem("slasham_token");
-          navigate("/merchant/login", { replace: true });
-          return;
-        }
-        setMerchantData(data);
-      } catch (error) {
-        console.error("Failed to load merchant profile", error);
-        localStorage.removeItem("slasham_user");
-        localStorage.removeItem("slasham_token");
-        navigate("/merchant/login", { replace: true });
-      }
-    };
-    
+    if (!isLoading && (!merchantData || 
+        (merchantData.role !== "MERCHANT" && merchantData.role !== "ADMIN"))) {
+      navigate("/merchant/login", { replace: true });
+    }
+  }, [merchantData, isLoading, navigate]);
+
+  useEffect(() => {
     const loadNotifications = async () => {
         try {
             const data = await apiClient("/merchants/notifications");
@@ -66,29 +55,22 @@ export default function MerchantLayout() {
         }
     };
 
-    loadMerchant();
     loadNotifications();
     
     // Poll for notifications every 30 seconds
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = async () => {
-    try {
-        await apiClient("/auth/logout", { method: "POST" });
-        localStorage.removeItem("slasham_user");
-        localStorage.removeItem("slasham_token");
-        navigate("/merchant/login", { replace: true });
-    } catch (error) {
-        // Fallback for UI if logout fails
-        localStorage.removeItem("slasham_user");
-        localStorage.removeItem("slasham_token");
-        navigate("/merchant/login", { replace: true });
-    }
+    await logout();
+    navigate("/merchant/login", { replace: true });
   };
+
+  if (isLoading) return <MerchantSkeleton />;
+  if (!merchantData) return null;
 
   const handleMarkRead = async (id: string) => {
     try {
@@ -217,7 +199,7 @@ export default function MerchantLayout() {
             {/* Notification Bell */}
             <div className="relative">
               <button 
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                onClick={() => { setIsNotifOpen(!isNotifOpen); setShowProfileMenu(false); }}
                 className={`relative p-2.5 rounded-xl transition-all group ${isNotifOpen ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
               >
                 <Bell size={20} />
@@ -285,8 +267,53 @@ export default function MerchantLayout() {
                >
                   <Plus size={16} /> New Campaign
                </button>
-               <div className="w-10 h-10 rounded-2xl bg-[#000000] text-white flex items-center justify-center font-black text-sm cursor-pointer shadow-lg shadow-black/10 hover:bg-slate-800 transition-colors">
-                  {merchantData?.name?.charAt(0) || "M"}
+               <div className="relative">
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); setShowProfileMenu(!showProfileMenu); setIsNotifOpen(false); }}
+                   className="w-10 h-10 rounded-2xl bg-[#000000] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-black/10 hover:bg-slate-800 transition-colors active:scale-95"
+                 >
+                    {merchantData?.name?.charAt(0) || "M"}
+                 </button>
+
+                 <AnimatePresence>
+                   {showProfileMenu && (
+                     <>
+                       <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                       <motion.div 
+                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                         animate={{ opacity: 1, y: 0, scale: 1 }}
+                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                         className="absolute right-0 mt-4 w-64 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 z-70"
+                         onClick={(e) => e.stopPropagation()}
+                       >
+                         <div className="px-4 py-4 border-b border-slate-50 mb-2 text-left">
+                           <p className="text-sm font-black text-slate-900 leading-tight">{merchantData?.name || "Merchant"}</p>
+                           <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-1">Verified Partner</p>
+                           <p className="text-[10px] text-slate-300 font-medium truncate">{merchantData?.email || ""}</p>
+                         </div>
+                         <button 
+                           onClick={() => { navigate("/merchant/settings"); setShowProfileMenu(false); }}
+                           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors text-left"
+                         >
+                           <Settings size={18} /> Business Settings
+                         </button>
+                         <button 
+                           onClick={() => { window.open('/#/', '_blank'); setShowProfileMenu(false); }}
+                           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors text-left"
+                         >
+                           <ArrowUpRight size={18} /> View Public Site
+                         </button>
+                         <div className="my-2 border-t border-slate-50"></div>
+                         <button 
+                           onClick={handleLogout}
+                           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-colors text-left"
+                         >
+                           <LogOut size={18} /> Logout
+                         </button>
+                       </motion.div>
+                     </>
+                   )}
+                 </AnimatePresence>
                </div>
             </div>
           </div>

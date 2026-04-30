@@ -176,7 +176,7 @@ router.post("/", requireAuth, async (req, res) => {
     const isAdmin = req.user.role === "ADMIN";
     let merchantId = req.body.merchant_id;
 
-    if (!isAdmin || !merchantId) {
+    if (!isAdmin && !merchantId) {
         // Ensure user is a merchant if not admin or no merchant_id provided
         const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
