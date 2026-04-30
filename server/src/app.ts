@@ -22,7 +22,21 @@ export function createApp() {
   app.set("trust proxy", 1);
 
   // ── Security Headers ─────────────────────────────────────────────────────
-  app.use(helmet());
+  // helmet() sets X-Content-Type-Options, X-Frame-Options: SAMEORIGIN, 
+  // Referrer-Policy, and a strict CSP by default.
+  app.use(helmet({
+    contentSecurityPolicy: false, // Handled globally by vercel.json for consistency
+    crossOriginEmbedderPolicy: false,
+  }));
+  app.disable("x-powered-by"); // Hide Express signature
+
+  // Force no-cache for all API responses to protect sensitive data
+  app.use("/api", (req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    next();
+  });
 
   // ── CORS ─────────────────────────────────────────────────────────────────
   app.use(
@@ -101,6 +115,18 @@ export function createApp() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  // ── Error Handling ────────────────────────────────────────────────────────
+  // Custom error handler to avoid default server error pages
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(err.stack);
+    const status = err.status || 500;
+    res.status(status).json({
+      error: status === 500 ? "Internal Server Error" : err.message,
+      message: "An unexpected error occurred. Please contact support if this persists.",
+      path: req.path
+    });
+  });
 
   return app;
 }

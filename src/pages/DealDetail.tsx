@@ -117,6 +117,45 @@ export default function DealDetail() {
       updateMeta('meta[property="og:description"]', 'content', deal.description?.slice(0, 150) || '');
       updateMeta('meta[property="og:image"]', 'content', deal.image);
 
+      // JSON-LD Structured Data for the Deal (AI Recognition)
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": deal.title,
+        "image": deal.image,
+        "description": deal.description,
+        "brand": {
+          "@type": "Brand",
+          "name": deal.companyName
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": window.location.href,
+          "priceCurrency": "NGN",
+          "price": parseInt(deal.price.replace(/\D/g, '')),
+          "availability": (deal.totalQuantity - (deal.soldQuantity || 0)) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": "https://schema.org/NewCondition",
+          "priceValidUntil": deal.expiryDate
+        }
+      };
+
+      if (dealReviews.length > 0) {
+        (structuredData as any).aggregateRating = {
+          "@type": "AggregateRating",
+          "ratingValue": (dealReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / dealReviews.length).toFixed(1),
+          "reviewCount": dealReviews.length
+        };
+      }
+
+      let script = document.getElementById('deal-structured-data');
+      if (!script) {
+        script = document.createElement('script');
+        script.id = 'deal-structured-data';
+        script.setAttribute('type', 'application/ld+json');
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(structuredData);
+
       gsap.fromTo(
         ".deal-content-animate > *",
         { y: 30, opacity: 0 },
