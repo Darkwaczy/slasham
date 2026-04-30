@@ -2,7 +2,7 @@ import {
   CreditCard, Calendar, Download, 
   Search, Filter, Receipt, Wallet, 
   ArrowUpRight, ArrowDownRight, Loader2, X,
-  Printer, CheckCircle2, ShieldCheck, MapPin, Phone, Info
+  Printer, CheckCircle2, ShieldCheck, MapPin, Phone, Info, RotateCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
@@ -132,6 +132,15 @@ export default function OrdersPayments() {
                     </div>
                   )}
                 </div>
+
+                <button
+                  onClick={loadTransactions}
+                  disabled={isLoading}
+                  className="flex items-center justify-center p-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl hover:bg-slate-50 transition-all disabled:opacity-40"
+                  title="Sync Transactions"
+                >
+                  <RotateCw size={18} className={isLoading ? "animate-spin" : ""} />
+                </button>
 
                 <button
                   onClick={handleExport}

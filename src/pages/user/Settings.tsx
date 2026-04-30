@@ -136,7 +136,10 @@ export default function UserSettings() {
                 className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-10"
               >
                 <div className="flex items-center gap-8 pb-10 border-b border-slate-50">
-                    <div className="relative group">
+                    <div 
+                      className="relative group cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                        <input 
                          type="file" 
                          ref={fileInputRef} 
@@ -144,19 +147,20 @@ export default function UserSettings() {
                          className="hidden" 
                          accept="image/*" 
                        />
-                       <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
+                       <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl relative group">
                          {profile?.avatar_url ? (
                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                          ) : (
                            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&background=10b981&color=fff&size=200`} alt="Avatar" className="w-full h-full object-cover" />
                          )}
+                         {/* Hover Overlay */}
+                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Camera size={24} className="text-white" />
+                         </div>
                        </div>
-                       <button 
-                         onClick={() => fileInputRef.current?.click()}
-                         className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all"
-                       >
+                       <div className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
                          <Camera size={16} />
-                       </button>
+                       </div>
                     </div>
                    <div>
                       <h3 className="text-xl font-black text-slate-900 tracking-tight">Profile Identity</h3>
