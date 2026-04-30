@@ -133,7 +133,7 @@ router.get("/:id", async (req, res) => {
           address
         )
       `)
-      .eq("id", req.params.id)
+      .eq("id", req.params.id.trim().replace(/\s+/g, '-'))
       .single();
 
     if (error) throw error;
@@ -157,7 +157,7 @@ router.get("/:id/reviews", async (req, res) => {
         *,
         users(name)
       `)
-      .eq("deal_id", req.params.id)
+      .eq("deal_id", req.params.id.trim().replace(/\s+/g, '-'))
       .order("created_at", { ascending: false });
 
     if (error) throw error;

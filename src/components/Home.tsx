@@ -233,7 +233,7 @@ export default function Home() {
           <div className="flex animate-marquee-ltr gap-4 px-6 w-max">
             {filteredDeals.slice(0, 15).map((deal, index) => (
               <Link 
-                to={`/deal/${deal.id}`} 
+                to={`/deal/${deal.id.toString().trim().replace(/\s+/g, '-')}`} 
                 key={`flash-${deal.id}-${index}`} 
                 className="w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex items-center p-2.5 gap-4 shadow-sm"
               >

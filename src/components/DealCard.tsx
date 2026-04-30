@@ -98,7 +98,7 @@ const DealCard = React.memo<DealCardProps>(({
       position: "relative",
       fontFamily: "'DM Sans', sans-serif",
     }} className="group">
-      <Link to={`/deal/${id}`} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <Link to={`/deal/${id.toString().trim().replace(/\s+/g, '-')}`} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         {/* Image Section */}
         <div style={{ position: "relative", width: "100%", height: "220px", overflow: "hidden", background: "#e8e8e8", flexShrink: 0 }}>
           {image ? (
@@ -132,7 +132,7 @@ const DealCard = React.memo<DealCardProps>(({
             {category}
           </div>
 
-          <FavoriteButton dealId={id.toString()} deal={{id: id.toString(), title, price, original, image, category, location}} className="absolute bottom-3 right-3 z-20" />
+          <FavoriteButton dealId={id.toString().trim().replace(/\s+/g, '-')} deal={{id: id.toString().trim().replace(/\s+/g, '-'), title, price, original, image, category, location}} className="absolute bottom-3 right-3 z-20" />
         </div>
 
         {/* Content Section */}
