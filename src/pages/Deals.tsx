@@ -91,7 +91,7 @@ export default function Deals() {
   }, [ads]);
 
   const filteredDeals = allDeals.filter(d => 
-    d.location.toLowerCase().includes(city.toLowerCase())
+    !d.location || d.location.toLowerCase().includes(city.toLowerCase())
   );
 
   return (
