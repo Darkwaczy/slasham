@@ -295,7 +295,8 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: env.nodeEnv === "production",
       sameSite: env.nodeEnv === "production" ? "none" : "lax",
-      maxAge: data.session.expires_in * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: "/",
     });
 
     res.json({
@@ -419,7 +420,12 @@ router.post("/reset-password", async (req, res) => {
 });
 
 router.post("/logout", (_req, res) => {
-  res.clearCookie("slasham_session");
+  res.clearCookie("slasham_session", {
+    httpOnly: true,
+    secure: env.nodeEnv === "production",
+    sameSite: env.nodeEnv === "production" ? "none" : "lax",
+    path: "/"
+  });
   res.json({ message: "Logged out successfully" });
 });
 

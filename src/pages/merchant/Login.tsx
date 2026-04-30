@@ -30,7 +30,8 @@ export default function MerchantLogin() {
       localStorage.setItem("slasham_user", JSON.stringify(user));
       if (token) localStorage.setItem("slasham_token", token);
 
-      navigate("/merchant/dashboard");
+      // ✅ Full reload ensures cookie is sent on next request
+      window.location.href = "/merchant/dashboard";
     } catch (err: any) {
       setError(err.message || "Invalid credentials.");
     } finally {

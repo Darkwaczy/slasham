@@ -77,16 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setUser]);
 
   useEffect(() => {
-    // Only fetch if no valid cache
+    // Check if we have a valid cache to show immediately
     const cachedAt = localStorage.getItem(CACHE_TIME_KEY);
-    const age = cachedAt ? Date.now() - parseInt(cachedAt) : Infinity;
-    
-    if (age >= CACHE_TTL) {
-      refreshUser(); // Fetch fresh data only if cache expired
-    } else {
-      setIsLoading(false); // ✅ Use cache, no fetch needed
+    if (cachedAt) {
+      setIsLoading(false); // ✅ Show UI immediately from cache
     }
-  }, []); // ✅ Only runs ONCE on app mount
+    
+    // Always validate session in background
+    refreshUser();
+  }, [refreshUser]); // ✅ Runs ONCE on app mount
 
   return (
     <AuthContext.Provider value={{
