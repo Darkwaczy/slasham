@@ -72,7 +72,7 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 24 }}
           transition={{ type: "spring", stiffness: 380, damping: 28 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-md md:max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Green Header */}
           <div className="bg-emerald-500 px-8 py-8 text-center relative shrink-0">
@@ -88,7 +88,7 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
               </div>
             )}
             <p className="text-white/80 text-[11px] font-black uppercase tracking-[0.3em] mb-1">Almost There!</p>
-            <h2 className="text-white text-2xl font-black leading-tight mb-1">{deal?.title}</h2>
+            <h2 className="text-white text-2xl md:text-4xl font-black leading-tight mb-2">{deal?.title}</h2>
             <p className="text-white/70 text-sm font-medium">
               by {deal?.companyName || deal?.location || "Exclusive Partner"}
             </p>
@@ -105,38 +105,38 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
             {/* ── HOW THIS COUPON WORKS ── */}
             <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
               <div className="flex items-center gap-2 mb-4">
-                <ShieldCheck size={15} className="text-emerald-600" />
-                <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">How This Coupon Works</span>
+                <ShieldCheck size={18} className="text-emerald-600" />
+                <span className="text-[11px] md:text-sm font-black text-emerald-700 uppercase tracking-widest">How This Coupon Works</span>
               </div>
-              <div className="space-y-3 text-sm">
+              <div className="space-y-5 md:space-y-8 text-sm md:text-base">
                 {/* Step 1 */}
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">1</div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] md:text-base font-black shrink-0 mt-0.5">1</div>
                   <div>
-                    <p className="font-black text-slate-800">Pay Slasham now</p>
-                    <p className="text-slate-500 text-xs leading-relaxed">
+                    <p className="font-black text-slate-800 md:text-lg">Pay Slasham now</p>
+                    <p className="text-slate-500 text-xs md:text-sm leading-relaxed">
                       You pay <span className="font-black text-emerald-600">{fmt(slashamPrice)}</span> today. This is Slasham's fee and is <span className="font-bold text-slate-700">non-refundable</span>. You get your coupon code instantly.
                     </p>
                   </div>
                 </div>
-                <div className="ml-3 border-l-2 border-dashed border-emerald-200 h-3" />
+                <div className="ml-3 md:ml-5 border-l-2 border-dashed border-emerald-200 h-4 md:h-6" />
                 {/* Step 2 */}
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">2</div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] md:text-base font-black shrink-0 mt-0.5">2</div>
                   <div>
-                    <p className="font-black text-slate-800">Visit the merchant</p>
-                    <p className="text-slate-500 text-xs leading-relaxed">
+                    <p className="font-black text-slate-800 md:text-lg">Visit the merchant</p>
+                    <p className="text-slate-500 text-xs md:text-sm leading-relaxed">
                       Spend a minimum of <span className="font-black text-slate-800">{fmt(minimumSpend)}</span> at the merchant to unlock your coupon. You may spend more — the coupon still applies.
                     </p>
                   </div>
                 </div>
-                <div className="ml-3 border-l-2 border-dashed border-emerald-200 h-3" />
+                <div className="ml-3 md:ml-5 border-l-2 border-dashed border-emerald-200 h-4 md:h-6" />
                 {/* Step 3 */}
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">3</div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] md:text-base font-black shrink-0 mt-0.5">3</div>
                   <div>
-                    <p className="font-black text-slate-800">Redeem your coupon code</p>
-                    <p className="text-slate-500 text-xs leading-relaxed">
+                    <p className="font-black text-slate-800 md:text-lg">Redeem your coupon code</p>
+                    <p className="text-slate-500 text-xs md:text-sm leading-relaxed">
                       Present your code — the merchant deducts <span className="font-black text-emerald-600">{fmt(faceValue)}</span> from your bill. You save <span className="font-black text-emerald-600">{fmt(savings)}</span> vs buying outright.
                     </p>
                   </div>
@@ -164,7 +164,7 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
                     <BadgePercent size={12} className="text-emerald-600" />
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Coupon Value</span>
                   </div>
-                  <p className="font-black text-emerald-600 text-base">{fmt(faceValue)}</p>
+                  <p className="font-black text-emerald-600 text-base md:text-xl">{fmt(faceValue)}</p>
                 </div>
               </div>
             </div>
@@ -177,7 +177,7 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
               </div>
               {deal?.expiryDate ? (
                 <>
-                  <p className={`font-black text-base mb-1 ${isUrgent ? "text-rose-600" : "text-slate-800"}`}>
+                  <p className={`font-black text-base md:text-xl mb-1 ${isUrgent ? "text-rose-600" : "text-slate-800"}`}>
                     {formatExpiryDate(deal.expiryDate)}
                     {expiryLabel && (
                       <span className={`ml-2 text-[11px] px-2 py-0.5 rounded-full font-black ${
@@ -201,10 +201,10 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
             {/* ── IMPORTANT WARNINGS ── */}
             <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200">
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle size={15} className="text-amber-600" />
-                <span className="text-[11px] font-black text-amber-700 uppercase tracking-widest">Important — Read Before You Proceed</span>
+                <AlertTriangle size={18} className="text-amber-600" />
+                <span className="text-[11px] md:text-sm font-black text-amber-700 uppercase tracking-widest">Important — Read Before You Proceed</span>
               </div>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3 md:space-y-4">
                 {[
                   `Your ${fmt(slashamPrice)} payment goes directly to Slasham. This is our service fee and is final upon purchase.`,
                   "Once you redeem the coupon code at the merchant, the transaction is complete.",
@@ -212,8 +212,8 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
                   "Disputes require photo or video evidence.",
                   "Slasham does not issue cash refunds. Store credit only in the event of a confirmed merchant fault.",
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm text-amber-800">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                  <li key={i} className="flex items-start gap-2.5 text-sm md:text-base text-amber-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 md:mt-2.5 shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -223,13 +223,13 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
             {/* ── DEAL TERMS ── */}
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
               <div className="flex items-center gap-2 mb-3">
-                <FileText size={15} className="text-slate-500" />
-                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Deal Terms</span>
+                <FileText size={18} className="text-slate-500" />
+                <span className="text-[11px] md:text-sm font-black text-slate-500 uppercase tracking-widest">Deal Terms</span>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-2 md:space-y-3">
                 {dealTerms.map((term, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                  <li key={i} className="flex items-start gap-2 text-sm md:text-base text-slate-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 md:mt-2.5 shrink-0" />
                     {term}
                   </li>
                 ))}
@@ -248,7 +248,7 @@ export default function CouponAgreementModal({ deal, onAgree, onCancel }: Coupon
                   : <Square size={20} className="text-slate-300" />
                 }
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm md:text-base text-slate-600 leading-relaxed">
                 I understand that my <span className="font-bold text-emerald-600">{fmt(slashamPrice)} payment is Slasham's service fee</span> and is non-refundable. I agree to spend a minimum of{" "}
                 <span className="font-bold text-slate-800">{fmt(minimumSpend)}</span> at the merchant, and I accept the expiry and dispute policy.
               </p>
