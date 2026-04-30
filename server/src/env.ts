@@ -50,7 +50,7 @@ export function getEnv(): Env {
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     resendApiKey: process.env.RESEND_API_KEY,
     jwtSecret: process.env.JWT_SECRET ?? "default_secret_for_dev_only",
-    clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
+    clientUrl: process.env.CLIENT_URL ?? "https://www.slasham.com",
     adminEmails: splitCsv(process.env.ADMIN_EMAILS),
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
     paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
