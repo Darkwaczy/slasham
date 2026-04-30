@@ -61,8 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiClient("/auth/me");
       setUser(data);
-    } catch {
-      setUser(null);
+    } catch (err: any) {
+      // ✅ Only clear session on explicit 401, not network errors
+      if (err.message?.includes("401") || err.message?.includes("Unauthorized")) {
+        setUser(null);
+      }
+      // Otherwise keep cached user — don't cause a logout loop
     } finally {
       setIsLoading(false);
     }
@@ -77,15 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setUser]);
 
   useEffect(() => {
-    // Check if we have a valid cache to show immediately
     const cachedAt = localStorage.getItem(CACHE_TIME_KEY);
-    if (cachedAt) {
-      setIsLoading(false); // ✅ Show UI immediately from cache
+    const age = cachedAt ? Date.now() - parseInt(cachedAt) : Infinity;
+
+    if (age >= CACHE_TTL) {
+      refreshUser();
+    } else {
+      setIsLoading(false); // ✅ use cache, skip fetch
     }
-    
-    // Always validate session in background
-    refreshUser();
-  }, [refreshUser]); // ✅ Runs ONCE on app mount
+  }, []); // ✅ Runs ONCE on app mount
 
   return (
     <AuthContext.Provider value={{

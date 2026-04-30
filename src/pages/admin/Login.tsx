@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { apiClient } from "../../api/client";
 
 export default function AdminLogin() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,8 +29,9 @@ export default function AdminLogin() {
       // Save session
       localStorage.setItem("slasham_user", JSON.stringify(user));
       if (token) localStorage.setItem("slasham_token", token);
+      localStorage.setItem("slasham_user_cached_at", Date.now().toString());
 
-      navigate("/admin/dashboard");
+      window.location.href = "/admin/dashboard";
     } catch (err: any) {
       setError(err.message || "Invalid credentials.");
     } finally {
