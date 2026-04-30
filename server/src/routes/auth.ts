@@ -55,25 +55,38 @@ router.post("/register", async (req, res) => {
         phone: phone || "",
         city: city || "",
         role: "USER",
-        otp_code: otpCode,
-        otp_expires: otpExpires.toISOString(),
-        otp_attempts: 0,
         is_verified: false
       });
       if (dbError) throw dbError;
+
+      // ✅ Insert OTP into separate table
+      await supabase.from("otp_codes").insert({
+        user_id: authData.user.id,
+        email,
+        code: otpCode,
+        expires_at: otpExpires.toISOString(),
+        attempts: 0
+      });
     } catch (dbErr: any) {
       console.warn("Database insert failed (possibly missing columns), retrying with minimal fields:", dbErr.message);
-      // Fallback: Try without the new 'otp_attempts' column
+      // Fallback: Try without the new columns if needed
       const { error: fallbackError } = await supabase.from("users").insert({
         id: authData.user.id,
         email,
         name,
         role: "USER",
-        otp_code: otpCode,
-        otp_expires: otpExpires.toISOString(),
         is_verified: false
       });
       if (fallbackError) throw fallbackError;
+
+      // ✅ Insert OTP into separate table
+      await supabase.from("otp_codes").insert({
+        user_id: authData.user.id,
+        email,
+        code: otpCode,
+        expires_at: otpExpires.toISOString(),
+        attempts: 0
+      });
     }
 
     // 4. Trigger OTP Email (Non-blocking)
@@ -99,10 +112,18 @@ router.post("/register", async (req, res) => {
           const otpCode = randomInt(100000, 999999).toString();
           const otpExpires = new Date(Date.now() + 10 * 60000);
           await supabase.from("users").update({
-            otp_code: otpCode,
-            otp_expires: otpExpires.toISOString(),
-            otp_attempts: 0
+            is_verified: false
           }).eq("email", email);
+
+          // ✅ Replace OTP in separate table
+          await supabase.from("otp_codes").delete().eq("email", email);
+          await supabase.from("otp_codes").insert({
+            user_id: existingUser.id,
+            email,
+            code: otpCode,
+            expires_at: otpExpires.toISOString(),
+            attempts: 0
+          });
           
           sendOTP(email, existingUser.name, otpCode).catch(e => console.error("BG Email Error:", e));
           return res.status(200).json({ message: "Account already exists but is unverified. A new code has been sent.", action: "VERIFY_EMAIL" });
@@ -147,11 +168,18 @@ router.post("/resend-otp", async (req, res) => {
 
     // 3. Update public.users
     await supabase.from("users").update({
-      otp_code: otpCode,
-      otp_expires: otpExpires.toISOString(),
-      otp_attempts: 0,
       is_verified: false
     }).eq("id", user.id);
+
+    // ✅ Replace OTP in separate table
+    await supabase.from("otp_codes").delete().eq("email", email);
+    await supabase.from("otp_codes").insert({
+      user_id: user.id,
+      email,
+      code: otpCode,
+      expires_at: otpExpires.toISOString(),
+      attempts: 0
+    });
 
     // 4. Send Email (Non-blocking)
     sendOTP(email, user.name || "Member", otpCode).catch(emailErr => {
@@ -174,10 +202,23 @@ router.post("/verify-otp", async (req, res) => {
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
 
-    // 1. Fetch user and check OTP
+    // 1. Fetch current OTP record
+    const { data: otpRecord, error: otpError } = await supabase
+      .from("otp_codes")
+      .select("*")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (otpError || !otpRecord) {
+      return res.status(400).json({ error: "OTP not found. Please request a new code." });
+    }
+
+    // 2. Fetch user to verify status
     const { data: user, error: fetchError } = await supabase
       .from("users")
-      .select("*")
+      .select("id, name, email, is_verified")
       .eq("email", email)
       .single();
 
@@ -185,27 +226,28 @@ router.post("/verify-otp", async (req, res) => {
     if (user.is_verified) return res.status(400).json({ error: "Email already verified" });
 
     // Guard: Too many failed attempts
-    if ((user.otp_attempts || 0) >= 5) {
+    if ((otpRecord.attempts || 0) >= 5) {
       return res.status(429).json({ error: "Too many failed attempts. Please request a new code." });
     }
 
-    if (user.otp_code !== code) {
-      try {
-        await supabase.from("users").update({ otp_attempts: (user.otp_attempts || 0) + 1 }).eq("id", user.id);
-      } catch (e) {
-        console.warn("Failed to increment otp_attempts (column likely missing)");
-      }
-      return res.status(400).json({ error: "Invalid verification code" });
-    }
-
-    if (new Date(user.otp_expires) < new Date()) {
+    if (new Date(otpRecord.expires_at) < new Date()) {
+      await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
       return res.status(400).json({ error: "Verification code expired" });
     }
 
-    // 2. Mark as verified and clear OTP data
+    if (otpRecord.code !== code) {
+      await supabase.from("otp_codes")
+        .update({ attempts: (otpRecord.attempts || 0) + 1 })
+        .eq("id", otpRecord.id);
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    // ✅ OTP valid — delete it and mark user verified
+    await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
+
     const { error: updateError } = await supabase
       .from("users")
-      .update({ is_verified: true, otp_code: null, otp_expires: null, otp_attempts: 0 })
+      .update({ is_verified: true })
       .eq("id", user.id);
 
     if (updateError) throw updateError;
