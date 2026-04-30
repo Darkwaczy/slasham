@@ -121,16 +121,16 @@ export const userWelcomeTemplate = (name: string, clientUrl: string) => layout(`
 export const founderWelcomeTemplate = (name: string) => layout(`
   <p style="margin-bottom: 24px; font-size: 18px; font-weight: 700; color: #111827;">Hi ${name},</p>
   
-  <p style="margin-bottom: 24px; color: #374151;">I'm Nelly, the co-founder of Slasham. I'm personally reaching out because I want to ensure your experience on our platform is nothing short of exceptional.</p>
+  <p style="margin-bottom: 24px; color: #374151;">I'm Blessing, the co-founder of Slasham. I'm personally reaching out because I want to ensure your experience on our platform is nothing short of exceptional.</p>
   
   <p style="margin-bottom: 24px; color: #374151;">We built Slasham for the modern Nigerian—someone who values premium experiences but knows the power of a smart deal. Our partners are hand-picked to ensure you only ever see the best of what Lagos and Abuja have to offer.</p>
   
   <p style="margin-bottom: 40px; color: #374151;">If you ever have feedback, or if a specific business isn't meeting your expectations, please reply to this email. I read every single message.</p>
   
   <div style="margin-bottom: 10px;">
-    <img src="https://readme-typing-svg.herokuapp.com?font=Dancing+Script&size=36&duration=4000&pause=1000&color=16a34a&width=350&lines=Nelly+Agbogu" alt="Nelly Agbogu" style="width: 250px; height: auto;" />
+    <img src="https://readme-typing-svg.herokuapp.com?font=Dancing+Script&size=36&duration=4000&pause=1000&color=16a34a&width=350&lines=Blessing+Ene" alt="Blessing Ene" style="width: 250px; height: auto;" />
   </div>
-  <p style="margin: 0; font-weight: 900; color: #111827; font-size: 18px; letter-spacing: -0.5px;">Nelly Agbogu</p>
+  <p style="margin: 0; font-weight: 900; color: #111827; font-size: 18px; letter-spacing: -0.5px;">Blessing Ene</p>
   <p style="margin: 0; color: #16a34a; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Co-Founder, Slasham</p>
 `);
 
