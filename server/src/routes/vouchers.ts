@@ -12,6 +12,10 @@ const generateVoucherCode = () => {
   return `SLSH-${code.slice(0, 4)}-${code.slice(4)}`;
 };
 
+const generateVerificationPin = () => {
+  return Math.floor(1000 + Math.random() * 9000).toString(); // 4 digit secure-ish PIN
+};
+
 // User claims a deal
 router.post("/claim", requireAuth, async (req, res) => {
   try {
@@ -311,6 +315,57 @@ router.get("/merchant/redemptions", requireAuth, async (req, res) => {
 
     if (error) throw error;
     res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User verifies transaction completion with a PIN
+router.post("/verify-transaction", requireAuth, async (req, res) => {
+  try {
+    const { voucher_id, pin } = req.body;
+    if (!voucher_id || !pin) return res.status(400).json({ error: "Voucher ID and PIN required" });
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    // 1. Fetch voucher
+    const { data: voucher, error: vError } = await supabase
+      .from("vouchers")
+      .select("*, users(points)")
+      .eq("id", voucher_id)
+      .eq("user_id", req.user.id)
+      .single();
+
+    if (vError || !voucher) return res.status(404).json({ error: "Voucher not found" });
+    if (voucher.status !== "REDEEMED") return res.status(400).json({ error: "Voucher must be redeemed by merchant first" });
+    if (voucher.verification_pin !== pin) return res.status(403).json({ error: "Invalid verification PIN" });
+
+    // 2. Mark as VERIFIED
+    const { data: updated, error: uError } = await supabase
+      .from("vouchers")
+      .update({ 
+        status: "VERIFIED", 
+        verified_at: new Date().toISOString() 
+      })
+      .eq("id", voucher_id)
+      .select()
+      .single();
+
+    if (uError) throw uError;
+
+    // 3. Award BONUS points for verification (Completion incentive)
+    try {
+        const currentPoints = (voucher as any).users?.points || 0;
+        await supabase
+            .from("users")
+            .update({ points: currentPoints + 150 }) // Extra 150 points for completion
+            .eq("id", req.user.id);
+    } catch (pErr) {
+        console.error("Bonus points failed:", pErr);
+    }
+
+    res.json({ message: "Transaction verified successfully", voucher: updated });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

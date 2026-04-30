@@ -407,13 +407,13 @@ router.get("/me", requireAuth, async (req, res) => {
 
 router.patch("/me", requireAuth, async (req, res) => {
   try {
-    const { name, phone, city } = req.body;
+    const { name, phone, city, avatar_url } = req.body;
     const supabase = getSupabaseAdmin();
     if (!supabase) return res.status(500).json({ error: "DB not configured" });
 
     const { data: user, error } = await supabase
       .from("users")
-      .update({ name, phone, city })
+      .update({ name, phone, city, avatar_url })
       .eq("id", req.user.id)
       .select()
       .single();

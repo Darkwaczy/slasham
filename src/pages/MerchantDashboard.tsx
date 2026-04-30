@@ -10,12 +10,14 @@ import {
   XCircle,
   Clock,
   ShieldCheck,
-  LifeBuoy
+  LifeBuoy,
+  MessageCircle,
+  ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../api/client";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import AdminModal from "../components/AdminModal";
 
 export default function MerchantDashboard() {
@@ -254,6 +256,46 @@ export default function MerchantDashboard() {
             }`}>{stat.value}</p>
           </motion.div>
         ))}
+      </div>
+      
+      {/* Customer Experience Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Link to="/merchant/reviews" className="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-emerald-500/5 transition-all group flex flex-col md:flex-row items-center gap-8 text-left">
+              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-4xl flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                  <MessageCircle size={36} />
+              </div>
+              <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-lg">New Feedback</span>
+                      <h3 className="text-xl font-black text-slate-900 tracking-tight">Customer Reviews</h3>
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                      Build your brand trust by responding to customer experiences. Public replies show potential customers that you care about their satisfaction.
+                  </p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl group-hover:bg-emerald-50 transition-all">
+                  <ArrowUpRight size={20} className="text-slate-300 group-hover:text-emerald-500" />
+              </div>
+          </Link>
+
+          <div 
+            onClick={() => setIsDisputing(true)}
+            className="bg-[#000000] p-10 rounded-[3rem] border border-black shadow-xl cursor-pointer hover:scale-[0.98] transition-all group relative overflow-hidden"
+          >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="relative z-10">
+                  <div className="w-12 h-12 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6">
+                      <LifeBuoy size={24} />
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2 tracking-tight">Partner Support</h3>
+                  <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6">
+                      Need help with a transaction or have a technical issue? Open a dispute or contact support.
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                      Get Help Now <ChevronRight size={12} />
+                  </div>
+              </div>
+          </div>
       </div>
 
       {/* Notifications */}

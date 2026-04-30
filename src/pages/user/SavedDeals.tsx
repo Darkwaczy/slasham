@@ -62,9 +62,9 @@ export default function SavedDeals() {
                 className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col"
               >
                 <div className="relative h-56 bg-slate-100 overflow-hidden shrink-0">
-                  {deal.images?.[0] ? (
+                  {deal.images?.[0] || deal.image ? (
                     <img
-                      src={deal.images[0]}
+                      src={deal.images?.[0] || deal.image}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       alt={deal.title}
                     />

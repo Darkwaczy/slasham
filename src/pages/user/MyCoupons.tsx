@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert
+  Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert, ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
@@ -12,8 +12,10 @@ export default function MyCoupons() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [isReporting, setIsReporting] = useState(false);
-  const [reportForm, setReportForm] = useState({ reason: "", description: "", priority: "Normal" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reportForm, setReportForm] = useState({ reason: "", description: "", priority: "Normal" });
+  const [verifyingVoucher, setVerifyingVoucher] = useState<string | null>(null);
+  const [pinInput, setPinInput] = useState("");
 
   const fetchVouchers = async () => {
     try {
@@ -28,7 +30,9 @@ export default function MyCoupons() {
         expiryDate: v.deals?.expiry_date,
         price: `₦${v.deals?.discount_price.toLocaleString()}`,
         category: v.deals?.category,
-        merchant_id: v.deals?.merchant_id
+        merchant_id: v.deals?.merchant_id,
+        verificationPin: v.verification_pin,
+        rawStatus: v.status // Keep "REDEEMED", "ACTIVE", etc.
       }));
       setUserVouchers(mapped);
     } catch (error) {
@@ -62,6 +66,25 @@ export default function MyCoupons() {
     } catch (error) {
       console.error("Failed to submit report:", error);
       alert("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyPin = async (voucherId: string) => {
+    if (pinInput.length !== 4) return;
+    setIsSubmitting(true);
+    try {
+      await apiClient.post("/vouchers/verify-transaction", {
+        voucher_id: voucherId,
+        pin: pinInput
+      });
+      setVerifyingVoucher(null);
+      setPinInput("");
+      fetchVouchers(); // Refresh list
+      alert("Transaction verified! Bonus points awarded.");
+    } catch (error: any) {
+      alert(error.message || "Invalid PIN. Please check your verification code.");
     } finally {
       setIsSubmitting(false);
     }
@@ -180,6 +203,52 @@ export default function MyCoupons() {
                                 >
                                     <AlertTriangle size={10} /> Report Problem
                                 </button>
+                            </div>
+                        )}
+
+                        {coupon.status === 'Redeemed' && (
+                            <div className="mt-4 flex flex-col items-center gap-3">
+                                <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Your Verification PIN</p>
+                                    <p className="text-xl font-black text-slate-900 tracking-[0.2em]">{coupon.verificationPin || "8821"}</p>
+                                </div>
+                                
+                                {verifyingVoucher === coupon.id ? (
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                                        <input 
+                                            type="text" 
+                                            maxLength={4}
+                                            value={pinInput}
+                                            onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+                                            placeholder="Enter PIN"
+                                            className="w-24 py-2 bg-white border border-emerald-200 rounded-lg text-center text-sm font-black outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                        />
+                                        <div className="flex gap-1">
+                                            <button onClick={() => handleVerifyPin(coupon.id)} className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all">
+                                                <Send size={14} />
+                                            </button>
+                                            <button onClick={() => setVerifyingVoucher(null)} className="p-2 bg-slate-200 text-slate-500 rounded-lg">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={() => setVerifyingVoucher(coupon.id)}
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg"
+                                    >
+                                        Confirm Completion
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {coupon.rawStatus === 'VERIFIED' && (
+                            <div className="mt-4 flex flex-col items-center gap-2">
+                                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                    <ShieldCheck size={24} />
+                                </div>
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Transaction Verified</span>
                             </div>
                         )}
                     </div>

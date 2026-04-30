@@ -30,7 +30,7 @@ export default function FavoriteButton({ dealId, deal, className = "" }: { dealI
         } else {
           storage.setItem('slasham_saved_deals', JSON.stringify(saved.filter((d: any) => String(d.id) !== String(dealId))));
         }
-        window.dispatchEvent(new Event('savedDealsUpdate'));
+        window.dispatchEvent(new Event('savedDealsUpdated'));
       } catch (err) {
         console.error("Save failed", err);
       }

@@ -61,6 +61,8 @@ const MerchantScanner = lazy(() => import("./pages/merchant/Scanner"));
 const MerchantApply = lazy(() => import("./pages/merchant/Apply"));
 const MerchantLogin = lazy(() => import("./pages/merchant/Login"));
 const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 // Category Pages
 const FoodDeals = lazy(() => import("./pages/categories/FoodDeals"));
@@ -141,6 +143,8 @@ export default function App() {
             <Route path="careers" element={<Careers />} />
             <Route path="press" element={<Press />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="privacy" element={<Privacy />} />
             
             {/* Category Routes */}
             <Route path="deals/food" element={<FoodDeals />} />

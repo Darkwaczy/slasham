@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
 import { useUser } from "../../context/UserContext";
@@ -16,6 +16,7 @@ export default function UserSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const { user, setUser, isLoading: userLoading } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -35,7 +36,9 @@ export default function UserSettings() {
         method: "PATCH",
         body: JSON.stringify({
           name: profile.name,
-          city: profile.city
+          city: profile.city,
+          phone: profile.phone,
+          avatar_url: profile.avatar_url
         })
       });
       setProfile(updated);
@@ -46,6 +49,21 @@ export default function UserSettings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 1. Client side preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfile({ ...profile, avatar_url: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+
+    // Note: In a production app, we would upload to Supabase Storage here
+    // For now, we store the base64/DataURL which is valid for small profiles
   };
 
   if (userLoading) {
@@ -118,14 +136,28 @@ export default function UserSettings() {
                 className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-10"
               >
                 <div className="flex items-center gap-8 pb-10 border-b border-slate-50">
-                   <div className="relative group">
-                      <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
-                        <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&background=10b981&color=fff&size=200`} alt="Avatar" className="w-full h-full object-cover" />
-                      </div>
-                      <button className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all">
-                        <Camera size={16} />
-                      </button>
-                   </div>
+                    <div className="relative group">
+                       <input 
+                         type="file" 
+                         ref={fileInputRef} 
+                         onChange={handleImageChange} 
+                         className="hidden" 
+                         accept="image/*" 
+                       />
+                       <div className="w-24 h-24 rounded-4xl overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
+                         {profile?.avatar_url ? (
+                           <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                         ) : (
+                           <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&background=10b981&color=fff&size=200`} alt="Avatar" className="w-full h-full object-cover" />
+                         )}
+                       </div>
+                       <button 
+                         onClick={() => fileInputRef.current?.click()}
+                         className="absolute -bottom-2 -right-2 p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg hover:scale-110 transition-all"
+                       >
+                         <Camera size={16} />
+                       </button>
+                    </div>
                    <div>
                       <h3 className="text-xl font-black text-slate-900 tracking-tight">Profile Identity</h3>
                       <p className="text-sm text-slate-400 font-medium">This is how you'll appear on public reviews.</p>
