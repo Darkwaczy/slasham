@@ -39,7 +39,45 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     if (error || !user) {
       // Clear cache if token is invalid
       authCache.delete(token);
-      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+
+      // ✅ Fixed - try refresh before giving up
+      const refreshToken = req.cookies.slasham_refresh;
+      if (refreshToken) {
+        try {
+          const { data: refreshData, error: refreshError } = 
+            await supabase.auth.refreshSession({ refresh_token: refreshToken });
+
+          if (!refreshError && refreshData.session) {
+            // Set new access token cookie
+            const isProduction = process.env.NODE_ENV === "production";
+            res.cookie("slasham_session", refreshData.session.access_token, {
+              httpOnly: true,
+              secure: isProduction,
+              sameSite: isProduction ? "none" : "lax",
+              maxAge: refreshData.session.expires_in * 1000,
+              path: "/",
+            });
+
+            // Get role from DB
+            let role = refreshData.user.user_metadata?.role || "USER";
+            try {
+              const { data: profile } = await supabase
+                .from("users")
+                .select("role, is_verified")
+                .eq("id", refreshData.user.id)
+                .single();
+              if (profile?.role) role = profile.role;
+            } catch {}
+
+            req.user = { ...refreshData.user, role };
+            return next(); // ✅ Continue request with refreshed session
+          }
+        } catch {
+          // Refresh failed — fall through to 401
+        }
+      }
+
+      return res.status(401).json({ error: "Unauthorized: Session expired" });
     }
 
     // Prefer role from public.users so admin/merchant role changes take effect immediately.

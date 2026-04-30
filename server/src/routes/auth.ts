@@ -337,7 +337,16 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: env.nodeEnv === "production",
       sameSite: env.nodeEnv === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: data.session.expires_in * 1000,
+      path: "/",
+    });
+
+    // ✅ Store refresh token for auto-renewal
+    res.cookie("slasham_refresh", data.session.refresh_token, {
+      httpOnly: true,
+      secure: env.nodeEnv === "production",
+      sameSite: env.nodeEnv === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: "/",
     });
 
@@ -462,11 +471,19 @@ router.post("/reset-password", async (req, res) => {
 });
 
 router.post("/logout", (_req, res) => {
+  const isProduction = env.nodeEnv === "production";
   res.clearCookie("slasham_session", {
     httpOnly: true,
-    secure: env.nodeEnv === "production",
-    sameSite: env.nodeEnv === "production" ? "none" : "lax",
-    path: "/"
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+  });
+  // ✅ Also clear refresh token
+  res.clearCookie("slasham_refresh", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
   });
   res.json({ message: "Logged out successfully" });
 });
