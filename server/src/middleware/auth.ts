@@ -47,7 +47,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
           const { data: refreshData, error: refreshError } = 
             await supabase.auth.refreshSession({ refresh_token: refreshToken });
 
-          if (!refreshError && refreshData.session) {
+          if (!refreshError && refreshData.session && refreshData.user) {
             // Set new access token cookie
             const isProduction = process.env.NODE_ENV === "production";
             res.cookie("slasham_session", refreshData.session.access_token, {
