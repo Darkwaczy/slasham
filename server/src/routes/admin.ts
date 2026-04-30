@@ -680,18 +680,30 @@ router.post("/applications/:id/approve", requireAuth, requireAdmin, async (req, 
 
     if (appError || !app) throw new Error("Application not found");
 
-    // 2. Create User account (Supabase Auth)
-    // For demo/onboarding flow, we use a secure random password
-    const tempPassword = randomBytes(6).toString('hex'); // 12 character hex string
-    
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-      email: app.email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: { name: app.contact_name, role: 'MERCHANT' }
-    });
+    // 2. Create User account (Supabase Auth) — find or create
+    const tempPassword = randomBytes(6).toString('hex');
 
-    if (authError) throw authError;
+    // Check if user already exists in Supabase Auth
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const existingAuthUser = existingUsers?.users?.find(u => u.email === app.email);
+
+    let authUser;
+
+    if (existingAuthUser) {
+      // User already exists — reuse them
+      authUser = { user: existingAuthUser };
+    } else {
+      // User doesn't exist — create them
+      const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
+        email: app.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { name: app.contact_name, role: 'MERCHANT' }
+      });
+
+      if (authError) throw authError;
+      authUser = newAuthUser;
+    }
 
     // 2.5 Ensure the user exists in our public.users table (Satisfy FK constraint)
     const { error: userError } = await supabase.from("users").upsert({
