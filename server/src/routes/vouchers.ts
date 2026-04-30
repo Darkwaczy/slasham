@@ -99,6 +99,7 @@ router.get("/my-vouchers", requireAuth, async (req, res) => {
       .select(`
         *,
         deals (
+          merchant_id,
           title,
           original_price,
           discount_price,

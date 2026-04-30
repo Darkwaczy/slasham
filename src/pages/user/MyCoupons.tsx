@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Copy, Ticket, Clock, ArrowUpRight
+  Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../api/client";
@@ -10,6 +10,10 @@ export default function MyCoupons() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [userVouchers, setUserVouchers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportForm, setReportForm] = useState({ reason: "", description: "", priority: "Normal" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchVouchers = async () => {
     try {
@@ -23,7 +27,8 @@ export default function MyCoupons() {
         status: v.status.charAt(0).toUpperCase() + v.status.slice(1).toLowerCase(), // e.g., "Active"
         expiryDate: v.deals?.expiry_date,
         price: `₦${v.deals?.discount_price.toLocaleString()}`,
-        category: v.deals?.category
+        category: v.deals?.category,
+        merchant_id: v.deals?.merchant_id
       }));
       setUserVouchers(mapped);
     } catch (error) {
@@ -36,6 +41,31 @@ export default function MyCoupons() {
   useEffect(() => {
     fetchVouchers();
   }, []);
+
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVoucher || !reportForm.reason) return;
+
+    setIsSubmitting(true);
+    try {
+      await apiClient.post("/user/report", {
+        voucher_id: selectedVoucher.id,
+        merchant_id: selectedVoucher.merchant_id, // We'll need to ensure this is in the data
+        reason: reportForm.reason,
+        description: reportForm.description,
+        priority: reportForm.priority
+      });
+      setIsReporting(false);
+      setReportForm({ reason: "", description: "", priority: "Normal" });
+      // Show success feedback (Toast or Alert)
+      alert("Report submitted successfully. Our team will review it shortly.");
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      alert("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filteredCoupons = userVouchers.filter(c => statusFilter === "All" || c.status === statusFilter);
 
@@ -141,6 +171,15 @@ export default function MyCoupons() {
                                 <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-slate-900">
                                     <ArrowUpRight size={18} />
                                 </button>
+                                <button 
+                                    onClick={() => {
+                                        setSelectedVoucher(coupon);
+                                        setIsReporting(true);
+                                    }}
+                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-600/60 hover:text-emerald-700 transition-colors flex items-center gap-1.5"
+                                >
+                                    <AlertTriangle size={10} /> Report Problem
+                                </button>
                             </div>
                         )}
                     </div>
@@ -148,6 +187,85 @@ export default function MyCoupons() {
                 ))}
                 </AnimatePresence>
             </div>
+
+            {/* Dispute/Report Modal */}
+            <AnimatePresence>
+                {isReporting && (
+                    <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            onClick={() => setIsReporting(false)}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                                <div className="flex items-center gap-3 text-rose-600">
+                                    <ShieldAlert size={20} />
+                                    <h3 className="text-sm font-black uppercase tracking-widest">Report a Problem</h3>
+                                </div>
+                                <button onClick={() => setIsReporting(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleReportSubmit} className="p-8 lg:p-10 space-y-6 text-left">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Voucher Context</p>
+                                    <p className="text-sm font-black text-slate-900">{selectedVoucher?.title}</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{selectedVoucher?.companyName}</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Reason for Dispute</label>
+                                    <select 
+                                        required
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all appearance-none"
+                                        value={reportForm.reason}
+                                        onChange={e => setReportForm({...reportForm, reason: e.target.value})}
+                                    >
+                                        <option value="">Select a reason</option>
+                                        <option value="Merchant Refused Voucher">Merchant Refused Voucher</option>
+                                        <option value="Voucher Already Redeemed">Voucher Already Redeemed</option>
+                                        <option value="Business Closed">Business Closed</option>
+                                        <option value="Incorrect Charges">Incorrect Charges</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Description</label>
+                                    <textarea 
+                                        required
+                                        rows={4}
+                                        placeholder="Tell us what happened in detail..."
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none"
+                                        value={reportForm.description}
+                                        onChange={e => setReportForm({...reportForm, description: e.target.value})}
+                                    />
+                                </div>
+
+                                <div className="pt-4">
+                                    <button 
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? "Transmitting..." : "Submit Report"}
+                                        <Send size={16} />
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {filteredCoupons.length === 0 && (
                 <motion.div 

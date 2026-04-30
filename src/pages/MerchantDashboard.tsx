@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  LifeBuoy
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../api/client";
@@ -25,6 +26,9 @@ export default function MerchantDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [selectedSupport, setSelectedSupport] = useState<any>(null);
+  const [isDisputing, setIsDisputing] = useState(false);
+  const [disputeForm, setDisputeForm] = useState({ reason: "", description: "" });
+  const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
   const [stats, setStats] = useState([
     { label: "Total Revenue", value: "₦0", change: "0%", icon: <DollarSign size={20} />, color: "black" },
     { label: "Active Deals", value: "0", change: "0", icon: <Ticket size={20} />, color: "yellow" },
@@ -129,6 +133,27 @@ export default function MerchantDashboard() {
     }
   };
 
+  const handleMerchantDispute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingDispute(true);
+    try {
+      // Re-using the same report endpoint but for merchant context
+      await apiClient.post("/user/report", {
+        merchant_id: merchant.id,
+        reason: disputeForm.reason,
+        description: `MERCHANT DISPUTE: ${disputeForm.description}`,
+        priority: "High"
+      });
+      setIsDisputing(false);
+      setDisputeForm({ reason: "", description: "" });
+      alert("Report received. Our partner support team will contact you shortly.");
+    } catch (error) {
+      console.error("Dispute submission failed", error);
+    } finally {
+      setIsSubmittingDispute(false);
+    }
+  };
+
   const generateReportCSV = (data: any) => {
     let csv = "Merchant Performance Report\n";
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;
@@ -172,6 +197,12 @@ export default function MerchantDashboard() {
             <p className="text-slate-500 font-medium">Your business performance is looking strong today.</p>
           </div>
           <div className="flex gap-3">
+             <button 
+               onClick={() => setIsDisputing(true)}
+               className="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
+             >
+                <LifeBuoy size={14} /> Get Help
+             </button>
              <button 
                onClick={handleDownloadReports}
                className="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:scale-105 active:scale-95 transition-all"
@@ -295,15 +326,26 @@ export default function MerchantDashboard() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/30">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Order ID</th>
+                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Order ID</th>
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Target Customer</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Artifact Unit</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Voucher / Deal</th>
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                <AnimatePresence mode="popLayout">
-                  {redemptions.map((r, i) => (
+                   {redemptions.length === 0 ? (
+                    <motion.tr 
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <td colSpan={4} className="px-8 py-20 text-center">
+                        <Ticket size={40} className="text-slate-200 mx-auto mb-4" />
+                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No redemptions logged yet</p>
+                      </td>
+                    </motion.tr>
+                  ) : redemptions.map((r, i) => (
                     <motion.tr 
                       key={r.id + i} 
                       layout
@@ -312,22 +354,28 @@ export default function MerchantDashboard() {
                       className="hover:bg-slate-50/30 transition-colors group"
                     >
                       <td className="px-8 py-5 font-mono text-[10px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors uppercase tracking-widest">{r.id}</td>
-                      <td className="px-8 py-5 text-sm font-bold text-slate-700">{r.customer}</td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-[10px] font-black uppercase">
+                            {r.customer?.charAt(0)}
+                          </div>
+                          <span className="text-sm font-bold text-slate-700">{r.customer}</span>
+                        </div>
+                      </td>
                       <td className="px-8 py-5">
                          <div className="flex flex-col">
                             <span className="text-sm font-black text-slate-900 leading-none mb-1">{r.deal}</span>
-                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{r.time}</span>
+                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{r.time || new Date().toLocaleDateString()}</span>
                          </div>
                       </td>
                       <td className="px-8 py-5">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-widest border border-emerald-100">
                           <CheckCircle2 size={12} />
-                          {r.status}
+                          {r.status || "Redeemed"}
                         </span>
                       </td>
                     </motion.tr>
                   ))}
-                </AnimatePresence>
               </tbody>
             </table>
           </div>
@@ -503,6 +551,77 @@ export default function MerchantDashboard() {
             </button>
         </div>
       </AdminModal>
+
+      {/* Merchant Dispute Modal */}
+      <AnimatePresence>
+        {isDisputing && (
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-6 text-left">
+                <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }} 
+                    onClick={() => setIsDisputing(false)}
+                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                />
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+                >
+                    <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <div className="flex items-center gap-3 text-slate-900">
+                            <LifeBuoy size={20} />
+                            <h3 className="text-sm font-black uppercase tracking-widest">Partner Support</h3>
+                        </div>
+                        <button onClick={() => setIsDisputing(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                            <XCircle size={24} />
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleMerchantDispute} className="p-8 lg:p-10 space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Dispute Type</label>
+                            <select 
+                                required
+                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all appearance-none"
+                                value={disputeForm.reason}
+                                onChange={e => setDisputeForm({...disputeForm, reason: e.target.value})}
+                            >
+                                <option value="">Select issue type</option>
+                                <option value="Payment Issue">Payment/Settlement Issue</option>
+                                <option value="Customer Dispute">Customer Behavior/Dispute</option>
+                                <option value="Technical Bug">Technical Platform Issue</option>
+                                <option value="Account Settings">Account/Profile Verification</option>
+                                <option value="Other">Other Operational Issue</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Description</label>
+                            <textarea 
+                                required
+                                rows={4}
+                                placeholder="Describe the issue in detail..."
+                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none"
+                                value={disputeForm.description}
+                                onChange={e => setDisputeForm({...disputeForm, description: e.target.value})}
+                            />
+                        </div>
+
+                        <button 
+                            type="submit"
+                            disabled={isSubmittingDispute}
+                            className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isSubmittingDispute ? "Sending Signal..." : "Submit Inquiry"}
+                            <ArrowUpRight size={16} />
+                        </button>
+                    </form>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
