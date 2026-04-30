@@ -43,6 +43,10 @@
       "destination": "/api/index.ts"
     },
     {
+      "source": "/(robots.txt|sitemap.xml|manifest.json|google.*\\.html|favicon.ico|assets/.*)",
+      "destination": "/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
