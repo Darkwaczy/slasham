@@ -271,7 +271,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
     if (!supabase) throw new Error("DB not configured");
 
     // Only Admin or the Merchant owner can delete
-    const { data: deal } = await supabase.from("deals").select("merchant_id").eq("id", req.params.id).single();
+    const { data: deal } = await supabase.from("deals").select("merchant_id, title").eq("id", req.params.id).single();
     if (!deal) return res.status(404).json({ error: "Deal not found" });
 
     const isAdmin = req.user.role === "ADMIN";
@@ -285,6 +285,12 @@ router.delete("/:id", requireAuth, async (req, res) => {
 
     const { error } = await supabase.from("deals").delete().eq("id", req.params.id);
     if (error) throw error;
+
+    // Sync with campaign_requests so the merchant sees it as removed/rejected
+    await supabase.from("campaign_requests")
+      .update({ status: 'REJECTED', admin_notes: isAdmin ? 'Deal was deleted by Admin.' : 'Deal was deleted by Merchant.' })
+      .eq("merchant_id", deal.merchant_id)
+      .eq("title", deal.title);
 
     res.json({ message: "Deal deleted successfully" });
   } catch (error: any) {

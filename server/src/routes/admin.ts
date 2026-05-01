@@ -435,6 +435,9 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
         .single();
       
       if (!existingDeal) {
+        // Ensure expiry date covers the entire day (up to 23:59:59)
+        const expiryDateStr = data.expiry_date.includes('T') ? data.expiry_date : `${data.expiry_date}T23:59:59.999Z`;
+
         await supabase.from("deals").insert({
           merchant_id: data.merchant_id,
           title: data.title,
@@ -444,7 +447,7 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
           original_price: data.original_price,
           discount_price: data.discount_price,
           total_quantity: data.total_quantity,
-          expiry_date: data.expiry_date,
+          expiry_date: expiryDateStr,
           is_hot: data.is_hot || data.is_hot_deal || false,
           images: data.image_url || data.product_image ? [data.image_url || data.product_image] : [],
           is_active: true
