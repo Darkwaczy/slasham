@@ -62,9 +62,10 @@ export default function Home() {
             badge: " LIMITED OFFER",
             isGraphicStyle: true,
             desktopPosition: "md:object-right md:scale-105 lg:scale-110",
-            mobilePosition: "object-[80%_center] scale-100",
+            mobilePosition: "object-[80%_top] scale-100",
             whiteMobileBadge: true,
-            whiteMobileSubtitle: true
+            whiteMobileSubtitle: true,
+            hasGradientOverlay: true
           },
           {
             image: "/assets/banner 3.jpg",
@@ -77,7 +78,8 @@ export default function Home() {
             mobilePosition: "object-[85%_top] scale-100",
             textColor: "text-white",
             whiteMobileBadge: true,
-            whiteDesktopBadge: true
+            whiteDesktopBadge: true,
+            hasGradientOverlay: true
           }
         ];
 
@@ -152,6 +154,10 @@ export default function Home() {
                   style={{ opacity: adBanners[currentAdIndex].isGraphicStyle ? 1 : 0.5 }} 
                 />
               </picture>
+              
+              {adBanners[currentAdIndex].hasGradientOverlay && (
+                <div className="absolute inset-0 bg-linear-to-b md:bg-linear-to-r from-black/80 via-black/40 to-transparent z-10 pointer-events-none" />
+              )}
               
               <div className={`absolute inset-0 flex flex-col ${adBanners[currentAdIndex].isGraphicStyle ? "justify-start pt-24 sm:pt-28 md:justify-center md:pt-0" : "justify-center"} max-w-7xl mx-auto px-6 md:px-16 lg:px-24 z-20`}>
                 <div className={`${adBanners[currentAdIndex].isGraphicStyle ? "w-full md:w-1/2" : "w-full"} flex flex-col items-start`}>
