@@ -34,7 +34,8 @@ export default function MerchantCampaigns() {
         originalPrice: `₦${Number(d.original_price).toLocaleString()}`,
         discountPrice: `₦${Number(d.discount_price).toLocaleString()}`,
         category: d.category,
-        status: d.status === 'PENDING' ? 'Pending'
+        status: (d.status === 'APPROVED' && new Date(d.expiry_date) < new Date()) ? 'Expired'
+               : d.status === 'PENDING' ? 'Pending'
                : d.status === 'APPROVED' ? 'Approved'
                : 'Rejected',
         location: profileData?.city || "Not set",
@@ -185,10 +186,12 @@ export default function MerchantCampaigns() {
                     <div className="flex items-center gap-2 justify-end">
                        {req.status === 'Approved' ? <CheckCircle2 className="text-emerald-500" size={18} /> : 
                         req.status === 'Rejected' ? <XCircle className="text-rose-500" size={18} /> : 
+                        req.status === 'Expired' ? <Clock className="text-slate-400" size={18} /> :
                         <Clock className="text-yellow-500" size={18} />}
                        <span className={`text-[11px] font-black uppercase tracking-widest ${
                           req.status === 'Approved' ? 'text-emerald-600' : 
-                          req.status === 'Rejected' ? 'text-rose-600' : 'text-yellow-600'
+                          req.status === 'Rejected' ? 'text-rose-600' : 
+                          req.status === 'Expired' ? 'text-slate-400' : 'text-yellow-600'
                        }`}>{req.status}</span>
                     </div>
                  </div>

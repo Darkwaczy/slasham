@@ -56,11 +56,14 @@ export default function AdminDeals() {
     return () => clearTimeout(timer);
   }, [currentPage, searchQuery]);
 
-  const deals = (data?.deals || []).map((d: any) => ({
-    ...d,
-    merchant: d.merchants?.business_name || "Merchant Partner",
-    status: "Active"
-  }));
+  const deals = (data?.deals || []).map((d: any) => {
+    const isExpired = new Date(d.expiry_date) < new Date();
+    return {
+      ...d,
+      merchant: d.merchants?.business_name || "Merchant Partner",
+      status: isExpired ? "Expired" : "Active"
+    };
+  });
 
   const totalDeals = data?.counts?.deals || deals.length;
   const totalPages = Math.ceil(totalDeals / pageSize);
@@ -213,6 +216,7 @@ export default function AdminDeals() {
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
+                <option value="Expired">Expired</option>
                 <option value="Paused">Paused</option>
               </select>
             </div>
