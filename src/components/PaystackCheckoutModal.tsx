@@ -69,6 +69,7 @@ export default function PaystackCheckoutModal({
           ref: data.reference,
           onClose: () => {
             setIsLoading(false);
+            setPaymentInitiated(false);
             setPaymentError("Payment window closed");
           },
           onSuccess: (_: any) => {
@@ -79,6 +80,7 @@ export default function PaystackCheckoutModal({
           },
         });
         handler.openIframe();
+        setIsLoading(false);
       } else {
         throw new Error("Paystack library not loaded");
       }
