@@ -72,6 +72,7 @@ export default function PaystackCheckoutModal({
             setPaymentError("Payment window closed");
           },
           onSuccess: (_: any) => {
+            setIsLoading(false);
             setPaymentInitiated(true);
             // Verify payment with backend
             verifyPayment(data.reference);
