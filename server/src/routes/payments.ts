@@ -163,7 +163,7 @@ const verifyAndCreateVoucher = async (reference: string, supabase: any) => {
   if (paymentError || !payment) throw new Error("Payment record not found");
   
   // If already processed, just return success
-  if (payment.status === "success") return payment;
+  if (payment.status === "success") return { ...payment, status: "success" };
 
   // 2. Verify with Paystack API
   const verifyResponse = await axios.get(
