@@ -522,6 +522,43 @@ export default function AdminDeals() {
             </div>
           </div>
 
+          {/* All Merchant Submitted Details */}
+          <div className="bg-slate-50 rounded-3xl border border-slate-100 p-5 space-y-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant Submission Details</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Market Price</p>
+                <p className="text-sm font-black text-slate-900">₦{selectedRequest?.original_price?.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Suggested Discount</p>
+                <p className="text-sm font-black text-emerald-600">₦{selectedRequest?.discount_price?.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Quantity</p>
+                <p className="text-sm font-black text-slate-900">{selectedRequest?.total_quantity ?? "—"}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Expiry Date</p>
+                <p className="text-sm font-black text-slate-900">{selectedRequest?.expiry_date ? new Date(selectedRequest.expiry_date).toLocaleDateString() : "—"}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Category</p>
+                <p className="text-sm font-black text-slate-900">{selectedRequest?.category ?? "—"}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 border border-slate-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Hot Coupon Request</p>
+                <p className={`text-sm font-black ${selectedRequest?.is_hot ? 'text-yellow-500' : 'text-slate-400'}`}>{selectedRequest?.is_hot ? '⚡ Yes' : 'No'}</p>
+              </div>
+            </div>
+            {selectedRequest?.deal_explanation && (
+              <div className="bg-amber-50 rounded-2xl p-3 border border-amber-100">
+                <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 mb-1">Deal Explanation (Yellow Text)</p>
+                <p className="text-sm font-bold text-amber-700">{selectedRequest.deal_explanation}</p>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">PLATFORM PLACEMENT</p>

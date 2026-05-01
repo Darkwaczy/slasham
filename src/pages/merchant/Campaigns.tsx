@@ -76,9 +76,9 @@ export default function MerchantCampaigns() {
     setIsLoading(true);
 
     try {
-      let imageUrl = previewImage;
+      let imageUrl: string | null = imageUrlInput || null;
 
-      // 1. Upload image if selected
+      // 1. Upload image if selected — uploaded URL always wins
       if (selectedFile) {
         const uploadData = new FormData();
         uploadData.append("bucket", "deal-images");
@@ -108,13 +108,14 @@ export default function MerchantCampaigns() {
           total_quantity: parseInt(formData.get('totalQuantity') as string),
           expiry_date: formData.get('expiryDate') as string,
           is_hot: isHotCoupon,
-          image_url: imageUrl || (formData.get('imageUrl') as string) || null,
+          image_url: imageUrl || null,
         }),
       });
 
       setIsModalOpen(false);
       setPreviewImage(null);
       setSelectedFile(null);
+      setImageUrlInput("");
       fetchDeals();
     } catch (error: any) {
       alert(`Failed to save deal: ${error.message}`);
@@ -333,11 +334,32 @@ export default function MerchantCampaigns() {
                       </label>
                    </div>
                 </div>
-                {previewImage && (
-                    <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-white flex items-center justify-center">
-                        <img src={previewImage} className="w-full h-full object-contain" />
-                    </div>
-                )}
+                 {(previewImage || imageUrlInput) && (
+                     <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center">
+                         <img 
+                            src={previewImage || imageUrlInput} 
+                            className="w-full h-full object-contain" 
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  let errorMsg = parent.querySelector('.img-error-msg');
+                                  if (!errorMsg) {
+                                    errorMsg = document.createElement('span');
+                                    errorMsg.className = 'img-error-msg text-xs font-bold text-slate-400';
+                                    errorMsg.textContent = 'Invalid Image Format or Broken URL';
+                                    parent.appendChild(errorMsg);
+                                  }
+                                }
+                            }}
+                            onLoad={(e) => {
+                                e.currentTarget.style.display = 'block';
+                                const errorMsg = e.currentTarget.parentElement?.querySelector('.img-error-msg');
+                                if (errorMsg) errorMsg.remove();
+                            }}
+                         />
+                     </div>
+                 )}
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
