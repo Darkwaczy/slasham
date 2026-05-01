@@ -70,6 +70,9 @@ router.post("/initiate", requireAuth, async (req, res) => {
     const amountToCharge = deal.coupon_price || deal.discount_price;
     const amountInKobo = Math.round(amountToCharge * 100); // Paystack uses kobo (smallest unit)
 
+    // Generate reference BEFORE creating payment record
+    const reference = `SLSH-${randomBytes(8).toString('hex').toUpperCase()}`;
+
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
       .insert({
@@ -80,6 +83,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
         currency: "NGN",
         status: "pending",
         paystack_status: "pending",
+        paystack_reference: reference,
       })
       .select()
       .single();
@@ -96,6 +100,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
         {
           email: user.email,
           amount: amountInKobo,
+          reference,
           metadata: {
             deal_id: deal_id,
             user_id: req.user.id,
@@ -113,13 +118,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
         }
       );
 
-      const { authorization_url, access_code, reference } = paystackResponse.data.data;
-
-      // 5. Store Paystack reference in payment record
-      await supabase
-        .from("payments")
-        .update({ paystack_reference: reference })
-        .eq("id", payment.id);
+      const { authorization_url, access_code } = paystackResponse.data.data;
 
       res.json({
         success: true,
