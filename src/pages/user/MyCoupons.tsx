@@ -186,7 +186,7 @@ export default function MyCoupons() {
                             <div className="mt-4 flex flex-col items-center gap-4">
                                 <div className="bg-white p-2 rounded-2xl shadow-xl shadow-emerald-500/10">
                                     <img 
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${coupon.code}`} 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(coupon.code)}`} 
                                         alt="Voucher QR"
                                         className="w-24 h-24"
                                     />

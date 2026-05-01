@@ -247,7 +247,7 @@ router.post("/verify-otp", async (req, res) => {
 
     const { error: updateError } = await supabase
       .from("users")
-      .update({ is_verified: true })
+      .update({ is_verified: true, points: 500 }) // Award 500 welcome points
       .eq("id", user.id);
 
     if (updateError) throw updateError;
@@ -407,13 +407,13 @@ router.get("/me", requireAuth, async (req, res) => {
 
 router.patch("/me", requireAuth, async (req, res) => {
   try {
-    const { name, phone, city, avatar_url } = req.body;
+    const { name, phone, city, avatar_url, notification_settings } = req.body;
     const supabase = getSupabaseAdmin();
     if (!supabase) return res.status(500).json({ error: "DB not configured" });
 
     const { data: user, error } = await supabase
       .from("users")
-      .update({ name, phone, city, avatar_url })
+      .update({ name, phone, city, avatar_url, notification_settings })
       .eq("id", req.user.id)
       .select()
       .single();
@@ -423,6 +423,38 @@ router.patch("/me", requireAuth, async (req, res) => {
     res.json(user);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+router.post("/change-password", requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current and new passwords are required" });
+    }
+
+    const authClient = getAuthClient();
+    
+    // 1. Verify current password by attempting a re-login
+    const { error: loginError } = await authClient.auth.signInWithPassword({
+      email: req.user.email,
+      password: currentPassword
+    });
+
+    if (loginError) {
+      return res.status(401).json({ error: "Invalid current password" });
+    }
+
+    // 2. Update to new password
+    const { error: updateError } = await authClient.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) throw updateError;
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

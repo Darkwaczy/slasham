@@ -7,14 +7,16 @@ import {
   MapPin, Phone, Mail, Camera, 
   Zap, Crown, CheckCircle2, ArrowRight,
   Gift, Plus, ShieldCheck, 
-  QrCode, Clock, Loader2
+  Clock, Loader2
 } from "lucide-react";
 
 export default function UserSettings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [profile, setProfile] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: "", new: "", confirm: "" });
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const { user, setUser, isLoading: userLoading } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,26 +31,74 @@ export default function UserSettings() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (updates?: any) => {
     setIsSaving(true);
     try {
+      const dataToSave = updates || {
+        name: profile.name,
+        city: profile.city,
+        phone: profile.phone,
+        avatar_url: profile.avatar_url,
+        notification_settings: profile.notification_settings
+      };
+
       const updated = await apiClient("/auth/me", {
         method: "PATCH",
-        body: JSON.stringify({
-          name: profile.name,
-          city: profile.city,
-          phone: profile.phone,
-          avatar_url: profile.avatar_url
-        })
+        body: JSON.stringify(dataToSave)
       });
       setProfile(updated);
       setUser(updated);
-      showToast("Profile updated successfully!");
+      if (!updates) showToast("Profile updated successfully!");
     } catch (error: any) {
       showToast("Update failed: " + error.message, false);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      return showToast("Please fill all password fields", false);
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      return showToast("New passwords do not match", false);
+    }
+    if (passwordForm.new.length < 6) {
+      return showToast("Password must be at least 6 characters", false);
+    }
+
+    setIsSaving(true);
+    try {
+      await apiClient("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.new
+        })
+      });
+      showToast("Password updated successfully!");
+      setPasswordForm({ current: "", new: "", confirm: "" });
+    } catch (error: any) {
+      showToast(error.message || "Failed to update password", false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNotificationToggle = async (key: string, value: boolean) => {
+    const newSettings = {
+      ...(profile.notification_settings || {
+        dealAlerts: true,
+        voucherExpiry: true,
+        rewardBonuses: true,
+        accountActivity: true
+      }),
+      [key]: value
+    };
+    
+    setProfile({ ...profile, notification_settings: newSettings });
+    // Auto-save notification changes
+    await handleSave({ notification_settings: newSettings });
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,50 +302,54 @@ export default function UserSettings() {
                                <p className="text-xs text-slate-400 font-medium max-w-sm">Secure your account with a secondary verification code via Slasham Auth or Google Authenticator.</p>
                             </div>
                          </div>
-                         <button 
-                          onClick={() => {
-                            const updated = { ...profile, twoFactorEnabled: !profile.twoFactorEnabled };
-                            setProfile(updated);
-                            // Real app: call the backend to persist this change immediately
-                          }}
-                          className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${profile.twoFactorEnabled ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-white text-slate-950 hover:bg-emerald-500'}`}
-                         >
-                            {profile.twoFactorEnabled ? 'Disable 2FA' : 'Enable Now'}
-                         </button>
+                         <div className="flex flex-col items-end gap-2">
+                             <span className="px-2 py-1 bg-amber-500/20 text-amber-500 text-[8px] font-black uppercase tracking-widest rounded-lg">Coming Soon</span>
+                             <button 
+                              disabled
+                              className="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-white/10 text-white/40 cursor-not-allowed"
+                             >
+                                Enable Now
+                             </button>
+                          </div>
                       </div>
                       
-                      {profile.twoFactorEnabled && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row gap-8 items-start"
-                        >
-                           <div className="p-4 bg-white rounded-2xl">
-                              <QrCode size={120} className="text-slate-950" />
-                           </div>
-                           <div className="space-y-4">
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recovery Codes</p>
-                              <div className="grid grid-cols-2 gap-2">
-                                 {["XJ-90-LL", "AP-22-ZZ", "LO-98-MN", "RT-44-KW"].map((code, i) => (
-                                    <span key={i} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg font-mono text-xs font-bold">{code}</span>
-                                 ))}
-                              </div>
-                              <button className="text-[10px] font-black underline uppercase tracking-widest text-emerald-400 hover:text-white">Download Backup Codes</button>
-                           </div>
-                        </motion.div>
-                      )}
+
                    </div>
 
                    <div className="p-8 bg-slate-50 rounded-4xl border border-slate-100 flex flex-col gap-6">
                       <p className="text-sm font-black text-slate-900">Update Account Password</p>
                       <div className="grid md:grid-cols-2 gap-4">
-                         <input type="password" placeholder="Current Password" className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none" />
+                         <input 
+                           type="password" 
+                           placeholder="Current Password" 
+                           value={passwordForm.current}
+                           onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                           className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 outline-none" 
+                         />
                          <div className="md:col-span-1 border-hidden" />
-                         <input type="password" placeholder="New Password" className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none" />
-                         <input type="password" placeholder="Confirm New Password" className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none" />
+                         <input 
+                           type="password" 
+                           placeholder="New Password" 
+                           value={passwordForm.new}
+                           onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
+                           className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 outline-none" 
+                         />
+                         <input 
+                           type="password" 
+                           placeholder="Confirm New Password" 
+                           value={passwordForm.confirm}
+                           onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                           className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 outline-none" 
+                         />
                       </div>
                       <div className="flex justify-end mt-4">
-                         <button className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Update Credentials</button>
+                         <button 
+                           onClick={handleUpdatePassword}
+                           disabled={isSaving}
+                           className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50"
+                         >
+                           {isSaving ? "Updating..." : "Update Credentials"}
+                         </button>
                       </div>
                    </div>
                 </div>
@@ -320,10 +374,10 @@ export default function UserSettings() {
 
                 <div className="space-y-4">
                    {[
-                      { title: "New Deal Alerts", desc: "Get notified when a new offer is available in your city.", icon: <Star size={18} /> },
-                      { title: "Voucher Expiry", desc: "Alerts when your coupons are about to expire (24h before).", icon: <Clock size={18} /> },
-                      { title: "Reward Bonuses", desc: "Notifications for points earned and tier achievements.", icon: <Gift size={18} /> },
-                      { title: "Account Activity", desc: "Security alerts for new logins and password changes.", icon: <Shield size={18} /> },
+                      { id: "dealAlerts", title: "New Deal Alerts", desc: "Get notified when a new offer is available in your city.", icon: <Star size={18} /> },
+                      { id: "voucherExpiry", title: "Voucher Expiry", desc: "Alerts when your coupons are about to expire (24h before).", icon: <Clock size={18} /> },
+                      { id: "rewardBonuses", title: "Reward Bonuses", desc: "Notifications for points earned and tier achievements.", icon: <Gift size={18} /> },
+                      { id: "accountActivity", title: "Account Activity", desc: "Security alerts for new logins and password changes.", icon: <Shield size={18} /> },
                    ].map((item, i) => (
                       <div key={i} className="p-6 bg-slate-50 flex items-center justify-between rounded-3xl border border-slate-100 group transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-100">
                          <div className="flex items-center gap-4">
@@ -336,7 +390,12 @@ export default function UserSettings() {
                             </div>
                          </div>
                          <div className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" defaultChecked className="sr-only peer" />
+                            <input 
+                              type="checkbox" 
+                              checked={profile.notification_settings?.[item.id] !== false}
+                              onChange={(e) => handleNotificationToggle(item.id, e.target.checked)}
+                              className="sr-only peer" 
+                            />
                             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                          </div>
                       </div>
@@ -361,7 +420,10 @@ export default function UserSettings() {
                       </div>
                       <h3 className="font-black text-xl text-slate-900 tracking-tight">Billing & Payments</h3>
                    </div>
-                   <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700">
+                   <button 
+                    onClick={() => setIsBillingModalOpen(true)}
+                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700"
+                   >
                       <Plus size={16} /> Add New Method
                    </button>
                 </div>
@@ -376,7 +438,10 @@ export default function UserSettings() {
                          <p className="text-xs text-slate-400">You haven't added any cards yet.</p>
                       </div>
                       
-                      <button className="p-8 border-2 border-dashed border-slate-100 rounded-4xl flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all group">
+                      <button 
+                        onClick={() => setIsBillingModalOpen(true)}
+                        className="p-8 border-2 border-dashed border-slate-100 rounded-4xl flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all group"
+                      >
                          <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Plus size={24} />
                          </div>
@@ -440,7 +505,7 @@ export default function UserSettings() {
               </div>
 
               <button 
-                onClick={() => setActiveTab("billing")}
+                onClick={() => setIsBillingModalOpen(true)}
                 className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 transition-all text-white flex items-center justify-center gap-2">
                 Become a Pro Member <ArrowRight size={16} />
               </button>
@@ -472,6 +537,45 @@ export default function UserSettings() {
           </div>
         </div>
       </div>
+       {/* Billing Modal */}
+      <AnimatePresence>
+        {isBillingModalOpen && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsBillingModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-10 text-center space-y-6"
+            >
+              <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto">
+                <CreditCard size={40} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-900">Secure Payments</h3>
+                <p className="text-slate-500 font-medium">To keep your data safe, we use <span className="text-emerald-600 font-black">Paystack</span> for card management.</p>
+              </div>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                You can securely add your card during your next voucher purchase. We never store your full card details on our servers.
+              </p>
+              <div className="pt-4">
+                <button 
+                  onClick={() => setIsBillingModalOpen(false)}
+                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-emerald-600 transition-all"
+                >
+                  Got it, Thanks!
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

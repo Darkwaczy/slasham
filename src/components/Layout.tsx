@@ -10,6 +10,7 @@ import gsap from "gsap";
 import { motion, AnimatePresence } from "motion/react";
 import { storage } from "../utils/storage";
 import { Logo } from "./Logo";
+import { useAuth } from "../context/AuthContext";
 
 
 export default function Layout() {
@@ -17,7 +18,7 @@ export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [footerExpandedSection, setFooterExpandedSection] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const { user, setUser, logout: authLogout } = useAuth();
   const [savedCount, setSavedCount] = useState<number>(0);
   const [adminSettings, setAdminSettings] = useState<any>({
     maintenanceMode: false,
@@ -126,14 +127,10 @@ export default function Layout() {
 
   const handleLogout = async () => {
     try {
-      const { apiClient } = await import("../api/client");
-      await apiClient.post("/auth/logout");
+      await authLogout();
     } catch (error) {
       console.error("Logout failed:", error);
     }
-    storage.removeItem("slasham_user");
-    storage.removeItem("slasham_token");
-    setUser(null);
     window.location.reload(); // Refresh to clear all states
   };
 
@@ -297,8 +294,12 @@ export default function Layout() {
                
                {user ? (
                  <div className="relative group/user px-1 md:px-2 hidden lg:block">
-                   <button className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-slate-200 overflow-hidden ring-2 ring-transparent hover:ring-teal-500/20 transition-all shrink-0">
-                     <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-full h-full object-cover" />
+                   <button className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-slate-200 overflow-hidden ring-2 ring-transparent hover:ring-teal-500/20 transition-all shrink-0 bg-slate-100">
+                     {user.avatar_url ? (
+                       <img src={user.avatar_url} alt="User" className="w-full h-full object-cover" />
+                     ) : (
+                       <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`} alt="User" className="w-full h-full object-cover" />
+                     )}
                    </button>
                    <div className="absolute top-full right-0 mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 translate-y-1 group-hover/user:translate-y-0">
                      <p className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">{user.name}</p>
@@ -476,11 +477,15 @@ export default function Layout() {
                 {user ? (
                    <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
                       <div className="flex items-center gap-3">
-                        <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">{user.name}</p>
-                          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Verified Member</p>
-                        </div>
+                         {user.avatar_url ? (
+                           <img src={user.avatar_url} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" />
+                         ) : (
+                           <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                         )}
+                         <div>
+                           <p className="text-sm font-bold text-slate-900">{user.name}</p>
+                           <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Verified Member</p>
+                         </div>
                       </div>
                       <button 
                         onClick={() => { handleLogout(); setIsMenuOpen(false); }}
