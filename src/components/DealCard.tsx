@@ -116,6 +116,9 @@ const DealCard = React.memo<DealCardProps>(({
                 display: "block" 
               }}
               className="transition-transform duration-1000 group-hover:scale-110"
+              onError={(e) => {
+                e.currentTarget.src = `https://picsum.photos/seed/${id}/600/400`;
+              }}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-400 bg-slate-100">

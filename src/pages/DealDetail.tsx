@@ -338,6 +338,9 @@ export default function DealDetail() {
                 src={deal.image}
                 alt={deal.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = `https://picsum.photos/seed/${deal.id}/800/600`;
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-xs font-black uppercase tracking-widest">
