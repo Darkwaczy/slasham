@@ -50,6 +50,7 @@ export default function Deals() {
           title: d.title,
           price: d.discount_price.toString(),
           original: d.original_price.toString(),
+          couponPrice: d.coupon_price?.toString() || d.discount_price.toString(),
           image: d.images?.[0] || "",
           category: d.category,
           location: d.merchants?.city || "",

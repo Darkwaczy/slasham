@@ -9,6 +9,7 @@ interface DealCardProps {
   title: string;
   price: string | number;
   original: string | number;
+  couponPrice?: string | number;
   image?: string;
   category?: string;
   location?: string;
@@ -63,6 +64,7 @@ const DealCard = React.memo<DealCardProps>(({
   title,
   price,
   original,
+  couponPrice,
   image,
   category = "Retail",
   location = "Location unavailable",
@@ -77,6 +79,7 @@ const DealCard = React.memo<DealCardProps>(({
   const { hours, minutes, seconds } = useCountdown(expiryDate);
   const originalVal = parseNumber(original);
   const discountedVal = parseNumber(price);
+  const couponVal = parseNumber(couponPrice || 0);
   const savings = originalVal - discountedVal;
   const discountPercent = originalVal > 0 ? Math.round((savings / originalVal) * 100) : 0;
   const progressPercent = Math.min((soldQuantity / totalQuantity) * 100, 100);
@@ -164,14 +167,14 @@ const DealCard = React.memo<DealCardProps>(({
               <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                 <span style={{ fontSize: "10px", fontWeight: "900", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em" }}>Market Price</span>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                  <span style={{ fontSize: "24px", fontWeight: "900", color: "#16a34a", letterSpacing: "-0.04em" }}>{formatNaira(discountedVal)}</span>
+                  <span style={{ fontSize: "18px", fontWeight: "900", color: "#16a34a", letterSpacing: "-0.04em" }}>{formatNaira(discountedVal)}</span>
                   <span style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "line-through", fontWeight: "600" }}>{formatNaira(originalVal)}</span>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                 <span style={{ fontSize: "10px", fontWeight: "900", color: "#f97316", textTransform: "uppercase", letterSpacing: "0.1em" }}>Savings</span>
-                 <span style={{ fontSize: "11px", fontWeight: "800", color: "#10b981", background: "#ecfdf5", padding: "2px 8px", borderRadius: "6px" }}>
-                   Save {formatNaira(savings)}
+                 <span style={{ fontSize: "10px", fontWeight: "900", color: "#10b981", textTransform: "uppercase", letterSpacing: "0.1em" }}>Pay Now To Unlock</span>
+                 <span style={{ fontSize: "18px", fontWeight: "900", color: "#10b981", letterSpacing: "-0.04em" }}>
+                   {couponVal > 0 ? formatNaira(couponVal) : "FREE"}
                  </span>
               </div>
             </div>

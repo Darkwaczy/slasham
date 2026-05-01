@@ -702,7 +702,7 @@ export default function DealDetail() {
       <PaystackCheckoutModal
         isOpen={showPaystackModal}
         dealTitle={deal?.title || "Exclusive Deal"}
-        dealPrice={parseInt(deal?.price.replace(/\D/g, '') || "0")}
+        dealPrice={parseInt(deal?.couponPrice?.replace(/\D/g, '') || "0")}
         dealImage={deal?.image}
         onClose={() => setShowPaystackModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
