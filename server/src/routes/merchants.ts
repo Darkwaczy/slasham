@@ -144,6 +144,7 @@ router.post("/campaigns", requireAuth, async (req, res) => {
       .insert({
         merchant_id: merchant.id,
         title,
+        product_name: title, // Sync for legacy components
         description,
         deal_explanation,
         category,
@@ -152,7 +153,9 @@ router.post("/campaigns", requireAuth, async (req, res) => {
         total_quantity,
         expiry_date,
         is_hot: is_hot || false,
+        is_hot_deal: is_hot || false, // Sync for legacy components
         image_url: image_url || null,
+        product_image: image_url || null, // Sync for legacy components
         status: 'PENDING'
       })
       .select()

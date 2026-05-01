@@ -32,6 +32,7 @@ export default function MerchantCampaigns() {
         productName: d.title,
         productImage: d.image_url || "",
         originalPrice: `₦${Number(d.original_price).toLocaleString()}`,
+        discountPrice: `₦${Number(d.discount_price).toLocaleString()}`,
         category: d.category,
         status: d.status === 'PENDING' ? 'Pending'
                : d.status === 'APPROVED' ? 'Approved'
@@ -171,6 +172,7 @@ export default function MerchantCampaigns() {
                  </h2>
                  <div className="flex flex-wrap gap-6 text-[11px] font-bold text-slate-400">
                     <span className="flex items-center gap-1.5"><DollarSign size={14}/> Market: {req.originalPrice}</span>
+                    <span className="flex items-center gap-1.5 text-emerald-600"><DollarSign size={14}/> Slasham: {req.discountPrice}</span>
                     <span className="flex items-center gap-1.5 text-indigo-500"><Truck size={14}/> {req.shippingInfo?.enabled ? 'Delivery Offered' : 'Self-Pickup'}</span>
                     {req.isHotCoupon && <span className="flex items-center gap-1.5 text-yellow-600"><Zap size={14} className="fill-yellow-500"/> Hot Coupon</span>}
                  </div>
@@ -285,10 +287,10 @@ export default function MerchantCampaigns() {
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Unlock Price (User pays Slasham)</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Slasham Discounted Price</label>
                     <div className="relative">
                         <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input name="discountPrice" type="number" defaultValue={editingRequest?.discountPrice || 500} placeholder="500" className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+                        <input name="discountPrice" type="number" defaultValue={editingRequest?.discountPrice} required placeholder="e.g. 7000" className="w-full pl-12 pr-5 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-700" />
                     </div>
                 </div>
              </div>
