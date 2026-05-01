@@ -5,7 +5,7 @@ export default function Lagos() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="relative h-[500px] rounded-[40px] overflow-hidden mb-16">
-        <img src="https://images.unsplash.com/photo-1576613109771-46328635832a?auto=format&fit=crop&w=1200&q=80" alt="Lagos" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img src="https://source.unsplash.com/1200x500/?lagos,nigeria,city" alt="Lagos" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
         <div className="absolute bottom-12 left-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-xs uppercase tracking-widest mb-4">
@@ -28,11 +28,11 @@ export default function Lagos() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-24">
         {[
-          { title: "Victoria Island Luxury", desc: "Indulge in premium dining, high-end shopping, and vibrant nightlife in the heart of Lagos.", img: "https://images.unsplash.com/photo-1582407947313-f89552171545?auto=format&fit=crop&w=800&q=80" },
-          { title: "Lekki Serenity", desc: "Relax by the beach, explore modern shopping malls, and enjoy top-tier hospitality in Lekki.", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" }
+          { title: "Victoria Island Luxury", desc: "Indulge in premium dining, high-end shopping, and vibrant nightlife in the heart of Lagos.", img: "https://source.unsplash.com/800x400/?restaurant,luxury,dining" },
+          { title: "Lekki Serenity", desc: "Relax by the beach, explore modern shopping malls, and enjoy top-tier hospitality in Lekki.", img: "https://source.unsplash.com/800x400/?beach,tropical,ocean" }
         ].map((place, i) => (
           <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
-            <img src={place.img} alt={place.title} className="w-full h-64 object-cover" referrerPolicy="no-referrer" />
+            <img src={place.img} alt={place.title} className="w-full h-64 object-cover" />
             <div className="p-8">
               <h3 className="text-2xl font-bold mb-2">{place.title}</h3>
               <p className="text-slate-600">{place.desc}</p>
