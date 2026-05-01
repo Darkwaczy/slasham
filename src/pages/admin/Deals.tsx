@@ -85,6 +85,10 @@ export default function AdminDeals() {
             body: JSON.stringify({ status: "APPROVED", admin_notes: "Authorized via Marketplace Console", coupon_price: numericCouponPrice })
         });
 
+        const safeExpiryDate = req.expiry_date 
+            ? (req.expiry_date.includes('T') ? req.expiry_date : `${req.expiry_date}T23:59:59.999Z`)
+            : new Date(Date.now() + 30 * 86400000).toISOString();
+
         // 2. Create the real deal
         await apiClient("/deals", {
             method: "POST",
@@ -98,9 +102,9 @@ export default function AdminDeals() {
                 coupon_price: numericCouponPrice,
                 total_quantity: req.total_quantity || 100,
                 validity_days: 30,
-                expiry_date: req.expiry_date || new Date(Date.now() + 30 * 86400000).toISOString(),
+                expiry_date: safeExpiryDate,
                 is_hot: isHotDeal,
-                images: [req.product_image],
+                images: [req.product_image || req.image_url],
                 deal_explanation: "Limited time verified offer"
             })
         });
