@@ -39,7 +39,7 @@ function fmt(num: number): string {
 export default function CouponAgreementModal({ deal, onAgree, onCancel }: CouponAgreementModalProps) {
   const [agreed, setAgreed] = useState(false);
 
-  const slashamPrice    = parseAmount(deal?.price);         // what you pay Slasham
+  const slashamPrice    = parseAmount(deal?.couponPrice);    // what you pay Slasham to unlock (coupon price)
   const faceValue       = parseAmount(deal?.couponFaceValue || deal?.original); // coupon discount at merchant
   const minimumSpend    = parseAmount(deal?.minimumSpend);  // min spend at merchant
   const savings         = faceValue - slashamPrice;         // your total benefit
