@@ -65,7 +65,8 @@ export default function Home() {
             mobilePosition: "object-[80%_top] scale-100",
             whiteMobileBadge: true,
             whiteMobileSubtitle: true,
-            hasGradientOverlay: true
+            hasGradientOverlay: true,
+            mobileGradientOnly: true
           },
           {
             image: "/assets/banner 3.jpg",
@@ -156,7 +157,9 @@ export default function Home() {
               </picture>
               
               {adBanners[currentAdIndex].hasGradientOverlay && (
-                <div className="absolute inset-0 bg-linear-to-b md:bg-linear-to-r from-black/80 via-black/40 to-transparent z-10 pointer-events-none" />
+                <div className={`absolute inset-0 bg-linear-to-b from-black/80 via-black/40 to-transparent z-10 pointer-events-none ${
+                  adBanners[currentAdIndex].mobileGradientOnly ? "md:hidden" : "md:bg-linear-to-r"
+                }`} />
               )}
               
               <div className={`absolute inset-0 flex flex-col ${adBanners[currentAdIndex].isGraphicStyle ? "justify-start pt-24 sm:pt-28 md:justify-center md:pt-0" : "justify-center"} max-w-7xl mx-auto px-6 md:px-16 lg:px-24 z-20`}>
