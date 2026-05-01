@@ -79,6 +79,7 @@ export default function MerchantCampaigns() {
       // 1. Upload image if selected
       if (selectedFile) {
         const uploadData = new FormData();
+        uploadData.append("bucket", "deal-images");
         uploadData.append("image", selectedFile);
         const uploadRes = await apiClient("/upload/image", {
           method: "POST",
