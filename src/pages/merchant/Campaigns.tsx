@@ -16,6 +16,7 @@ export default function MerchantCampaigns() {
   const [isHotCoupon, setIsHotCoupon] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [, setMerchantProfile] = useState<any>(null);
 
   const fetchDeals = async () => {
@@ -133,6 +134,8 @@ export default function MerchantCampaigns() {
           onClick={() => {
             setEditingRequest(null);
             setPreviewImage(null);
+            setSelectedFile(null);
+            setImageUrlInput("");
             setShippingEnabled(false);
             setIsHotCoupon(false);
             setIsModalOpen(true);
@@ -206,6 +209,8 @@ export default function MerchantCampaigns() {
                         if (req.status !== "Pending") return;
                         setEditingRequest(req);
                         setPreviewImage(req.productImage);
+                        setSelectedFile(null);
+                        setImageUrlInput(req.productImage || "");
                         setShippingEnabled(req.shippingInfo?.enabled || false);
                         setIsHotCoupon(req.isHotCoupon || false);
                         setIsModalOpen(true);
@@ -313,8 +318,13 @@ export default function MerchantCampaigns() {
                    <div className="space-y-2">
                       <div className="relative">
                          <ImageIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                         <input name="imageUrl" defaultValue={editingRequest?.productImage} placeholder="Image URL (Alternative)" className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+                         <input name="imageUrl" value={imageUrlInput} onChange={(e) => setImageUrlInput(e.target.value)} placeholder="Image URL (Alternative)" className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-2xl font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
                       </div>
+                      {imageUrlInput && !selectedFile && (
+                        <p className="text-amber-500 text-[10px] font-bold px-1 mt-1 leading-tight">
+                          ⚠️ External URLs from sites like Jumia or Google may not display. We recommend uploading your image directly.
+                        </p>
+                      )}
                    </div>
                    <div className="relative">
                       <input type="file" id="merchantImageUpload" onChange={handleImageChange} className="hidden" accept="image/*" />
