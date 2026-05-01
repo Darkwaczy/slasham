@@ -40,7 +40,7 @@ export default function MerchantLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] px-6 py-12 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] px-4 py-8 relative overflow-hidden">
       {/* Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
       
@@ -79,10 +79,14 @@ export default function MerchantLogin() {
         </div>
 
         {/* Right Side: Login Form */}
-        <div className="p-10 md:p-20 flex flex-col justify-center bg-white">
+        <div className="p-8 md:p-16 flex flex-col justify-center bg-white">
           <div className="max-w-sm mx-auto w-full">
-            <div className="mb-10 text-center lg:text-left">
-              <h1 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Partner Login</h1>
+            {/* Back link — top of card, always visible */}
+            <Link to="/" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-700 text-[10px] font-black uppercase tracking-widest transition-colors mb-8">
+              ← Public Home
+            </Link>
+            <div className="mb-8 text-center lg:text-left">
+              <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Partner Login</h1>
               <p className="text-slate-500 font-medium">Welcome back to your business portal.</p>
             </div>
 
@@ -157,11 +161,7 @@ export default function MerchantLogin() {
         </div>
       </motion.div>
 
-      <div className="mt-8">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-[10px] font-black uppercase tracking-widest transition-colors">
-          ← Return to Public Home
-        </Link>
-      </div>
+
     </div>
   );
 }
