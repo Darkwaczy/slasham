@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, MapPin, Clock, Star, MessageSquare, Loader2, ShieldCheck, X, Truck, ClipboardCheck, Info, BookOpen, Gavel, Check, ShoppingBag, Ticket, Store, HelpCircle, ChevronDown, Share2, Heart, Video, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import gsap from "gsap";
@@ -15,7 +15,11 @@ import { storage } from "../utils/storage";
 export default function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const paymentReference = searchParams.get("reference");
+  
   const [isBuying, setIsBuying] = useState(false);
+  const [isVerifyingRedirect, setIsVerifyingRedirect] = useState(false);
   const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -186,6 +190,23 @@ export default function DealDetail() {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [deal]);
+
+  // Handle Paystack Bank Redirects
+  useEffect(() => {
+    if (paymentReference && !isVerifyingRedirect) {
+      const verifyRedirectedPayment = async () => {
+        setIsVerifyingRedirect(true);
+        try {
+          await apiClient.post(`/payments/verify/${paymentReference}`);
+          navigate("/user/coupons?payment=success");
+        } catch (error: any) {
+          console.error("Redirect verification failed:", error);
+          navigate("/user/coupons?payment=failed");
+        }
+      };
+      verifyRedirectedPayment();
+    }
+  }, [paymentReference, isVerifyingRedirect, navigate]);
 
   const formatPrice = (p: string) => {
     const digits = p.replace(/\D/g, '');
