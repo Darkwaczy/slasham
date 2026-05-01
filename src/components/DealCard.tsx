@@ -177,7 +177,7 @@ const DealCard = React.memo<DealCardProps>(({
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
                  <span style={{ fontSize: "10px", fontWeight: "900", color: "#10b981", textTransform: "uppercase", letterSpacing: "0.1em" }}>Pay Now To Unlock</span>
                  <span style={{ fontSize: "18px", fontWeight: "900", color: "#10b981", letterSpacing: "-0.04em" }}>
-                   {couponVal > 0 ? formatNaira(couponVal) : "FREE"}
+                   {couponVal > 0 ? formatNaira(couponVal) : "₦100"}
                  </span>
               </div>
             </div>
