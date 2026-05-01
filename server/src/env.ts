@@ -11,6 +11,7 @@ export type Env = {
   resendApiKey?: string;
   jwtSecret: string;
   clientUrl: string;
+  apiUrl: string;
   adminEmails: string[];
   paystackSecretKey?: string;
   paystackPublicKey?: string;
@@ -51,6 +52,7 @@ export function getEnv(): Env {
     resendApiKey: process.env.RESEND_API_KEY,
     jwtSecret: process.env.JWT_SECRET ?? "default_secret_for_dev_only",
     clientUrl: process.env.CLIENT_URL ?? "https://www.slasham.com",
+    apiUrl: process.env.API_URL ?? "https://api.slasham.com",
     adminEmails: splitCsv(process.env.ADMIN_EMAILS),
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
     paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,

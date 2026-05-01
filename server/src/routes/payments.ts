@@ -103,6 +103,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
             merchant_id: deal.merchants.id,
           },
           cancel_action: `${env.clientUrl}/deals/${deal_id}`,
+          callback_url: `${env.apiUrl}/payments/verify-callback`,
         },
         {
           headers: {
