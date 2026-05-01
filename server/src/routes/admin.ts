@@ -420,7 +420,7 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
           email
         )
       `)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 
