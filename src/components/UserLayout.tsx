@@ -152,6 +152,7 @@ function UserLayoutContent() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => setIsSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all relative group ${
                   isActive
@@ -261,62 +262,69 @@ function UserLayoutContent() {
                   )}
                 </button>
 
-                <AnimatePresence>
+<AnimatePresence>
                   {showNotifications && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-60"
-                    >
-                      <div className="p-5 border-b border-slate-50 flex items-center justify-between">
-                        <h3 className="font-black text-slate-900">Notifications</h3>
-                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">
-                          {notifications.filter(n => !n.is_read).length} New
-                        </span>
-                      </div>
-                      
-                      <div className="max-h-[400px] overflow-y-auto">
-                        {notifications.length === 0 ? (
-                          <div className="p-10 text-center">
-                            <Bell className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-                            <p className="text-xs text-slate-400 font-bold">All caught up!</p>
-                          </div>
-                        ) : (
-                          notifications.map((n) => (
-                            <div 
-                              key={n.id}
-                              onClick={() => markAsRead(n.id)}
-                              className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group ${!n.is_read ? 'bg-emerald-50/20' : ''}`}
-                            >
-                              <div className="flex gap-3">
-                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                                  n.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : 
-                                  n.type === 'PROMO' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'
-                                }`}>
-                                  <Bell size={14} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-black text-slate-900 mb-0.5">{n.title}</p>
-                                  <p className="text-[11px] text-slate-500 leading-tight line-clamp-2">{n.message}</p>
-                                  <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wider">
-                                    {new Date(n.created_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shadow-lg shadow-emerald-500/50"></div>}
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      
-                      <button 
-                        onClick={() => { navigate("/user/notifications"); setShowNotifications(false); }}
-                        className="w-full p-4 text-[11px] font-black text-slate-400 hover:text-emerald-500 text-center uppercase tracking-widest border-t border-slate-50 transition-colors"
+                    <>
+                      {/* Click-away backdrop */}
+                      <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-50"
                       >
-                        View all notifications
-                      </button>
-                    </motion.div>
+                        <div className="p-5 border-b border-slate-50 flex items-center justify-between">
+                          <h3 className="font-black text-slate-900">Notifications</h3>
+                          <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">
+                            {notifications.filter(n => !n.is_read).length} New
+                          </span>
+                        </div>
+                        
+                        <div className="max-h-[400px] overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="p-10 text-center">
+                              <Bell className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+                              <p className="text-xs text-slate-400 font-bold">All caught up!</p>
+                            </div>
+                          ) : (
+                            notifications.map((n) => (
+                              <div 
+                                key={n.id}
+                                onClick={() => markAsRead(n.id)}
+                                className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group ${!n.is_read ? 'bg-emerald-50/20' : ''}`}
+                              >
+                                <div className="flex gap-3">
+                                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                    n.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : 
+                                    n.type === 'PROMO' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'
+                                  }`}>
+                                    <Bell size={14} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-black text-slate-900 mb-0.5">{n.title}</p>
+                                    <p className="text-[11px] text-slate-500 leading-tight line-clamp-2">{n.message}</p>
+                                    <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wider">
+                                      {new Date(n.created_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shadow-lg shadow-emerald-500/50"></div>}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        
+                        {/* Mark all as read — stays inside dashboard */}
+                        <button 
+                          onClick={() => {
+                            notifications.forEach(n => { if (!n.is_read) markAsRead(n.id); });
+                          }}
+                          className="w-full p-4 text-[11px] font-black text-slate-400 hover:text-emerald-500 text-center uppercase tracking-widest border-t border-slate-50 transition-colors"
+                        >
+                          Mark all as read
+                        </button>
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>

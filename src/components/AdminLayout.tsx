@@ -94,6 +94,7 @@ export default function AdminLayout() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => setIsSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all relative group ${
                   isActive
@@ -203,42 +204,45 @@ export default function AdminLayout() {
 
                 <AnimatePresence>
                   {showNotifications && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-4 z-70"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex justify-between items-center mb-4 px-2">
-                        <div className="flex items-center gap-2">
-                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Recent Activity</h3>
-                           <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">2</span>
+                    <>
+                      <div className="fixed inset-0 z-60" onClick={() => { setShowNotifications(false); setShowProfileMenu(false); }} />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-4 w-80 bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-4 z-70"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex justify-between items-center mb-4 px-2">
+                          <div className="flex items-center gap-2">
+                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Recent Activity</h3>
+                             <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">2</span>
+                          </div>
+                          <button 
+                            onClick={() => setShowNotifications(false)}
+                            className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
+                            <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ExploreGlide • 02:10 AM</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
+                            <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">IngsTech • 01:32 AM</p>
+                          </div>
                         </div>
                         <button 
-                          onClick={() => setShowNotifications(false)}
-                          className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                          onClick={() => { navigate("/admin/applications"); setShowNotifications(false); }}
+                          className="w-full mt-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors border-t border-slate-50"
                         >
-                          Clear All
+                          View all activity
                         </button>
-                      </div>
-                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
-                          <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ExploreGlide • 02:10 AM</p>
-                        </div>
-                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 group cursor-pointer hover:bg-white transition-all">
-                          <p className="text-xs font-black text-slate-900 mb-1 leading-tight">New Merchant Application</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">IngsTech • 01:32 AM</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => { navigate("/admin/applications"); setShowNotifications(false); }}
-                        className="w-full mt-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors border-t border-slate-50"
-                      >
-                        View all activity
-                      </button>
-                    </motion.div>
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
