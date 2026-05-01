@@ -105,7 +105,7 @@ export default function AdminDeals() {
                 expiry_date: safeExpiryDate,
                 is_hot: isHotDeal,
                 images: [req.product_image || req.image_url],
-                deal_explanation: "Limited time verified offer"
+                deal_explanation: req.deal_explanation || "Limited time verified offer"
             })
         });
 
