@@ -204,6 +204,22 @@ h1, h2, h3, h4, h5, h6 {
   animation-play-state: paused;
 }
 
+/* Partners infinite scroll (right → left, steady pace) */
+@keyframes marquee-partners {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-partners {
+  animation: marquee-partners 40s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-marquee-partners:hover {
+  animation-play-state: paused;
+}
+
 /* Print Styles for Receipts */
 @media print {
   body * {

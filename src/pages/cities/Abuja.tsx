@@ -5,7 +5,7 @@ export default function Abuja() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="relative h-[500px] rounded-[40px] overflow-hidden mb-16">
-        <img src="https://source.unsplash.com/1200x500/?abuja,nigeria,capital" alt="Abuja" className="w-full h-full object-cover" />
+        <img src="https://picsum.photos/seed/abuja-hero/1200/500" alt="Abuja" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
         <div className="absolute bottom-12 left-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-xs uppercase tracking-widest mb-4">
@@ -28,8 +28,8 @@ export default function Abuja() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-24">
         {[
-          { title: "Maitama Splendor", desc: "Experience luxury dining and high-end shopping in one of Abuja's most prestigious districts.", img: "https://source.unsplash.com/800x400/?luxury,hotel,interior" },
-          { title: "Wuse Vibrancy", desc: "Dive into the heart of Abuja's social scene with top-rated restaurants, bars, and entertainment venues.", img: "https://source.unsplash.com/800x400/?restaurant,bar,nightlife" }
+          { title: "Maitama Splendor", desc: "Experience luxury dining and high-end shopping in one of Abuja's most prestigious districts.", img: "https://picsum.photos/seed/maitama-abuja/800/400" },
+          { title: "Wuse Vibrancy", desc: "Dive into the heart of Abuja's social scene with top-rated restaurants, bars, and entertainment venues.", img: "https://picsum.photos/seed/wuse-abuja/800/400" }
         ].map((place, i) => (
           <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
             <img src={place.img} alt={place.title} className="w-full h-64 object-cover" />

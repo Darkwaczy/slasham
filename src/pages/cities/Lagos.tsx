@@ -5,7 +5,7 @@ export default function Lagos() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="relative h-[500px] rounded-[40px] overflow-hidden mb-16">
-        <img src="https://source.unsplash.com/1200x500/?lagos,nigeria,city" alt="Lagos" className="w-full h-full object-cover" />
+        <img src="https://picsum.photos/seed/lagos-hero/1200/500" alt="Lagos" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
         <div className="absolute bottom-12 left-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-xs uppercase tracking-widest mb-4">
@@ -28,8 +28,8 @@ export default function Lagos() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-24">
         {[
-          { title: "Victoria Island Luxury", desc: "Indulge in premium dining, high-end shopping, and vibrant nightlife in the heart of Lagos.", img: "https://source.unsplash.com/800x400/?restaurant,luxury,dining" },
-          { title: "Lekki Serenity", desc: "Relax by the beach, explore modern shopping malls, and enjoy top-tier hospitality in Lekki.", img: "https://source.unsplash.com/800x400/?beach,tropical,ocean" }
+          { title: "Victoria Island Luxury", desc: "Indulge in premium dining, high-end shopping, and vibrant nightlife in the heart of Lagos.", img: "https://picsum.photos/seed/victoria-island/800/400" },
+          { title: "Lekki Serenity", desc: "Relax by the beach, explore modern shopping malls, and enjoy top-tier hospitality in Lekki.", img: "https://picsum.photos/seed/lekki-beach/800/400" }
         ].map((place, i) => (
           <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
             <img src={place.img} alt={place.title} className="w-full h-64 object-cover" />

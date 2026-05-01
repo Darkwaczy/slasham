@@ -177,39 +177,50 @@ export default function AboutUs() {
           </div>
       </section>
 
-      {/* 5. OUR NETWORK OF PARTNERS (5x3 GRID) */}
+      {/* 5. OUR NETWORK OF PARTNERS (INFINITE MARQUEE) */}
       <section className="py-40 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 mb-24 text-center lg:text-left">
                <h2 className="text-4xl lg:text-7xl font-black text-slate-900 tracking-tighter uppercase mb-6 leading-none">Our Network of<br/><span className="text-emerald-500 font-black">PARTNERS.</span></h2>
                <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Powering the local economy across Lagos and Abuja.</p>
           </div>
 
+          {partners.length > 0 ? (
+            <div className="w-full overflow-hidden relative">
+              {/* Left fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-24 bg-linear-to-rrom-white to-transparent z-10 pointer-events-none" />
+              {/* Right fade */}
+              <div className="absolute right-0 top-0 bottom-0 w-24 bg-linear-to-l from-white to-transparent z-10 pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto px-6">
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
-                    {partners.length > 0 ? partners.map((partner, i) => (
-                        <motion.div 
-                          key={i} 
-                          whileHover={{ y: -8, scale: 1.02 }}
-                          className="relative aspect-4/5 bg-slate-100 rounded-4xl overflow-hidden group shadow-xl shadow-slate-200/50"
-                        >
-                            <img src={partner.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={partner.name} />
-                            <div className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                            <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/10 backdrop-blur-md border-t border-white/20 transform translate-y-1 group-hover:translate-y-0 transition-transform">
-                                <h4 className="text-[12px] font-black text-white uppercase tracking-tight mb-1">{partner.name}</h4>
-                                <div className="flex items-center gap-2">
-                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">{partner.city}</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )) : (
-                      <div className="col-span-full py-20 text-center">
-                        <p className="text-slate-400 font-bold uppercase tracking-widest">Our network is growing every day.</p>
+              <div className="flex animate-marquee-ltr gap-6 w-max">
+                {/* Duplicate list twice for seamless loop */}
+                {[...partners, ...partners].map((partner, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    className="relative w-[200px] h-[260px] shrink-0 bg-slate-100 rounded-3xl overflow-hidden group shadow-xl shadow-slate-200/50"
+                  >
+                    <img
+                      src={partner.image}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                      alt={partner.name}
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/10 backdrop-blur-md border-t border-white/20">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-tight mb-1 truncate">{partner.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                        <p className="text-[9px] font-black text-white/70 uppercase tracking-widest truncate">{partner.city}</p>
                       </div>
-                    )}
-                </div>
-          </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+              <p className="text-slate-400 font-bold uppercase tracking-widest">Our network is growing every day.</p>
+            </div>
+          )}
 
       </section>
 
