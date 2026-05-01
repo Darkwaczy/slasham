@@ -424,37 +424,6 @@ router.post("/requests/:id/status", requireAuth, requireAdmin, async (req, res) 
 
     if (error) throw error;
 
-    // If approved, move to deals table so it shows up on homepage
-    if (status === 'APPROVED') {
-      // Check if it already exists (in case of re-approval)
-      const { data: existingDeal } = await supabase
-        .from("deals")
-        .select("id")
-        .eq("title", data.title)
-        .eq("merchant_id", data.merchant_id)
-        .single();
-      
-      if (!existingDeal) {
-        // Ensure expiry date covers the entire day (up to 23:59:59)
-        const expiryDateStr = data.expiry_date.includes('T') ? data.expiry_date : `${data.expiry_date}T23:59:59.999Z`;
-
-        await supabase.from("deals").insert({
-          merchant_id: data.merchant_id,
-          title: data.title,
-          description: data.description,
-          deal_explanation: data.deal_explanation,
-          category: data.category,
-          original_price: data.original_price,
-          discount_price: data.discount_price,
-          total_quantity: data.total_quantity,
-          expiry_date: expiryDateStr,
-          is_hot: data.is_hot || data.is_hot_deal || false,
-          images: data.image_url || data.product_image ? [data.image_url || data.product_image] : [],
-          is_active: true
-        });
-      }
-    }
-
     // Trigger Email Notification (Non-blocking)
     if (data.merchants?.email) {
       const { sendCampaignStatusUpdate } = await import("../utils/email.js");

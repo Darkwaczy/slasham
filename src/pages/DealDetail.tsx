@@ -64,6 +64,7 @@ export default function DealDetail() {
           title: d.title,
           price: d.discount_price.toString(),
           original: d.original_price.toString(),
+          couponPrice: d.coupon_price?.toString() || d.discount_price.toString(),
           image: d.images?.[0] || "",
           category: d.category,
           location: d.merchants?.city || "",
@@ -639,11 +640,19 @@ export default function DealDetail() {
               </div>
               <div className="flex justify-between items-center group">
                 <span className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Slasham Price</span>
-                <span className="text-5xl font-black text-slate-900 tracking-tighter leading-none">{formatPrice(deal.price)}</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{formatPrice(deal.price)}</span>
               </div>
               <div className="flex justify-between items-center group">
                 <span className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Your Savings</span>
-                <span className="text-2xl font-black text-emerald-500 tracking-tighter">₦{savings.toLocaleString()}</span>
+                <span className="text-xl font-black text-emerald-500 tracking-tighter">₦{savings.toLocaleString()}</span>
+              </div>
+              
+              <div className="pt-4 border-t border-slate-100 flex justify-between items-center group">
+                <div className="flex flex-col">
+                   <span className="text-indigo-600 font-black uppercase text-[12px] tracking-[0.2em]">Pay Now To Unlock</span>
+                   <span className="text-slate-400 text-[9px] font-bold mt-1">Pay balance at the store</span>
+                </div>
+                <span className="text-5xl font-black text-indigo-600 tracking-tighter leading-none">{formatPrice(deal.couponPrice)}</span>
               </div>
             </div>
 

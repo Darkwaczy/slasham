@@ -23,6 +23,7 @@ export default function AdminDeals() {
   
   // Placement States for Approval
   const [slashamPrice, setSlashamPrice] = useState("");
+  const [couponPrice, setCouponPrice] = useState("");
   const [targetCity, setTargetCity] = useState<'Lagos' | 'Abuja' | 'All'>('Lagos');
   const [selectedCategory, setSelectedCategory] = useState("Dining");
   const [isHotDeal, setIsHotDeal] = useState(false);
@@ -69,18 +70,19 @@ export default function AdminDeals() {
   const totalPages = Math.ceil(totalDeals / pageSize);
 
   const handleApprove = async (req: any) => {
-    if (!slashamPrice.trim()) {
-      alert("Please determine the Slasham Discounted Price before authorizing launch.");
+    if (!slashamPrice.trim() || !couponPrice.trim()) {
+      alert("Please determine both the Slasham Discounted Price and the Coupon Unlock Price before authorizing launch.");
       return;
     }
 
     try {
         const numericPrice = parseFloat(slashamPrice.replace(/[^0-9.]/g, ''));
+        const numericCouponPrice = parseFloat(couponPrice.replace(/[^0-9.]/g, ''));
         
         // 1. Update request status
         await apiClient(`/admin/requests/${req.id}/status`, {
             method: "POST",
-            body: JSON.stringify({ status: "APPROVED", admin_notes: "Authorized via Marketplace Console" })
+            body: JSON.stringify({ status: "APPROVED", admin_notes: "Authorized via Marketplace Console", coupon_price: numericCouponPrice })
         });
 
         // 2. Create the real deal
@@ -93,6 +95,7 @@ export default function AdminDeals() {
                 category: selectedCategory,
                 original_price: req.original_price,
                 discount_price: numericPrice,
+                coupon_price: numericCouponPrice,
                 total_quantity: req.total_quantity || 100,
                 validity_days: 30,
                 expiry_date: req.expiry_date || new Date(Date.now() + 30 * 86400000).toISOString(),
@@ -104,6 +107,7 @@ export default function AdminDeals() {
 
         setIsRequestModalOpen(false);
         setSlashamPrice("");
+        setCouponPrice("");
         loadData();
     } catch (error: any) {
         alert("Launch failed: " + error.message);
@@ -565,23 +569,41 @@ export default function AdminDeals() {
              </div>
           </div>
 
-          <div className="space-y-4 p-8 bg-emerald-50 rounded-4xl border border-emerald-100 shadow-inner">
-             <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Set Slasham Discount Price</label>
-                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg text-emerald-600 text-[10px] font-bold">
-                   <Tag size={12} /> Market Price: ₦{selectedRequest?.original_price?.toLocaleString()}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
+            <div className="space-y-4 p-6 bg-emerald-50 rounded-4xl border border-emerald-100 shadow-inner">
+               <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Set Slasham Discount Price</label>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg text-emerald-600 text-[10px] font-bold">
+                     <Tag size={12} /> Market Price: ₦{selectedRequest?.original_price?.toLocaleString()}
+                  </div>
+               </div>
+               <div className="relative">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600 font-black text-xl">₦</div>
+                  <input 
+                    type="text"
+                    value={slashamPrice}
+                    onChange={(e) => setSlashamPrice(e.target.value)}
+                    placeholder="00,000"
+                    className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-6 pl-14 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
+                  />
                 </div>
-             </div>
-             <div className="relative">
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600 font-black text-xl">₦</div>
-                <input 
-                  type="text"
-                  value={slashamPrice}
-                  onChange={(e) => setSlashamPrice(e.target.value)}
-                  placeholder="00,000"
-                  className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-6 pl-14 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
-                />
-              </div>
+            </div>
+
+            <div className="space-y-4 p-6 bg-indigo-50 rounded-4xl border border-indigo-100 shadow-inner">
+               <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700">Set Coupon Unlock Price</label>
+               </div>
+               <div className="relative">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600 font-black text-xl">₦</div>
+                  <input 
+                    type="text"
+                    value={couponPrice}
+                    onChange={(e) => setCouponPrice(e.target.value)}
+                    placeholder="00,000"
+                    className="w-full bg-white border-2 border-indigo-100 rounded-3xl py-6 pl-14 pr-8 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-mono"
+                  />
+                </div>
+            </div>
           </div>
 
           <div className="flex gap-4 pb-8">

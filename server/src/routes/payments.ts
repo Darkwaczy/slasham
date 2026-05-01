@@ -67,7 +67,8 @@ router.post("/initiate", requireAuth, async (req, res) => {
     }
 
     // 3. Create pending payment record
-    const amountInKobo = Math.round(deal.discount_price * 100); // Paystack uses kobo (smallest unit)
+    const amountToCharge = deal.coupon_price || deal.discount_price;
+    const amountInKobo = Math.round(amountToCharge * 100); // Paystack uses kobo (smallest unit)
 
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
@@ -75,7 +76,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
         user_id: req.user.id,
         deal_id: deal_id,
         merchant_id: deal.merchants.id,
-        amount: deal.discount_price,
+        amount: amountToCharge,
         currency: "NGN",
         status: "pending",
         paystack_status: "pending",
