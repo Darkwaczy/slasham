@@ -63,8 +63,8 @@ export default function AdminReports() {
 
   const filteredReports = reports.filter(r => {
     const matchesSearch = r.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         r.users?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.merchants?.business_name.toLowerCase().includes(searchQuery.toLowerCase());
+                         (r.users?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (r.merchants?.business_name || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "All" || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -109,11 +109,11 @@ export default function AdminReports() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
          <div className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm text-left">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Open Cases</p>
-            <p className="text-3xl font-black text-slate-900">{reports.filter(r => r.status === 'PENDING').length}</p>
+            <p className="text-3xl font-black text-slate-900">{reports.filter(r => r.status === 'PENDING' || r.status === 'IN_PROGRESS').length}</p>
          </div>
          <div className="bg-rose-50 p-6 rounded-4xl border border-rose-100 shadow-sm text-left">
             <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Critical Escalations</p>
-            <p className="text-3xl font-black text-rose-700">{reports.filter(r => r.priority === 'Critical').length}</p>
+            <p className="text-3xl font-black text-rose-700">{reports.filter(r => r.priority === 'Critical' || r.priority === 'High').length}</p>
          </div>
          <div className="bg-emerald-50 p-6 rounded-4xl border border-emerald-100 shadow-sm text-left">
             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Resolved Tickets</p>
@@ -123,7 +123,10 @@ export default function AdminReports() {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Platform Trust</p>
             <p className="text-3xl font-black text-white">
                {reports.length === 0 ? "100%" : 
-                `${((reports.filter(r => r.status === 'RESOLVED').length / reports.length) * 100).toFixed(1)}%`}
+                `${(100 - (reports.filter(r => 
+                  r.status === 'PENDING' || r.status === 'IN_PROGRESS'
+                ).length / reports.length) * 100).toFixed(1)}%`
+               }
             </p>
          </div>
       </div>
