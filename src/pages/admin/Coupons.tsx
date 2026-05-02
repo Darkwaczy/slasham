@@ -96,8 +96,8 @@ export default function AdminCoupons() {
           },
           { 
             label: "Total Redeemed", 
-            count: coupons.filter(c => c.status === 'REDEEMED').length.toLocaleString(), 
-            pct: coupons.length > 0 ? `${((coupons.filter(c => c.status === 'REDEEMED').length / coupons.length) * 100).toFixed(1)}%` : "0%",
+            count: coupons.filter(c => c.status === 'REDEEMED' || c.status === 'VERIFIED').length.toLocaleString(),
+            pct: coupons.length > 0 ? `${((coupons.filter(c => c.status === 'REDEEMED' || c.status === 'VERIFIED').length / coupons.length) * 100).toFixed(1)}%` : "0%",
             icon: CheckCircle2,
             bgClass: "bg-emerald-50", borderClass: "border-emerald-100", 
             textClass: "text-emerald-700", labelClass: "text-emerald-500", subClass: "text-emerald-600/70",
