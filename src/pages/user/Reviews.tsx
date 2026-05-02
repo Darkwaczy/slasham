@@ -13,7 +13,7 @@ export default function UserReviews() {
 
   const loadReviews = async () => {
     try {
-      const data = await apiClient("/api/user/reviews");
+      const data = await apiClient("/user/reviews");
       setReviews(data.map((r: any) => ({
         id: r.id,
         title: r.title || "Feedback",

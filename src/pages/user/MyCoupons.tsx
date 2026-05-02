@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert, ShieldCheck
+  Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert, ShieldCheck, Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import QRCode from "qrcode";
@@ -18,6 +18,9 @@ export default function MyCoupons() {
   const [verifyingVoucher, setVerifyingVoucher] = useState<string | null>(null);
   const [pinInput, setPinInput] = useState("");
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviewVoucher, setReviewVoucher] = useState<any>(null);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
 
   const fetchVouchers = async () => {
     try {
@@ -116,6 +119,30 @@ export default function MyCoupons() {
       alert("Transaction verified! Bonus points awarded.");
     } catch (error: any) {
       alert(error.message || "Invalid PIN. Please check your verification code.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewVoucher) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.post("/user/reviews", {
+        deal_id: reviewVoucher.id, // Fixed: use .id from the voucher object
+        merchant_id: reviewVoucher.merchant_id, // Fixed: use .merchant_id from the voucher object
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+      });
+      setIsReviewing(false);
+      setReviewVoucher(null);
+      setReviewForm({ rating: 5, comment: "" });
+      alert("Review submitted! You earned 100 SlashPoints.");
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      alert("Failed to submit review.");
     } finally {
       setIsSubmitting(false);
     }
@@ -240,6 +267,18 @@ export default function MyCoupons() {
                                 >
                                     <AlertTriangle size={10} /> Report Problem
                                 </button>
+                                
+                                {coupon.rawStatus === 'VERIFIED' && (
+                                    <button
+                                        onClick={() => { 
+                                            setReviewVoucher(coupon); 
+                                            setIsReviewing(true); 
+                                        }}
+                                        className="text-[10px] font-black uppercase tracking-widest text-amber-600/60 hover:text-amber-700 transition-colors flex items-center gap-1.5"
+                                    >
+                                        <Star size={10} /> Rate Experience
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -389,6 +428,87 @@ export default function MyCoupons() {
                     <Link to="/deals" className="px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-widest">Explore Deals</Link>
                 </motion.div>
             )}
+            {/* Review Modal */}
+            <AnimatePresence>
+                {isReviewing && reviewVoucher && (
+                    <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            onClick={() => setIsReviewing(false)}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                                <div className="flex items-center gap-3 text-amber-500">
+                                    <Star size={20} fill="currentColor" />
+                                    <h3 className="text-sm font-black uppercase tracking-widest">Rate Your Experience</h3>
+                                </div>
+                                <button onClick={() => setIsReviewing(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleReviewSubmit} className="p-8 lg:p-10 space-y-6 text-left">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Redemption Context</p>
+                                    <p className="text-sm font-black text-slate-900">{reviewVoucher.title}</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{reviewVoucher.companyName}</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Your Rating</label>
+                                    <div className="flex gap-3 px-2">
+                                        {[1,2,3,4,5].map(s => (
+                                            <button 
+                                                key={s} 
+                                                type="button"
+                                                onClick={() => setReviewForm(f => ({...f, rating: s}))}
+                                                className="hover:scale-110 transition-transform active:scale-95"
+                                            >
+                                                <Star 
+                                                    size={32} 
+                                                    fill={s <= reviewForm.rating ? "#f59e0b" : "none"} 
+                                                    className={s <= reviewForm.rating ? "text-amber-500" : "text-slate-200"} 
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Share your thoughts</label>
+                                    <textarea 
+                                        required
+                                        rows={4}
+                                        placeholder="How was the service? Would you recommend this merchant?"
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-amber-500/10 transition-all resize-none"
+                                        value={reviewForm.comment}
+                                        onChange={e => setReviewForm(f => ({...f, comment: e.target.value}))}
+                                    />
+                                </div>
+
+                                <div className="pt-4">
+                                    <button 
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200 hover:bg-amber-500 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? "Transmitting..." : "Submit Review"}
+                                        <Send size={16} />
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
           </>
       )}
     </div>
