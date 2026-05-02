@@ -230,18 +230,21 @@ const totalVolume = redemptions
         <div className="space-y-6 pt-4">
              <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white flex flex-col items-center text-center shadow-2xl">
                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-emerald-400 mb-6">
-                     <CheckCircle size={36} className={selectedR?.status === 'Verified' ? 'animate-pulse' : ''} />
+                     <CheckCircle size={36} className={selectedR?.status === 'VERIFIED' ? 'animate-pulse' : ''} />
                  </div>
-                 <h3 className="text-3xl font-black tracking-tighter mb-2">{selectedR?.value} REDEEMED</h3>
-                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{selectedR?.merchant} • {selectedR?.deal}</p>
+                 <h3 className="text-3xl font-black tracking-tighter mb-2">₦{selectedR?.deals?.discount_price?.toLocaleString() || '0'} • {selectedR?.status}</h3>
+                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{selectedR?.deals?.merchants?.business_name || 'N/A'} • {selectedR?.deals?.title || 'N/A'}
+</p>
                  <div className="mt-8 grid grid-cols-2 gap-8 w-full border-t border-white/5 pt-8 text-left">
                      <div>
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Customer</p>
-                         <p className="text-sm font-bold">{selectedR?.user}</p>
+                         <p className="text-sm font-bold">{selectedR?.users?.name || selectedR?.users?.email || 'Anonymous'}</p>
                      </div>
                      <div className="text-right">
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Time Captured</p>
-                         <p className="text-sm font-bold">{selectedR?.time}</p>
+                         <p className="text-sm font-bold">{selectedR?.redeemed_at 
+  ? new Date(selectedR.redeemed_at).toLocaleString() 
+  : new Date(selectedR?.created_at).toLocaleString()}</p>
                      </div>
                  </div>
              </div>
@@ -249,9 +252,9 @@ const totalVolume = redemptions
              <div className="space-y-3">
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Verification Controls</p>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {selectedR?.status !== 'Verified' && (
+                    {selectedR?.status !== 'VERIFIED' && (
                         <button 
-                            onClick={() => handleUpdateStatus(selectedR.id, 'Verified')}
+                            onClick={() => handleUpdateStatus(selectedR.id, 'VERIFIED')}
                             className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-emerald-500/20 transition-all"
                         >
                             <ShieldCheck size={20} /> Approve Transaction
