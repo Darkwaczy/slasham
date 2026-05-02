@@ -1036,30 +1036,81 @@ router.post("/emails/broadcast", requireAuth, requireAdmin, async (req, res) => 
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("DB not configured");
     const { subject, html_body, target_audience } = req.body;
+    const env = getEnv();
+
+    // 1. Fetch target users based on audience
+    let query = supabase.from("users").select("email, name").not("email_confirmed_at", "is", null);
     
-    // In a real app, we would query the users table based on target_audience and use Resend to bulk send.
-    // Here we record the broadcast for the UI demo.
-    const mockSentCount = 0; // Initialize to 0; actual count will be updated by the email service asynchronously
-    
+    if (target_audience === "MERCHANTS") {
+      query = query.eq("role", "MERCHANT");
+    } else if (target_audience === "USERS") {
+      query = query.eq("role", "USER");
+    }
+    // ALL_USERS fetches everyone
+
+    const { data: users, error: usersError } = await query;
+    if (usersError) throw usersError;
+
+    // 2. Send via Resend
+    const { Resend } = await import("resend");
+    const resend = new Resend(env.resendApiKey);
+
+    let sentCount = 0;
+    const errors = [];
+
+    // Send in batches of 10 to avoid rate limits
+    const batchSize = 10;
+    if (users && users.length > 0) {
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
+        await Promise.all(batch.map(async (user: any) => {
+          try {
+            await resend.emails.send({
+              from: "Slasham <noreply@slasham.com>",
+              to: user.email,
+              subject,
+              html: html_body,
+            });
+            sentCount++;
+          } catch (e) {
+            console.error(`Broadcast failed for ${user.email}:`, e);
+            errors.push(user.email);
+          }
+        }));
+        // Small delay between batches
+        if (i + batchSize < users.length) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+    }
+
+    // 3. Save broadcast record
     const { data, error } = await supabase
       .from("email_broadcasts")
       .insert({
         subject,
         html_body,
         target_audience,
-        sent_count: mockSentCount,
-        status: 'COMPLETED',
+        sent_count: sentCount,
+        status: errors.length === 0 ? 'COMPLETED' : 'PARTIAL',
         sent_by: req.user.email
       })
       .select()
       .single();
-      
+
     if (error) throw error;
-    res.json(data);
+
+    res.json({ 
+      success: true, 
+      sent: sentCount, 
+      failed: errors.length,
+      data 
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
+
 // Secure Cron Endpoint (Triggered by Vercel or Admin)
 router.get("/cron/check-vouchers", async (req, res) => {
   try {
