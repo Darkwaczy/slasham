@@ -104,7 +104,7 @@ const totalVolume = redemptions
             iconBg: "bg-white/60", iconColor: "text-amber-600"
           },
           { 
-            label: "Flagged Transactions", count: redemptions.filter(r => r.status === 'Flagged').length, trend: "Review Required",
+            label: "Flagged Transactions", count: redemptions.filter(r => r.status === 'FLAGGED').length, trend: "Review Required",
             icon: ShieldAlert,
             bgClass: "bg-rose-50", borderClass: "border-rose-100", 
             textClass: "text-rose-700", labelClass: "text-rose-500", subClass: "text-rose-600/70",
@@ -144,9 +144,9 @@ const totalVolume = redemptions
             className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-sm font-bold text-slate-600 outline-none hover:bg-slate-50 appearance-none min-w-[160px]"
           >
             <option value="All">All Statuses</option>
-            <option value="Verified">Verified Only</option>
-            <option value="Pending">Pending Only</option>
-            <option value="Flagged">Flagged Only</option>
+            <option value="VERIFIED">Verified Only</option>
+            <option value="PENDING">Pending Only</option>
+            <option value="FLAGGED">Flagged Only</option>
           </select>
         </div>
 
@@ -260,9 +260,9 @@ const totalVolume = redemptions
                             <ShieldCheck size={20} /> Approve Transaction
                         </button>
                     )}
-                    {selectedR?.status !== 'Flagged' && (
+                    {selectedR?.status !== 'FLAGGED' && (
                         <button 
-                            onClick={() => handleUpdateStatus(selectedR.id, 'Flagged')}
+                            onClick={() => handleUpdateStatus(selectedR.id, 'FLAGGED')}
                             className="w-full flex items-center justify-center gap-4 px-6 py-4 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all border border-rose-100"
                         >
                             <Flag size={20} /> Flag for Fraud Review
