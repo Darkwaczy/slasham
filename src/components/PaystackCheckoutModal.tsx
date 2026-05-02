@@ -72,11 +72,11 @@ export default function PaystackCheckoutModal({
             setPaymentInitiated(false);
             setPaymentError("Payment window closed");
           },
-          onSuccess: (_: any) => {
+          callback: (response: any) => {
             setIsLoading(false);
             setPaymentInitiated(true);
             // Verify payment with backend
-            verifyPayment(data.reference);
+            verifyPayment(response.reference);
           },
         });
         handler.openIframe();
