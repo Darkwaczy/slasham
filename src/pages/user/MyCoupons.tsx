@@ -247,7 +247,7 @@ export default function MyCoupons() {
                             <div className="mt-4 flex flex-col items-center gap-3">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Your Verification PIN</p>
-                                    <p className="text-xl font-black text-slate-900 tracking-[0.2em]">{coupon.verificationPin || "8821"}</p>
+                                    <p className="text-xl font-black text-slate-900 tracking-[0.2em]">{coupon.verificationPin || "—"}</p>
                                 </div>
                                 
                                 {verifyingVoucher === coupon.id ? (
