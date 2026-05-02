@@ -239,7 +239,7 @@ const verifyAndCreateVoucher = async (reference: string, supabase: any) => {
         user.name,
         deal.title,
         voucherCode,
-        deal.discount_price.toString()
+        (deal.coupon_price || deal.discount_price).toString()
       ).catch(e => console.error("Email Error:", e));
 
       // To Merchant

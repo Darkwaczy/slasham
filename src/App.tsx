@@ -63,6 +63,7 @@ const MerchantLogin = lazy(() => import("./pages/merchant/Login"));
 const AdminLogin = lazy(() => import("./pages/admin/Login"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 
 // Category Pages
 const FoodDeals = lazy(() => import("./pages/categories/FoodDeals"));
@@ -122,8 +123,9 @@ export default function App() {
         <Routes>
           <Route path="login" element={<Auth />} />
           <Route path="signup" element={<Auth />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="merchant/login" element={<MerchantLogin />} />
           <Route path="admin/login" element={<AdminLogin />} />
           <Route path="/" element={<Layout />}>

@@ -241,20 +241,12 @@ export default function DealDetail() {
     setShowPaystackModal(true);
   };
 
-  const handlePaymentSuccess = async (_: string) => {
+  const handlePaymentSuccess = async (reference: string) => {
     setIsBuying(true);
     setShowPaystackModal(false);
     
-    try {
-      // Wait a moment for webhook to process (optional - can be removed if using callback URL)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Navigate to coupons page to show the newly created voucher
-      navigate("/user/coupons");
-    } catch (error: any) {
-      setIsBuying(false);
-      alert(`Error: ${error.message}`);
-    }
+    // Navigate to success page with reference
+    navigate(`/payment/success?reference=${reference}&deal=${id}`);
   };
 
   const handlePaymentError = (error: string) => {

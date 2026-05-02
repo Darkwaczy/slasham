@@ -4,6 +4,7 @@ import {
   Copy, Ticket, Clock, ArrowUpRight, AlertTriangle, Send, X, ShieldAlert, ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import QRCode from "qrcode";
 import { apiClient } from "../../api/client";
 
 export default function MyCoupons() {
@@ -16,6 +17,7 @@ export default function MyCoupons() {
   const [reportForm, setReportForm] = useState({ reason: "", description: "", priority: "Normal" });
   const [verifyingVoucher, setVerifyingVoucher] = useState<string | null>(null);
   const [pinInput, setPinInput] = useState("");
+  const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
 
   const fetchVouchers = async () => {
     try {
@@ -28,7 +30,7 @@ export default function MyCoupons() {
         code: v.voucher_code,
         status: v.status.charAt(0).toUpperCase() + v.status.slice(1).toLowerCase(), // e.g., "Active"
         expiryDate: v.deals?.expiry_date,
-        price: `₦${v.deals?.discount_price.toLocaleString()}`,
+        price: `₦${(v.deals?.coupon_price || v.deals?.discount_price).toLocaleString()}`,
         category: v.deals?.category,
         merchant_id: v.deals?.merchant_id,
         verificationPin: v.verification_pin,
@@ -45,6 +47,35 @@ export default function MyCoupons() {
   useEffect(() => {
     fetchVouchers();
   }, []);
+
+  // Generate QR codes when vouchers change
+  useEffect(() => {
+    const generateAllQRs = async () => {
+      const activeVouchers = userVouchers.filter(v => v.rawStatus === 'ACTIVE');
+      const codes: Record<string, string> = {};
+      
+      for (const v of activeVouchers) {
+        try {
+          const url = await QRCode.toDataURL(v.code, {
+            margin: 2,
+            width: 200,
+            color: {
+              dark: '#0f172a', // slate-900
+              light: '#ffffff'
+            }
+          });
+          codes[v.id] = url;
+        } catch (err) {
+          console.error("QR generation failed", err);
+        }
+      }
+      setQrCodes(codes);
+    };
+
+    if (userVouchers.length > 0) {
+      generateAllQRs();
+    }
+  }, [userVouchers]);
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,11 +216,17 @@ export default function MyCoupons() {
                         {coupon.status === 'Active' && (
                             <div className="mt-4 flex flex-col items-center gap-4">
                                 <div className="bg-white p-2 rounded-2xl shadow-xl shadow-emerald-500/10">
-                                    <img 
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(coupon.code)}`} 
-                                        alt="Voucher QR"
-                                        className="w-24 h-24"
-                                    />
+                                    {qrCodes[coupon.id] ? (
+                                        <img 
+                                            src={qrCodes[coupon.id]} 
+                                            alt="Voucher QR"
+                                            className="w-24 h-24"
+                                        />
+                                    ) : (
+                                        <div className="w-24 h-24 bg-slate-50 flex items-center justify-center rounded-xl">
+                                            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
                                 <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-slate-900">
                                     <ArrowUpRight size={18} />
