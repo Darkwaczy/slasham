@@ -228,11 +228,20 @@ const verifyAndCreateVoucher = async (reference: string, supabase: any) => {
   // 5. Send Notifications (Non-blocking)
   try {
     const [{ data: user }, { data: deal }] = await Promise.all([
-      supabase.from("users").select("email, name").eq("id", payment.user_id).single(),
+      supabase.from("users").select("email, name, total_savings").eq("id", payment.user_id).single(),
       supabase.from("deals").select("*, merchants(business_name, users(email))").eq("id", payment.deal_id).single()
     ]);
 
     if (user && deal) {
+      // Update user savings
+      const savings = (deal.original_price || 0) - (deal.coupon_price || 0);
+      if (savings > 0) {
+        await supabase
+          .from("users")
+          .update({ total_savings: (user.total_savings || 0) + savings })
+          .eq("id", payment.user_id);
+      }
+
       // To Customer
       sendCouponPurchased(
         user.email,
