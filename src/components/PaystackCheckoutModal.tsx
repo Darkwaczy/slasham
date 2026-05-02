@@ -106,16 +106,31 @@ export default function PaystackCheckoutModal({
       // Use apiClient for verification
       const data = await apiClient.post(`/payments/verify/${reference}`);
 
-      if (data.status === "success") {
+      // Handle multiple possible success shapes
+      const isSuccess =
+        data.success === true ||
+        data.status === "success" ||
+        data?.payment?.status === "success";
+
+      if (isSuccess) {
         onPaymentSuccess(reference);
         setTimeout(() => {
           setVerifying(false);
           onClose();
         }, 2000);
       } else {
-        throw new Error(`Payment failed: ${data.message}`);
+        throw new Error(data.message || "Payment verification failed");
       }
     } catch (error: any) {
+      // If webhook already processed it, still treat as success
+      if (error.message?.toLowerCase().includes("already") || error.message?.toLowerCase().includes("processed")) {
+        onPaymentSuccess(reference);
+        setTimeout(() => {
+          setVerifying(false);
+          onClose();
+        }, 2000);
+        return;
+      }
       console.error("Payment verification error:", error);
       setPaymentError(error.message || "Failed to verify payment");
       setVerifying(false);
