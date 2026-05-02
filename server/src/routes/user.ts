@@ -61,47 +61,42 @@ router.get("/stats", requireAuth, async (req, res) => {
   }
 });
 
-// GET all transactions for the current user
+// GET /api/user/transactions
 router.get("/transactions", requireAuth, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
-    if (!supabase) return res.status(500).json({ error: "DB not configured" });
+    if (!supabase) throw new Error("DB not configured");
 
-    // For now, we use vouchers as our primary transaction ledger
-    const { data: vouchers, error } = await supabase
-      .from("vouchers")
+    const { data, error } = await supabase
+      .from("payments")
       .select(`
         *,
-        deals (
-          title,
-          discount_price,
-          description,
-          terms_conditions,
-          merchants (
-            business_name,
-            address,
-            city,
-            phone
-          )
-        )
+        deals(title, merchants(business_name, address, city, phone)),
+        vouchers(voucher_code)
       `)
       .eq("user_id", req.user.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const transactions = vouchers.map(v => ({
-        id: v.id,
-        date: new Date(v.created_at).toLocaleDateString(),
-        type: "Voucher Purchase",
-        merchant: v.deals?.merchants?.business_name || "Merchant Partner",
-        merchant_details: v.deals?.merchants,
-        amount: `₦${v.deals?.discount_price?.toLocaleString() || "0"}`,
-        status: "Completed",
-        method: "Wallet Payment",
-        voucher_code: v.voucher_code,
-        deal_title: v.deals?.title,
-        terms: v.deals?.terms_conditions
+    const transactions = (data || []).map((p: any) => ({
+      id: p.id,
+      type: "Coupon Purchase",
+      merchant: p.deals?.merchants?.business_name || "Unknown",
+      merchant_details: {
+        address: p.deals?.merchants?.address,
+        city: p.deals?.merchants?.city,
+        phone: p.deals?.merchants?.phone,
+      },
+      deal_title: p.deals?.title,
+      amount: `₦${Number(p.amount).toLocaleString()}`,
+      method: "Paystack",
+      status: p.status === "success" ? "Successful" :
+              p.status === "pending" ? "Pending" : "Failed",
+      date: new Date(p.created_at).toLocaleDateString("en-NG", {
+        day: "numeric", month: "short", year: "numeric"
+      }),
+      voucher_code: p.vouchers?.[0]?.voucher_code || "—",
     }));
 
     res.json(transactions);
