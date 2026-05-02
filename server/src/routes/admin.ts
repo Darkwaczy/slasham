@@ -899,8 +899,8 @@ router.get("/redemptions", requireAuth, requireAdmin, async (_req, res) => {
           merchants ( business_name )
         )
       `)
-      .eq("status", "REDEEMED")
-      .order("redeemed_at", { ascending: false });
+      .order("created_at", { ascending: false })
+    
 
     if (error) throw error;
     res.json(data);

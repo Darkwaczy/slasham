@@ -13,7 +13,10 @@ export default function AdminRedemptions() {
   const [selectedR, setSelectedR] = useState<any>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
-  const totalVolume = redemptions.reduce((acc, r) => acc + (r.deals?.discount_price || 0), 0);
+  // ✅ Fix - only count VERIFIED/REDEEMED
+const totalVolume = redemptions
+  .filter(r => r.status === 'VERIFIED' || r.status === 'REDEEMED')
+  .reduce((acc, r) => acc + (r.deals?.discount_price || 0), 0);
 
   const handleExportAudit = () => {
     if (redemptions.length === 0) return alert("No data to export");
@@ -94,7 +97,7 @@ export default function AdminRedemptions() {
             iconBg: "bg-white/60", iconColor: "text-emerald-600"
           },
           { 
-            label: "Pending Verification", count: redemptions.filter(r => r.status === 'Pending').length, trend: "High Attention",
+            label: "Pending Verification", count: redemptions.filter(r => r.status === 'ACTIVE').length, trend: "High Attention",
             icon: Clock,
             bgClass: "bg-amber-50", borderClass: "border-amber-100", 
             textClass: "text-amber-700", labelClass: "text-amber-500", subClass: "text-amber-600/70",
