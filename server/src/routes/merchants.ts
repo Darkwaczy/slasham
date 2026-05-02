@@ -203,20 +203,20 @@ router.get("/stats", requireAuth, async (req, res) => {
     const dealIds = deals.map(d => d.id);
     const { data: allVouchers, error: allVError } = await supabase
       .from("vouchers")
-      .select("user_id, status, deals(discount_price)")
+      .select("user_id, status, amount, deals(discount_price)")
       .in("deal_id", dealIds.length > 0 ? dealIds : [null]);
 
     if (allVError) throw allVError;
 
-    const activeDeals = deals.filter(d => d.is_active).length;
+    const activeDeals = deals.length;
     const totalClaims = allVouchers.length;
     const uniqueCustomers = new Set(allVouchers.map(v => v.user_id)).size;
     
-    // Revenue is sum of discount_price for REDEEMED vouchers
+    // Revenue is sum of amount for VERIFIED/REDEEMED vouchers
     const totalRevenue = allVouchers
-      .filter(v => v.status === "REDEEMED")
+      .filter(v => v.status === "VERIFIED" || v.status === "REDEEMED")
       // @ts-ignore
-      .reduce((acc, v) => acc + (v.deals?.discount_price || 0), 0);
+      .reduce((acc, v) => acc + (v.amount || v.deals?.discount_price || 0), 0);
 
     res.json({
       totalRevenue,
@@ -243,6 +243,15 @@ router.get("/redemption-log", requireAuth, async (req, res) => {
 
     if (!merchant) return res.status(403).json({ error: "Merchant profile required" });
 
+    // Get deal IDs for this merchant
+    const { data: deals, error: dError } = await supabase
+      .from("deals")
+      .select("id")
+      .eq("merchant_id", merchant.id);
+
+    if (dError) throw dError;
+    const dealIds = deals.map(d => d.id);
+
     const { data, error } = await supabase
       .from("vouchers")
       .select(`
@@ -254,9 +263,8 @@ router.get("/redemption-log", requireAuth, async (req, res) => {
         users (name),
         deals!inner (title, merchant_id)
       `)
-      .eq("deals.merchant_id", merchant.id)
-      .eq("status", "REDEEMED")
-      .order("redeemed_at", { ascending: false })
+      .in("deal_id", dealIds.length > 0 ? dealIds : [null])
+      .order("created_at", { ascending: false })
       .limit(50);
 
     if (error) throw error;

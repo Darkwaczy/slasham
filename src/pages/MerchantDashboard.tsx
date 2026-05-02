@@ -53,7 +53,7 @@ export default function MerchantDashboard() {
         setMerchant(profile);
         setRedemptions(log);
 
-        if (liveStats && liveStats.totalRevenue > 0) {
+        if (liveStats) {
           setStats([
             { label: "Total Revenue", value: `₦${liveStats.totalRevenue.toLocaleString()}`, change: "+0%", icon: <DollarSign size={20} />, color: "black" },
             { label: "Active Deals", value: liveStats.activeDeals.toString(), change: liveStats.activeDeals > 0 ? "↑" : "0", icon: <Ticket size={20} />, color: "yellow" },
