@@ -515,29 +515,35 @@ router.post("/guest-checkout", async (req, res) => {
     }
 
     const fullName = `${firstName} ${lastName}`.trim();
+    const env = getEnv();
 
-    // 1. Check if user already exists in Auth
+    // ✅ tempPassword defined at top level — in scope for both new and existing users
+    const tempPassword = randomBytes(8).toString("hex");
+
+    // 1. Check if user already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(u => u.email === email);
+    const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
 
     let userId: string;
     let isNewUser = false;
 
     if (existingUser) {
-      // User exists — use their account
       userId = existingUser.id;
 
-      // Update their profile with latest billing info
+      // Update profile with latest billing info
       await supabase.from("users").update({
         name: fullName,
         phone,
         city,
       }).eq("id", userId);
 
+      // ✅ Reset password so signInWithPassword works below
+      await supabase.auth.admin.updateUserById(userId, {
+        password: tempPassword,
+      });
+
     } else {
-      // New user — create account with random password
       isNewUser = true;
-      const tempPassword = randomBytes(8).toString("hex");
 
       const { data: newAuth, error: authError } = await supabase.auth.admin.createUser({
         email,
@@ -549,7 +555,6 @@ router.post("/guest-checkout", async (req, res) => {
       if (authError) throw authError;
       userId = newAuth.user.id;
 
-      // Create profile
       await supabase.from("users").upsert({
         id: userId,
         email,
@@ -568,41 +573,19 @@ router.post("/guest-checkout", async (req, res) => {
       );
     }
 
-    // 2. Create session for this user
-    let accessToken: string | undefined;
+    // 2. ✅ Sign in with password to get real session token
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: tempPassword,
+    });
 
-    try {
-      const { data: session, error: sessionError } = await (supabase.auth.admin as any).createSession({
-        user_id: userId,
-      });
-      if (!sessionError && session?.session) {
-        accessToken = session.session.access_token;
-      }
-    } catch (e) {
-      console.warn("createSession not available, using fallback");
-    }
+    if (signInError) throw new Error(`Session creation failed: ${signInError.message}`);
 
-    if (!accessToken) {
-      // Fallback: use generateLink to get a token without sending email
-      const { data: linkData } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: email,
-      });
-      
-      // @ts-ignore - access_token exists on properties at runtime in newer versions
-      accessToken = linkData?.properties?.access_token;
-    }
+    const accessToken = signInData.session?.access_token;
+    const refreshToken = signInData.session?.refresh_token;
 
-    // 3. Get full user profile
-    const { data: userProfile } = await supabase
-      .from("users")
-      .select("id, email, name, role, city, phone, is_verified, points, total_savings")
-      .eq("id", userId)
-      .single();
-
-    // 4. Set session cookie if we have a token
+    // 3. Set session cookies
     if (accessToken) {
-      const env = getEnv();
       res.cookie("slasham_session", accessToken, {
         httpOnly: true,
         secure: env.nodeEnv === "production",
@@ -612,11 +595,24 @@ router.post("/guest-checkout", async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      isNewUser,
-      user: userProfile,
-    });
+    if (refreshToken) {
+      res.cookie("slasham_refresh", refreshToken, {
+        httpOnly: true,
+        secure: env.nodeEnv === "production",
+        sameSite: env.nodeEnv === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+    }
+
+    // 4. Get full user profile
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("id, email, name, role, city, phone, is_verified, points, total_savings")
+      .eq("id", userId)
+      .single();
+
+    res.json({ success: true, isNewUser, user: userProfile });
 
   } catch (error: any) {
     console.error("Guest checkout error:", error);
