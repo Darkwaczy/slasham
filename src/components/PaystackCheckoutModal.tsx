@@ -146,6 +146,11 @@ export default function PaystackCheckoutModal({
     }
   };
 
+  // ✅ If autoStart, don't show modal UI — just initialize payment silently
+  if (autoStart && !paymentError) {
+    return null; // No UI shown, Paystack popup handles everything
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
