@@ -18,6 +18,7 @@ interface PaystackCheckoutModalProps {
   onPaymentSuccess: (reference: string) => void;
   onPaymentError: (error: string) => void;
   dealId: string;
+  autoStart?: boolean;
 }
 
 export default function PaystackCheckoutModal({
@@ -29,6 +30,7 @@ export default function PaystackCheckoutModal({
   onPaymentSuccess,
   onPaymentError,
   dealId,
+  autoStart = false,
 }: PaystackCheckoutModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentInitiated, setPaymentInitiated] = useState(false);
@@ -44,6 +46,13 @@ export default function PaystackCheckoutModal({
       document.body.appendChild(script);
     }
   }, []);
+
+  // Auto-start payment if prop is true
+  useEffect(() => {
+    if (isOpen && autoStart && !paymentInitiated && !isLoading && !paymentError) {
+      handleInitializePayment();
+    }
+  }, [isOpen, autoStart]);
 
   const handleInitializePayment = async () => {
     setIsLoading(true);

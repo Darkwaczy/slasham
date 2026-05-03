@@ -24,6 +24,7 @@ export default function DealDetail() {
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showGuestCheckout, setShowGuestCheckout] = useState(false);
+  const [paystackAutoStart, setPaystackAutoStart] = useState(false);
   const [deal, setDeal] = useState<any>(null);
   const [countdown, setCountdown] = useState<string>("");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -226,6 +227,7 @@ export default function DealDetail() {
     setShowCelebration(false);
     const isLoggedIn = !!storage.getItem("slasham_user");
     if (isLoggedIn) {
+      setPaystackAutoStart(false); // standard flow
       setShowPaystackModal(true);
     } else {
       setShowGuestCheckout(true);
@@ -234,6 +236,7 @@ export default function DealDetail() {
 
   const handleGuestCheckoutSuccess = (_userEmail: string) => {
     setShowGuestCheckout(false);
+    setPaystackAutoStart(true); // ✅ skip intermediate screen
     setShowPaystackModal(true);
   };
 
@@ -719,10 +722,14 @@ export default function DealDetail() {
         dealTitle={deal?.title || "Exclusive Deal"}
         dealPrice={parseInt(deal?.couponPrice?.replace(/\D/g, '') || "0")}
         dealImage={deal?.image}
-        onClose={() => setShowPaystackModal(false)}
+        onClose={() => {
+          setShowPaystackModal(false);
+          setPaystackAutoStart(false);
+        }}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentError={handlePaymentError}
         dealId={id || ""}
+        autoStart={paystackAutoStart}
       />
 
       {/* Write a Review Modal */}
