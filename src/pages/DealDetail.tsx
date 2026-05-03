@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { apiClient } from "../api/client";
 import CouponAgreementModal from "../components/CouponAgreementModal";
 import CelebrationModal from "../components/CelebrationModal";
-import AuthModal from "../components/AuthModal";
+import GuestCheckoutModal from "../components/GuestCheckoutModal";
 import PaystackCheckoutModal from "../components/PaystackCheckoutModal";
 import { storage } from "../utils/storage";
 
@@ -23,7 +23,7 @@ export default function DealDetail() {
   const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showGuestCheckout, setShowGuestCheckout] = useState(false);
   const [deal, setDeal] = useState<any>(null);
   const [countdown, setCountdown] = useState<string>("");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -222,22 +222,18 @@ export default function DealDetail() {
     setShowCelebration(true);  // show 5-second celebration first
   };
 
-  const handleCelebrationComplete = useCallback(() => {
+  const handleCelebrationDone = useCallback(() => {
     setShowCelebration(false);
-    
-    // Modern Logic Flow: Check if user is logged in AFTER celebration
     const isLoggedIn = !!storage.getItem("slasham_user");
-    
     if (isLoggedIn) {
       setShowPaystackModal(true);
     } else {
-      setShowAuthModal(true);
+      setShowGuestCheckout(true);
     }
   }, []);
 
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
-    // Proceed to Paystack checkout now that they are logged in
+  const handleGuestCheckoutSuccess = (_userEmail: string) => {
+    setShowGuestCheckout(false);
     setShowPaystackModal(true);
   };
 
@@ -703,15 +699,18 @@ export default function DealDetail() {
       {showCelebration && (
         <CelebrationModal 
           deal={deal}
-          onComplete={handleCelebrationComplete}
+          onComplete={handleCelebrationDone}
         />
       )}
 
-      <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-        dealTitle={deal?.title || "Exclusive Deal"}
+      <GuestCheckoutModal
+        isOpen={showGuestCheckout}
+        onClose={() => setShowGuestCheckout(false)}
+        onPaymentReady={handleGuestCheckoutSuccess}
+        dealTitle={deal?.title || ""}
+        dealPrice={parseInt(deal?.price?.replace(/\D/g, '') || "0")}
+        dealImage={deal?.image}
+        dealId={id || ""}
       />
 
       {/* Paystack Checkout Modal */}

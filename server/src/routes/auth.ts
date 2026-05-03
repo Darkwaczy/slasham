@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { randomInt } from "crypto";
+import { randomInt, randomBytes } from "crypto";
 import { getAuthClient, getSupabaseAdmin } from "../supabase";
 import { getEnv } from "../env";
 import { requireAuth } from "../middleware/auth";
-import { sendUserWelcome, sendFounderWelcome, sendOTP } from "../utils/email";
+import { sendUserWelcome, sendFounderWelcome, sendOTP, sendGuestWelcome } from "../utils/email";
 
 const router = Router();
 const env = getEnv();
@@ -499,6 +499,128 @@ router.post("/reset-password", async (req, res) => {
     res.json({ message: "Password updated successfully. You can now log in." });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// POST /api/auth/guest-checkout
+router.post("/guest-checkout", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) throw new Error("DB not configured");
+
+    const { firstName, lastName, email, phone, city, state, address } = req.body;
+
+    if (!firstName || !lastName || !email || !phone || !city) {
+      return res.status(400).json({ error: "Please fill all required fields" });
+    }
+
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // 1. Check if user already exists in Auth
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(u => u.email === email);
+
+    let userId: string;
+    let isNewUser = false;
+
+    if (existingUser) {
+      // User exists — use their account
+      userId = existingUser.id;
+
+      // Update their profile with latest billing info
+      await supabase.from("users").update({
+        name: fullName,
+        phone,
+        city,
+      }).eq("id", userId);
+
+    } else {
+      // New user — create account with random password
+      isNewUser = true;
+      const tempPassword = randomBytes(8).toString("hex");
+
+      const { data: newAuth, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { name: fullName, role: "USER" }
+      });
+
+      if (authError) throw authError;
+      userId = newAuth.user.id;
+
+      // Create profile
+      await supabase.from("users").upsert({
+        id: userId,
+        email,
+        name: fullName,
+        phone,
+        city,
+        role: "USER",
+        is_verified: true,
+        points: 0,
+        total_savings: 0,
+      });
+
+      // Send welcome email with temp password
+      sendGuestWelcome(email, firstName, tempPassword).catch(
+        (e: any) => console.error("Guest welcome email failed:", e)
+      );
+    }
+
+    // 2. Create session for this user
+    let accessToken: string | undefined;
+
+    try {
+      const { data: session, error: sessionError } = await (supabase.auth.admin as any).createSession({
+        user_id: userId,
+      });
+      if (!sessionError && session?.session) {
+        accessToken = session.session.access_token;
+      }
+    } catch (e) {
+      console.warn("createSession not available, using fallback");
+    }
+
+    if (!accessToken) {
+      // Fallback: use generateLink to get a token without sending email
+      const { data: linkData } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
+      });
+      
+      // @ts-ignore - access_token exists on properties at runtime in newer versions
+      accessToken = linkData?.properties?.access_token;
+    }
+
+    // 3. Get full user profile
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("id, email, name, role, city, phone, is_verified, points, total_savings")
+      .eq("id", userId)
+      .single();
+
+    // 4. Set session cookie if we have a token
+    if (accessToken) {
+      const env = getEnv();
+      res.cookie("slasham_session", accessToken, {
+        httpOnly: true,
+        secure: env.nodeEnv === "production",
+        sameSite: env.nodeEnv === "production" ? "none" : "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+    }
+
+    res.json({
+      success: true,
+      isNewUser,
+      user: userProfile,
+    });
+
+  } catch (error: any) {
+    console.error("Guest checkout error:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

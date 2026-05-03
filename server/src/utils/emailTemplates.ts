@@ -400,3 +400,15 @@ export const campaignSubmittedTemplate = (merchantName: string, campaignTitle: s
     </ul>
   </div>
 `);
+
+export const guestWelcomeTemplate = (firstName: string, email: string, tempPassword: string, clientUrl: string) => layout(`
+  <h1 style="font-size:28px;font-weight:900;color:#000;margin-bottom:24px;">Your voucher is on its way!</h1>
+  <p style="font-size:16px;color:#000;margin-bottom:24px;">Hi ${firstName}, your payment was successful and your voucher will arrive in a separate email shortly.</p>
+  <p style="font-size:16px;color:#000;margin-bottom:16px;">We also created a Slasham account for you so you can manage all your vouchers in one place:</p>
+  <div style="border:1px solid #000;padding:24px;border-radius:12px;margin-bottom:32px;">
+    <p style="margin:0 0 8px;font-size:14px;"><strong>Email:</strong> ${email}</p>
+    <p style="margin:0;font-size:14px;"><strong>Temporary Password:</strong> <span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-weight:900;">${tempPassword}</span></p>
+  </div>
+  <p style="font-size:14px;color:#666;">Please change your password after logging in.</p>
+  <a href="${clientUrl}/login" style="display:inline-block;background:#000;color:#fff;padding:16px 32px;border-radius:12px;text-decoration:none;font-weight:900;font-size:14px;margin-top:16px;">Login to View Vouchers</a>
+`);

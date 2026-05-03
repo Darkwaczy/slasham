@@ -12,7 +12,8 @@ import {
   otpTemplate,
   merchantRejectionTemplate,
   merchantApplicationReceivedTemplate,
-  campaignStatusUpdateTemplate
+  campaignStatusUpdateTemplate,
+  guestWelcomeTemplate
 } from './emailTemplates';
 import { getEnv } from '../env';
 
@@ -159,5 +160,13 @@ export const sendCampaignStatusUpdate = async (email: string, merchantName: stri
     to: email,
     subject: `Campaign ${status}: ${campaignTitle}`,
     html: campaignStatusUpdateTemplate(merchantName, campaignTitle, status, notes, env.clientUrl)
+  });
+};
+
+export const sendGuestWelcome = async (email: string, firstName: string, tempPassword: string) => {
+  return sendEmail({
+    to: email,
+    subject: "Your Slasham Account Details",
+    html: guestWelcomeTemplate(firstName, email, tempPassword, env.clientUrl),
   });
 };
