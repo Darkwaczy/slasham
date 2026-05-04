@@ -437,7 +437,12 @@ router.post("/change-password", requireAuth, async (req, res) => {
     const authClient = getAuthClient();
     
     // 1. Verify current password by attempting a re-login
-    const { error: loginError } = await authClient.auth.signInWithPassword({
+    const env = getEnv();
+    const freshAuthClient = createClient(env.supabaseUrl!, env.supabaseAnonKey!, {
+      auth: { persistSession: false }
+    });
+
+    const { error: loginError } = await freshAuthClient.auth.signInWithPassword({
       email: req.user.email,
       password: currentPassword
     });

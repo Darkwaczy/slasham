@@ -319,6 +319,11 @@ router.post("/webhook", async (req, res) => {
     }
 
     const { reference } = event.data;
+    
+    // Diagnostic logs for Webhook debugging
+    console.log("WEBHOOK DEBUG: SUPABASE_SERVICE_ROLE_KEY exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log("WEBHOOK DEBUG: SUPABASE_SERVICE_ROLE_KEY prefix:", process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 15));
+
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("Database not configured");
 
@@ -361,6 +366,13 @@ router.get("/verify-callback", async (req, res) => {
 router.post("/verify/:reference", async (req, res) => {
   try {
     const { reference } = req.params;
+    const env = getEnv();
+    
+    // Diagnostic logs for Vercel debugging
+    console.log("DEBUG: SUPABASE_SERVICE_ROLE_KEY exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log("DEBUG: SUPABASE_SERVICE_ROLE_KEY prefix:", process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 15));
+    console.log("DEBUG: env.supabaseServiceRoleKey prefix:", env.supabaseServiceRoleKey?.slice(0, 15));
+
     const supabase = getSupabaseAdmin();
     if (!supabase) throw new Error("Database not configured");
 
