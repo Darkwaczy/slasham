@@ -2,12 +2,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, User, Mail, Phone, MapPin, CreditCard, Lock, Shield, RefreshCw, AlertCircle, ChevronRight } from "lucide-react";
 import { apiClient } from "../api/client";
-import { storage } from "../utils/storage";
 
 interface GuestCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPaymentReady: (userEmail: string) => void;
+  onPaymentReady: (user: any) => void;
   dealTitle: string;
   dealPrice: number;
   dealImage?: string;
@@ -59,12 +58,9 @@ export default function GuestCheckoutModal({
         }),
       });
 
-      // Save session so payment can proceed
-      storage.setItem("slasham_user", JSON.stringify(response.user));
-      storage.setItem("slasham_user_cached_at", Date.now().toString());
-
-      // Proceed to Paystack
-      onPaymentReady(form.email);
+      // Pass the newly created guest user to the parent component
+      // We do NOT save it to localStorage so the user remains a "guest" locally
+      onPaymentReady(response.user);
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {

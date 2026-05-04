@@ -19,6 +19,7 @@ interface PaystackCheckoutModalProps {
   onPaymentError: (error: string) => void;
   dealId: string;
   autoStart?: boolean;
+  guestUser?: any;
 }
 
 export default function PaystackCheckoutModal({
@@ -31,6 +32,7 @@ export default function PaystackCheckoutModal({
   onPaymentError,
   dealId,
   autoStart = false,
+  guestUser,
 }: PaystackCheckoutModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentInitiated, setPaymentInitiated] = useState(false);
@@ -61,14 +63,15 @@ export default function PaystackCheckoutModal({
     try {
       // Use apiClient to handle correct base URL and credentials
       const data = await apiClient.post("/payments/initiate", { 
-        deal_id: dealId 
+        deal_id: dealId,
+        guest_user_id: guestUser?.id
       });
 
       // Open Paystack checkout
       if (window.PaystackPop) {
         const handler = window.PaystackPop.setup({
           key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_cf2a375f12be9eff21e3bb3697a84b740821386e",
-          email: (() => {
+          email: guestUser?.email || (() => {
             try {
               const user = JSON.parse(localStorage.getItem("slasham_user") || "{}");
               return user.email || "";

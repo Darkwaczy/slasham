@@ -20,6 +20,7 @@ export default function DealDetail() {
   
   const [isBuying] = useState(false);
   const [isVerifyingRedirect, setIsVerifyingRedirect] = useState(false);
+  const [guestUser, setGuestUser] = useState<any>(null);
   const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -234,7 +235,8 @@ export default function DealDetail() {
     }
   }, []);
 
-  const handleGuestCheckoutSuccess = (_userEmail: string) => {
+  const handleGuestCheckoutSuccess = (user: any) => {
+    setGuestUser(user);
     setShowGuestCheckout(false);
     setPaystackAutoStart(true); // ✅ skip intermediate screen
     setShowPaystackModal(true);
@@ -730,6 +732,7 @@ export default function DealDetail() {
         onPaymentError={handlePaymentError}
         dealId={id || ""}
         autoStart={paystackAutoStart}
+        guestUser={guestUser}
       />
 
       {/* Write a Review Modal */}

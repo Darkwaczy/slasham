@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { randomInt, randomBytes } from "crypto";
+import { createClient } from "@supabase/supabase-js";
 import { getAuthClient, getSupabaseAdmin } from "../supabase";
 import { getEnv } from "../env";
 import { requireAuth } from "../middleware/auth";
@@ -270,13 +271,13 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const authClient = getAuthClient();
-    if (!authClient) {
-      console.error("Auth client not initialized - check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
-      return res.status(500).json({ error: "Authentication service unavailable" });
-    }
+    // ✅ CRITICAL SECURITY FIX: Create a fresh client instance just for authentication.
+    const env = getEnv();
+    const freshAuthClient = createClient(env.supabaseUrl!, env.supabaseAnonKey!, {
+      auth: { persistSession: false }
+    });
 
-    const { data, error } = await authClient.auth.signInWithPassword({
+    const { data, error } = await freshAuthClient.auth.signInWithPassword({
       email,
       password,
     });
@@ -537,11 +538,6 @@ router.post("/guest-checkout", async (req, res) => {
         city,
       }).eq("id", userId);
 
-      // ✅ Reset password so signInWithPassword works below
-      await supabase.auth.admin.updateUserById(userId, {
-        password: tempPassword,
-      });
-
     } else {
       isNewUser = true;
 
@@ -571,38 +567,6 @@ router.post("/guest-checkout", async (req, res) => {
       sendGuestWelcome(email, firstName, tempPassword).catch(
         (e: any) => console.error("Guest welcome email failed:", e)
       );
-    }
-
-    // 2. ✅ Sign in with password to get real session token
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: tempPassword,
-    });
-
-    if (signInError) throw new Error(`Session creation failed: ${signInError.message}`);
-
-    const accessToken = signInData.session?.access_token;
-    const refreshToken = signInData.session?.refresh_token;
-
-    // 3. Set session cookies
-    if (accessToken) {
-      res.cookie("slasham_session", accessToken, {
-        httpOnly: true,
-        secure: env.nodeEnv === "production",
-        sameSite: env.nodeEnv === "production" ? "none" : "lax",
-        maxAge: 24 * 60 * 60 * 1000,
-        path: "/",
-      });
-    }
-
-    if (refreshToken) {
-      res.cookie("slasham_refresh", refreshToken, {
-        httpOnly: true,
-        secure: env.nodeEnv === "production",
-        sameSite: env.nodeEnv === "production" ? "none" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/",
-      });
     }
 
     // 4. Get full user profile

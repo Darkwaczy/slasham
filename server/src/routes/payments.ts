@@ -20,9 +20,9 @@ const generateVoucherCode = () => {
 // POST /api/payments/initiate
 // Initialize a Paystack transaction for deal purchase
 // ────────────────────────────────────────────────────────────────────────────
-router.post("/initiate", requireAuth, async (req, res) => {
+router.post("/initiate", async (req, res) => {
   try {
-    const { deal_id } = req.body;
+    const { deal_id, guest_user_id } = req.body;
     const env = getEnv();
 
     if (!deal_id) {
@@ -55,11 +55,27 @@ router.post("/initiate", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Deal is sold out" });
     }
 
-    // 2. Fetch user details for payment
+    // 2. Determine target user ID (Guest or Logged In)
+    let targetUserId = guest_user_id;
+
+    if (!targetUserId) {
+      const token = req.cookies?.slasham_session;
+      if (!token) {
+        return res.status(401).json({ error: "Unauthorized: Please log in or use guest checkout" });
+      }
+      
+      const { data: authData, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authData.user) {
+        return res.status(401).json({ error: "Unauthorized: Invalid session" });
+      }
+      targetUserId = authData.user.id;
+    }
+
+    // 3. Fetch user details for payment
     const { data: user } = await supabase
       .from("users")
       .select("email, name")
-      .eq("id", req.user.id)
+      .eq("id", targetUserId)
       .single();
 
     if (!user) {
@@ -76,7 +92,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
       .insert({
-        user_id: req.user.id,
+        user_id: targetUserId,
         deal_id: deal_id,
         merchant_id: deal.merchants.id,
         amount: amountToCharge,
@@ -103,7 +119,7 @@ router.post("/initiate", requireAuth, async (req, res) => {
           reference,
           metadata: {
             deal_id: deal_id,
-            user_id: req.user.id,
+            user_id: targetUserId,
             payment_id: payment.id,
             merchant_id: deal.merchants.id,
           },
