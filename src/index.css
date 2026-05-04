@@ -180,9 +180,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-marquee-ltr {
-  animation: marquee-ltr 120s linear infinite;
+  animation: marquee-ltr 60s linear infinite;
   display: flex;
   width: max-content;
+  will-change: transform;
 }
 
 .animate-marquee-ltr:hover {
@@ -195,9 +196,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-marquee-rtl {
-  animation: marquee-rtl 120s linear infinite;
+  animation: marquee-rtl 60s linear infinite;
   display: flex;
   width: max-content;
+  will-change: transform;
 }
 
 .animate-marquee-rtl:hover {

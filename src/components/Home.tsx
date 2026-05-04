@@ -228,34 +228,35 @@ export default function Home() {
       </section>
 
       {/* 2. TRENDING DEALS TICKER */}
-      <section className="pt-6 pb-6 bg-slate-50 border-b border-slate-200/60 overflow-hidden relative shadow-inner">
-        <div className="max-w-7xl mx-auto px-6 mb-4 flex items-center justify-between">
+      <section className="pt-10 pb-12 bg-slate-50 border-b border-slate-200/60 overflow-hidden relative shadow-inner">
+        <div className="max-w-7xl mx-auto px-6 mb-8 flex items-center justify-between">
           <div className="flex items-center gap-2 text-red-600 font-black">
             <Timer size={14} className="animate-pulse" />
-            <span className="uppercase tracking-[0.2em] text-[9px]">Flash Sales Wrapping Up</span>
+            <span className="uppercase tracking-[0.2em] text-[10px]">Flash Sales Wrapping Up</span>
           </div>
           <Link to="/deals" className="text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors flex items-center gap-1 group">
             View All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="w-full overflow-hidden relative">
-          <div className="flex animate-marquee-ltr gap-4 px-6 w-max">
-            {filteredDeals.slice(0, 15).map((deal, index) => (
+        <div className="w-full relative">
+          <div className="flex animate-marquee-ltr gap-6 px-6 w-max">
+            {/* Duplicate the deals for a seamless loop */}
+            {[...filteredDeals.slice(0, 15), ...filteredDeals.slice(0, 15)].map((deal, index) => (
               <Link 
                 to={`/deal/${deal.id.toString().trim().replace(/\s+/g, '-')}`} 
                 key={`flash-${deal.id}-${index}`} 
-                className="w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex items-center p-2.5 gap-4 shadow-sm"
+                className="w-[280px] bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-red-300 hover:shadow-xl transition-all group shrink-0 flex items-center p-3 gap-5 shadow-sm"
               >
-                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-slate-100">
+                <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 relative bg-slate-100">
                   <img src={deal.image} alt={deal.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                 </div>
-                <div className="min-w-0 pr-2 pb-1">
-                   <p className="text-[7px] font-black text-red-500 uppercase tracking-widest mb-1">{deal.category}</p>
-                   <h3 className="text-[10px] font-black text-slate-900 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight">{deal.title}</h3>
-                   <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-red-600 font-black text-xs">{formatPrice(deal.price)}</span>
-                      <span className="text-[8px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
+                <div className="min-w-0 pr-2">
+                   <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">{deal.category}</p>
+                   <h3 className="text-[12px] font-black text-slate-900 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight">{deal.title}</h3>
+                   <div className="flex items-center gap-2 mt-2">
+                      <span className="text-red-600 font-black text-sm">{formatPrice(deal.price)}</span>
+                      <span className="text-[10px] text-slate-400 line-through font-bold">{formatPrice(deal.original)}</span>
                    </div>
                 </div>
               </Link>
