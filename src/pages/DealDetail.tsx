@@ -18,7 +18,7 @@ export default function DealDetail() {
   const [searchParams] = useSearchParams();
   const paymentReference = searchParams.get("reference");
   
-  const [isBuying, setIsBuying] = useState(false);
+  const [isBuying] = useState(false);
   const [isVerifyingRedirect, setIsVerifyingRedirect] = useState(false);
   const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
@@ -240,12 +240,12 @@ export default function DealDetail() {
     setShowPaystackModal(true);
   };
 
-  const handlePaymentSuccess = async (reference: string) => {
-    setIsBuying(true);
+  const handlePaymentSuccess = (reference: string) => {
     setShowPaystackModal(false);
+    setPaystackAutoStart(false);
     
-    // Navigate to success page with reference
-    navigate(`/payment/success?reference=${reference}&deal=${id}`);
+    // ✅ Redirect to success page
+    navigate(`/payment-success?ref=${reference}`);
   };
 
   const handlePaymentError = (error: string) => {

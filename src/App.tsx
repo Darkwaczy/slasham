@@ -125,7 +125,7 @@ export default function App() {
           <Route path="signup" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="merchant/login" element={<MerchantLogin />} />
           <Route path="admin/login" element={<AdminLogin />} />
           <Route path="/" element={<Layout />}>

@@ -342,7 +342,7 @@ router.get("/verify-callback", async (req, res) => {
 // POST /api/payments/verify/:reference
 // Verify payment status (client-side fallback after redirect)
 // ────────────────────────────────────────────────────────────────────────────
-router.post("/verify/:reference", requireAuth, async (req, res) => {
+router.post("/verify/:reference", async (req, res) => {
   try {
     const { reference } = req.params;
     const supabase = getSupabaseAdmin();
